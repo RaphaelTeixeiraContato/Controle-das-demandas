@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Demandas</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts & Phosphor Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Overlay de Login -->
+    <div id="loginOverlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--bg-primary); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+        <div style="background-color: var(--bg-main); padding: 40px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center; max-width: 400px; width: 90%;">
+            <i class="ph ph-lock-key" style="font-size: 48px; color: var(--active-purple); margin-bottom: 20px;"></i>
+            <h2 style="margin-bottom: 10px; color: var(--text-main);">Controle de Demandas</h2>
+            <p style="color: var(--text-sidebar); margin-bottom: 30px; font-size: 14px;">Faça login para acessar o sistema.</p>
+            
+            <button id="btnLoginGoogle" class="btn-submit" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; padding: 12px;">
+                <i class="ph ph-google-logo"></i>
+                Entrar com o Google
+            </button>
+            <p id="loginErrorMsg" style="color: var(--pill-red); margin-top: 20px; font-size: 14px; display: none;"></p>
+        </div>
+    </div>
+
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- Modal Excluir Múltiplas Demandas -->
+        <div class="modal-overlay" id="modalBulkExcluir">
+            <div class="modal-content modal-sm text-center">
+                <i class="ph ph-trash" style="font-size: 48px; color: #d32f2f; margin-bottom: 16px;"></i>
+                <h2 class="modal-title-center">Excluir Demandas</h2>
+                <p class="modal-text">Você tem certeza que quer excluir <strong id="bulkDeleteCountText">0</strong> demandas selecionadas?</p>
+                <div class="modal-footer-center">
+                    <button class="btn-cancel" id="btnCancelBulkDelete">Cancelar</button>
+                    <button class="btn-danger" id="btnConfirmBulkDelete">Excluir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Transferir Múltiplas Demandas -->
+        <div class="modal-overlay" id="modalBulkTransferir">
+            <div class="modal-content modal-sm">
+                <h2 class="modal-title-center">Transferir Demandas</h2>
+                <p class="modal-text text-center">Transferindo <strong id="bulkTransferCountText">0</strong> demandas.</p>
+                
+                <div class="form-group">
+                    <label>Data de encerramento geral:</label>
+                    <input type="date" id="inputBulkDataEncerramento" class="form-control" required>
+                </div>
+
+                <div class="form-group" id="groupBulkMotivoEncerramento" style="display: none;">
+                    <label>Motivo do encerramento (Aplicado a todas):</label>
+                    <textarea id="inputBulkMotivoEncerramento" class="form-control" rows="3" placeholder="Ex: Problema resolvido pelo suporte..."></textarea>
+                </div>
+
+                <div class="modal-footer-center" style="margin-top: 24px;">
+                    <button class="btn-cancel" id="btnCancelBulkTransfer">Cancelar</button>
+                    <button class="btn-submit" id="btnConfirmBulkTransfer">Transferir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scripts -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Navegação</h2>
+                <button class="icon-btn-transparent" id="btnToggleSidebar">
+                    <i class="ph ph-list"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="abertas">
+                    <i class="ph ph-list-dashes"></i>
+                    Demandas em aberto
+                </a>
+                <a href="#" class="nav-item" data-page="historico">
+                    <i class="ph ph-clock-counter-clockwise"></i>
+                    Histórico de demandas
+                </a>
+                <a href="#" class="nav-item" data-page="log">
+                    <i class="ph ph-arrows-left-right"></i>
+                    Histórico de movimentações
+                </a>
+                <a href="#" class="nav-item" data-page="controle">
+                    <i class="ph ph-file-text"></i>
+                    Controle
+                </a>
+                <a href="#" class="nav-item" data-page="acessos">
+                    <i class="ph ph-key"></i>
+                    Acessos
+                </a>
+                <a href="#" class="nav-item" data-page="ajuda">
+                    <i class="ph ph-star"></i>
+                    Guia
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header (Shared) -->
+            <header class="top-header">
+                <div class="header-title">
+                    <h1 id="pageTitle">Demandas em aberto</h1>
+                    <span class="count-badge" id="demandCount">(0)</span>
+                </div>
+                
+                <div class="header-actions" id="headerActionsDemandas">
+                    <div class="search-box">
+                        <input type="text" id="inputBuscar" placeholder="Buscar...">
+                    </div>
+                    <button class="icon-btn" id="btnReset" title="Reiniciar filtros"><i class="ph ph-arrows-clockwise"></i></button>
+                    <button class="icon-btn" id="btnExport" title="Exportar planilha"><i class="ph ph-download-simple"></i></button>
+                    <select class="filter-select" id="filterResponsavel">
+                        <option value="">Responsável (Todos)</option>
+                    </select>
+                    <select class="filter-select" id="filterMeio">
+                        <option value="">Meio (Todos)</option>
+                    </select>
+                    
+                    <div class="custom-date-filter" id="btnDateFilter">
+                        <i class="ph ph-calendar-blank"></i>
+                        <div class="date-filter-text">
+                            <span class="date-filter-label">Data de solicitação</span>
+                            <span class="date-filter-value" id="dateFilterValue">Período...</span>
+                        </div>
+                        <input type="text" id="filterDateRange" style="display: none;">
+                    </div>
+
+                    <button class="btn-primary" id="btnNovaDemanda">
+                        <i class="ph ph-plus"></i>
+                        Nova
+                    </button>
+                </div>
+                
+                <!-- Bulk Actions -->
+                <div class="bulk-actions" id="bulkActionsContainer" style="display: none;">
+                    <span style="font-size: 14px; font-weight: 500;"><span id="bulkSelectedCount">0</span> selecionados</span>
+                    <button class="btn-danger" id="btnBulkExcluir">
+                        <i class="ph ph-trash"></i> Excluir Selecionados
+                    </button>
+                    <button class="btn-primary" id="btnBulkTransferir">
+                        <i class="ph ph-arrows-left-right"></i> Transferir Selecionados
+                    </button>
+                </div>
+                <div class="header-actions" id="headerActionsAcessos" style="display: none;">
+                    <button class="btn-primary" id="btnNovoUsuario">
+                        <i class="ph ph-user-plus"></i>
+                        Novo Usuário
+                    </button>
+                </div>
+            </header>
+
+            <!-- Table Container: Demandas Abertas -->
+            <div class="table-container" id="viewAbertas">
+                <table class="demand-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; text-align: center;"><input type="checkbox" class="select-all-checkbox"></th>
+                            <th data-col="responsavel">Responsável <i class="ph ph-caret-up-down"></i></th>
+                            <th data-col="assessor">Assessor <i class="ph ph-caret-up-down"></i></th>
+                            <th data-col="cliente">Cliente <i class="ph ph-caret-up-down"></i></th>
+                            <th data-col="demanda">Demanda <i class="ph ph-caret-up-down"></i></th>
+                            <th data-col="meio">Meio <i class="ph ph-caret-up-down"></i></th>
+                            <th data-col="protocolo">Protocolo <i class="ph ph-caret-up-down"></i></th>
+                            <th data-col="comentarios">COMENTÁRIOS</th>
+                            <th data-col="comQuem">COM QUEM?</th>
+                            <th data-col="data">Data <i class="ph ph-caret-up-down"></i></th>
+                            <th>AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="demandTableBody">
+                        <!-- Linhas geradas via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table Container: Histórico -->
+            <div class="table-container" id="viewHistorico" style="display: none;">
+                <table class="demand-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; text-align: center;"><input type="checkbox" class="select-all-checkbox"></th>
+                            <th data-col="responsavel">Responsável <i class="ph ph-caret-up-down"></i></th>
+                            <th data-col="assessor">Assessor <i class="ph ph-caret-up-down"></i></th>
+                            <th data-col="cliente">Cliente <i class="ph ph-caret-up-down"></i></th>
+                            <th data-col="demanda">Demanda <i class="ph ph-caret-up-down"></i></th>
+                            <th data-col="meio">Meio <i class="ph ph-caret-up-down"></i></th>
+                            <th data-col="protocolo">Protocolo <i class="ph ph-caret-up-down"></i></th>
+                            <th data-col="comentarios">COMENTÁRIOS</th>
+                            <th data-col="data">Data <i class="ph ph-caret-up-down"></i></th>
+                            <th data-col="dataEncerramento">Data Enc. <i class="ph ph-caret-up-down"></i></th>
+                            <th>AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historicoTableBody">
+                        <!-- Linhas geradas via JS -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Container Controle -->
+            <div class="controle-container" id="viewControle" style="display: none; padding: 20px; padding-top: 60px;">
+                <div class="controle-grid">
+                    <!-- Responsável Card -->
+                    <div class="controle-card">
+                        <div class="controle-card-header">
+                            <h3>Responsáveis</h3>
+                        </div>
+                        <div class="controle-add" style="display: flex; gap: 8px; width: 100%;">
+                            <input type="text" id="inputNovoResponsavel" class="form-control" placeholder="Novo responsável...">
+                            <input type="color" id="colorNovoResponsavel" value="#8b5cf6" style="height: 40px; width: 50px; border: none; border-radius: 4px; cursor: pointer; background: transparent; padding: 0;">
+                            <button class="btn-submit" onclick="window.addControleItem('responsaveis')"><i class="ph ph-plus"></i></button>
+                        </div>
+                        <ul class="controle-list" id="listResponsavel"></ul>
+                    </div>
+                    <!-- Assessor Card -->
+                    <div class="controle-card">
+                        <div class="controle-card-header">
+                            <h3>Assessores</h3>
+                        </div>
+                        <div class="controle-add" style="display: flex; gap: 8px; width: 100%;">
+                            <input type="text" id="inputNovoAssessor" class="form-control" placeholder="Novo assessor...">
+                            <button class="btn-submit" onclick="window.addControleItem('assessores')" title="Adicionar um"><i class="ph ph-plus"></i></button>
+                            <button class="btn-secondary" onclick="window.openLoteAssessoresModal()" title="Adicionar em lote" style="padding: 0 10px;"><i class="ph ph-users"></i> Lote</button>
+                        </div>
+                        <ul class="controle-list" id="listAssessor"></ul>
+                    </div>
+                    <!-- Meio Card -->
+                    <div class="controle-card">
+                        <div class="controle-card-header">
+                            <h3>Meios de Contato</h3>
+                        </div>
+                        <div class="controle-add" style="display: flex; gap: 8px; width: 100%;">
+                            <input type="text" id="inputNovoMeio" class="form-control" placeholder="Novo meio...">
+                            <input type="color" id="colorNovoMeio" value="#4C1D95" style="height: 40px; width: 50px; border: none; border-radius: 4px; cursor: pointer; background: transparent; padding: 0;">
+                            <button class="btn-submit" onclick="window.addControleItem('meios')"><i class="ph ph-plus"></i></button>
+                        </div>
+                        <ul class="controle-list" id="listMeio"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Container Acessos -->
+            <div class="table-container" id="viewAcessos" style="display: none;">
+                <table class="demand-table">
+                    <thead>
+                        <tr>
+                            <th>NOME</th>
+                            <th>E-MAIL</th>
+                            <th>NÍVEL DE ACESSO</th>
+                            <th>AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="acessosTableBody">
+                        <!-- Linhas geradas via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Container Log de Ações -->
+            <div class="table-container" id="viewLog" style="display: none;">
+                <div class="header-actions" style="margin-bottom: 20px; padding: 0 20px; display: flex; justify-content: flex-end;">
+                    <button class="btn-danger" id="btnClearLogs">Limpar Histórico</button>
+                </div>
+                <table class="demand-table">
+                    <thead>
+                        <tr>
+                            <th>DATA / HORA</th>
+                            <th>USUÁRIO</th>
+                            <th>AÇÃO</th>
+                            <th>DETALHES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                        <!-- Linhas geradas via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Container Guia / XP -->
+            <div class="table-container" id="viewAjuda" style="display: none; padding-top: 15px;">
+                <div class="header-actions" style="margin-bottom: 20px; padding: 0 20px; display: flex; gap: 15px; align-items: center; width: 100%;">
+                    <div class="search-box" style="flex: 1;">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <input type="text" id="inputBuscarGuia" placeholder="Pesquisar...">
+                    </div>
+                    <select id="filterGuiaTipo" class="filter-select" style="width: 200px;">
+                        <option value="">Tipo (Todos)</option>
+                    </select>
+                    <button class="icon-btn" id="btnResetGuia" title="Reiniciar filtros">
+                        <i class="ph ph-arrows-clockwise"></i>
+                    </button>
+                    <button class="icon-btn" id="btnNovoGuia" title="Nova Guia" style="background-color: rgba(255, 255, 255, 0.1);">
+                        <i class="ph ph-plus"></i>
+                    </button>
+                </div>
+
+                <table class="demand-table">
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Tipo</th>
+                            <th>Autor</th>
+                            <th>Data de criação</th>
+                            <th>Última atualização</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="guiaTableBody">
+                        <!-- Linhas geradas via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal Nova/Editar Demanda -->
+    <div class="modal-overlay" id="modalNovaDemanda">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nova Demanda</h2>
+                <button class="close-modal" id="btnCloseModal"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <form id="formNovaDemanda">
+                <div class="form-row center-row">
+                    <div class="form-group">
+                        <label>Responsável</label>
+                        <select id="inputResponsavel" required>
+                            <option value="">Selecione</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Assessor</label>
+                        <select id="inputAssessor" required>
+                            <option value="">Selecione</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row center-row">
+                    <div class="form-group">
+                        <label>Cliente ou Prospect</label>
+                        <input type="text" id="inputCliente" placeholder="ID ou nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Protocolo</label>
+                        <input type="text" id="inputProtocolo" placeholder="Nº do protocolo">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label>Demanda *</label>
+                        <input type="text" id="inputDemanda" placeholder="Descrição da demanda" required>
+                    </div>
+                </div>
+
+                <div class="form-row center-row">
+                    <div class="form-group">
+                        <label>Meio</label>
+                        <select id="inputMeio">
+                            <option value="">Selecione</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Demanda com quem?</label>
+                        <select id="inputComQuem">
+                            <option value="">Selecione</option>
+                            <option value="XP">XP</option>
+                            <option value="Cliente">Cliente</option>
+                            <option value="Interno">Interno</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Data</label>
+                        <input type="date" id="inputData" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label>Comentários</label>
+                        <textarea id="inputComentarios" placeholder="Observações..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="btnCancelModal">Cancelar</button>
+                    <button type="submit" class="btn-submit">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Excluir -->
+    <div class="modal-overlay" id="modalExcluirDemanda">
+        <div class="modal-content modal-sm text-center">
+            <h3 class="modal-title-center" id="modalDeleteTitle">Excluir demanda</h3>
+            <p class="modal-text" id="modalDeleteText">Você tem certeza que quer deletar essa demanda?</p>
+            <div class="modal-footer-center">
+                <button type="button" class="btn-secondary" id="btnCancelDelete">Não</button>
+                <button type="button" class="btn-danger" id="btnConfirmDelete">Sim</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Transferir Demanda -->
+    <div class="modal-overlay" id="modalTransferirDemanda">
+        <div class="modal-content modal-sm text-center">
+            <h3 class="modal-title-center">Transferir para o Histórico</h3>
+            <p class="modal-text">Informe a data de encerramento desta demanda.</p>
+            <div class="form-row" id="transferFormRow" style="flex-direction: column; align-items: stretch; gap: 12px; margin-bottom: 24px; max-width: 280px; margin-left: auto; margin-right: auto;">
+                <div class="form-group" style="width: 100%; text-align: left;">
+                    <label>Data de Encerramento</label>
+                    <input type="date" id="inputDataEncerramento" required>
+                </div>
+                <div class="form-group" style="width: 100%; text-align: left;" id="groupMotivoEncerramento">
+                    <label>Motivo do Encerramento (opcional)</label>
+                    <textarea id="inputMotivoEncerramento" placeholder="Descreva o motivo..." rows="3" style="width: 100%; resize: vertical; border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; font-family: inherit;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer-center">
+                <button type="button" class="btn-secondary" id="btnCancelTransfer">Cancelar</button>
+                <button type="button" class="btn-submit" id="btnConfirmTransfer">Transferir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Opção Controle -->
+    <div class="modal-overlay" id="modalEditarOpcao">
+        <div class="modal-content modal-sm text-center">
+            <h3 class="modal-title-center">Editar Opção</h3>
+            <div class="form-row" style="flex-direction: column; align-items: stretch; gap: 12px; margin-bottom: 24px; max-width: 280px; margin-left: auto; margin-right: auto;">
+                <div class="form-group" style="width: 100%; text-align: left;">
+                    <label>Novo Nome</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="inputEditarOpcao" class="form-control" required>
+                        <input type="color" id="colorEditarOpcao" style="height: 40px; width: 50px; border: none; border-radius: 4px; cursor: pointer; background: transparent; padding: 0; display: none;">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer-center">
+                <button type="button" class="btn-secondary" id="btnCancelEditarOpcao">Cancelar</button>
+                <button type="button" class="btn-submit" id="btnConfirmEditarOpcao">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Novo/Editar Usuário -->
+    <div class="modal-overlay" id="modalUsuario">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalUsuarioTitle">Adicionar Usuário</h2>
+                <button class="close-modal" id="btnCloseModalUsuario"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <form id="formUsuario">
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label>Nome do Usuário</label>
+                        <input type="text" id="inputUsuarioNome" placeholder="Ex: João da Silva" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label>E-mail de Acesso</label>
+                        <input type="email" id="inputUsuarioEmail" placeholder="Ex: joao@empresa.com" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label>Nível de Acesso (Poderes)</label>
+                        <select id="inputUsuarioNivel" required>
+                            <option value="">Selecione o nível</option>
+                            <option value="Master">Master</option>
+                            <option value="Editor">Editor</option>
+                            <option value="Visualizador">Visualizador</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="btnCancelModalUsuario">Cancelar</button>
+                    <button type="submit" class="btn-submit">Salvar Usuário</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Assessores em Lote -->
+    <div class="modal-overlay" id="modalLoteAssessores">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Adicionar Assessores em Lote</h2>
+                <button class="close-modal" id="btnCloseLoteAssessores"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <form id="formLoteAssessores">
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label>Cole a lista de assessores (um por linha)</label>
+                        <textarea id="inputListaAssessores" rows="10" placeholder="Exemplo:&#10;João Silva&#10;Maria Souza&#10;Carlos Oliveira..." required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background-color: rgba(255, 255, 255, 0.05); color: #fff; outline: none; resize: vertical; font-family: inherit; font-size: 14px;"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="btnCancelLoteAssessores">Cancelar</button>
+                    <button type="submit" class="btn-submit">Importar Nomes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nova Guia -->
+    <div class="modal-overlay" id="modalNovaGuia">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header" style="justify-content: center; position: relative;">
+                <h2 id="modalNovaGuiaTitle" style="text-align: center; width: 100%; margin: 0; font-size: 24px;">Criar nova guia</h2>
+                <button class="close-modal" id="btnCloseGuia" style="position: absolute; right: 0; top: 0;"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <form id="formNovaGuia">
+                <div class="form-row" style="margin-top: 15px; margin-bottom: 25px;">
+                    <div style="display: flex; gap: 15px; width: 100%; justify-content: center; padding: 0 40px;">
+                        <button type="button" class="btn-toggle active" id="btnToggleCaminho">Caminho</button>
+                        <button type="button" class="btn-toggle" id="btnToggleTipo">Tipo</button>
+                        <input type="hidden" id="inputGuiaTipoForm" value="caminho">
+                    </div>
+                </div>
+
+                <div id="formSectionCaminho">
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label>Título / Nome</label>
+                            <input type="text" id="inputGuiaTitulo" placeholder="" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label>Tipo</label>
+                            <select id="inputGuiaTipoSelect">
+                                <option value="">Selecione o Tipo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label>Descrição</label>
+                            <textarea id="inputGuiaConteudo" rows="4" placeholder=""></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row" style="display: none;">
+                        <div class="form-group full-width">
+                            <label>Campo para anexos</label>
+                            <input type="text" id="inputGuiaAnexo" placeholder="Cole aqui os links ou referências dos anexos...">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="formSectionTipo" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label>Título / Nome</label>
+                            <input type="text" id="inputGuiaNomeTipo" placeholder="">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="justify-content: space-between; margin-top: 30px;">
+                    <button type="button" class="btn-secondary" id="btnCancelGuia" style="width: 45%;">Cancelar</button>
+                    <button type="submit" class="btn-submit" style="width: 45%;">Criar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <!-- Modal Visualizar Guia -->
+    <div class="modal-overlay" id="modalViewGuia">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header" style="justify-content: center; border-bottom: none; padding-bottom: 0;">
+                <h2 id="viewGuiaTitulo" style="text-align: center; width: 100%; margin: 0; font-size: 24px;">Nome do guia</h2>
+            </div>
+            
+            <div style="padding: 20px;">
+                <div class="form-group full-width" style="margin-bottom: 20px;">
+                    <label style="text-align: center; width: 100%; display: block;">Descrição</label>
+                    <div style="background-color: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-size: 15px; line-height: 1.6; min-height: 150px; max-height: 400px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); word-break: break-word;" id="viewGuiaConteudo">
+                    </div>
+                </div>
+                
+                <div class="form-group full-width" style="margin-bottom: 30px; display: none;">
+                    <label style="text-align: center; width: 100%; display: block;">Anexos</label>
+                    <div id="viewGuiaAnexo" style="background-color: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; min-height: 60px; max-height: 200px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); word-break: break-word;">
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: center;">
+                    <button type="button" class="btn-secondary" id="btnCloseViewGuia" style="width: 200px;">Voltar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="script.js?v=2"></script>
+</body>
+</html>

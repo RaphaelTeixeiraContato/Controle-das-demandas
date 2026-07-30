@@ -870,11 +870,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const collectionName = currentPage === 'abertas' ? 'demandas' : 'historico';
             
-            const chunkSize = 50;
+            const chunkSize = 10;
             for (let i = 0; i < selectedIds.length; i += chunkSize) {
                 const chunk = selectedIds.slice(i, i + chunkSize);
                 const { error: _errBulk } = 
-            const chunkSize = 50;
+            const chunkSize = 10;
             for (let i = 0; i < chunk.length; i += chunkSize) {
                 const chunk = chunk.slice(i, i + chunkSize);
                 const { error: _errBulkX } = await supabaseClient.from(collectionName).delete().in('id', chunk);
@@ -963,11 +963,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (historicoItems.length > 0) {
                     await supabaseClient.from("historico").insert(historicoItems);
                     
-                    const chunkSize = 50;
+                    const chunkSize = 10;
                     for (let i = 0; i < idsToDelete.length; i += chunkSize) {
                         const chunk = idsToDelete.slice(i, i + chunkSize);
                         const { error: _errT1 } = 
-            const chunkSize = 50;
+            const chunkSize = 10;
             for (let i = 0; i < chunk.length; i += chunkSize) {
                 const chunk = chunk.slice(i, i + chunkSize);
                 const { error: _errBulkX } = await supabaseClient.from("demandas").delete().in("id", chunk);
@@ -1002,11 +1002,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (demandaItems.length > 0) {
                     await supabaseClient.from("demandas").insert(demandaItems);
                     
-                    const chunkSize = 50;
+                    const chunkSize = 10;
                     for (let i = 0; i < idsToDelete.length; i += chunkSize) {
                         const chunk = idsToDelete.slice(i, i + chunkSize);
                         const { error: _errT2 } = 
-            const chunkSize = 50;
+            const chunkSize = 10;
             for (let i = 0; i < chunk.length; i += chunkSize) {
                 const chunk = chunk.slice(i, i + chunkSize);
                 const { error: _errBulkX } = await supabaseClient.from("historico").delete().in("id", chunk);
@@ -1962,7 +1962,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnClearLogs.addEventListener('click', async () => {
             if (confirm("Tem certeza que deseja limpar todo o histórico de movimentações? Esta ação não pode ser desfeita.")) {
                 try {
-                    const { error: _err9 } = await supabaseClient.from("logs").delete().neq("id", "0");
+                    const { error: _err9 } = await supabaseClient.from("logs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
                 if (_err9) throw _err9;
                     showToast("Histórico limpo com sucesso!", "success");
                 } catch(err) {

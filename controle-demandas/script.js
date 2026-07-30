@@ -2301,3 +2301,21 @@ window.openEditControleModal = (type, index) => {
     // Wait, the original function is defined as window.openEditControleModal = (type, index) => { ... }
     // We can't easily hook it if it's already running. Let's just patch the original function.
 };
+
+
+// Modal Gerenciar Tipos Guia
+document.addEventListener('DOMContentLoaded', () => {
+    const btnGerenciarTiposGuia = document.getElementById('btnGerenciarTiposGuia');
+    const modalGerenciarTipos = document.getElementById('modalGerenciarTipos');
+    const closeModalGerenciarTipos = document.getElementById('closeModalGerenciarTipos');
+
+    if (btnGerenciarTiposGuia && modalGerenciarTipos) {
+        btnGerenciarTiposGuia.addEventListener('click', () => {
+            modalGerenciarTipos.classList.add('active');
+        });
+
+        closeModalGerenciarTipos.addEventListener('click', () => {
+            modalGerenciarTipos.classList.remove('active');
+        });
+    }
+});

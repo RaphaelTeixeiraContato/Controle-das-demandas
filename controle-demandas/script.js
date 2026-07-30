@@ -162,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             fetchUsuarios();
             
-                        let usuariosSyncInit = false;
             const initUsuariosSync = () => {
                 if (usuariosSyncInit) return;
                 usuariosSyncInit = true;
@@ -313,6 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentPage = page;
             const headerActionsDemandas = document.getElementById('headerActionsDemandas');
             const headerActionsAcessos = document.getElementById('headerActionsAcessos');
+            const headerActionsGuias = document.getElementById('headerActionsGuias');
 
             if (page === 'abertas') {
                 viewAbertas.style.display = 'block';
@@ -323,6 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewAjuda').style.display = 'none';
                 headerActionsDemandas.style.display = 'flex';
                 headerActionsAcessos.style.display = 'none';
+                if (headerActionsGuias) headerActionsGuias.style.display = 'none';
                 pageTitle.textContent = 'Demandas em aberto';
                 countBadge.style.display = 'inline-block';
                 btnNova.style.display = 'flex';
@@ -335,6 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewAjuda').style.display = 'none';
                 headerActionsDemandas.style.display = 'flex';
                 headerActionsAcessos.style.display = 'none';
+                if (headerActionsGuias) headerActionsGuias.style.display = 'none';
                 pageTitle.textContent = 'Histórico de demandas';
                 countBadge.style.display = 'inline-block';
                 btnNova.style.display = 'none'; // Não adiciona no histórico diretamente
@@ -381,6 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewAjuda').style.display = 'block';
                 headerActionsDemandas.style.display = 'none';
                 headerActionsAcessos.style.display = 'none';
+                if (headerActionsGuias) headerActionsGuias.style.display = 'flex';
                 pageTitle.textContent = 'Guia';
                 countBadge.style.display = 'none';
                 btnNova.style.display = 'none';

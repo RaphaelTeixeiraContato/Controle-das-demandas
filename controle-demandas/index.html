@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Demandas</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=7">
     <!-- Google Fonts & Phosphor Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,6 +18,8 @@
     
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="script.js?v=7" defer></script>
 </head>
 <body>
     <!-- Overlay de Login -->
@@ -160,6 +163,21 @@
                         Novo Usuário
                     </button>
                 </div>
+                <div class="header-actions" id="headerActionsGuias" style="display: none;">
+                    <div class="search-box">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <input type="text" id="inputBuscarGuia" placeholder="Pesquisar...">
+                    </div>
+                    <select id="filterGuiaTipo" class="filter-select" style="width: 200px;">
+                        <option value="">Tipo (Todos)</option>
+                    </select>
+                    <button class="icon-btn" id="btnResetGuia" title="Reiniciar filtros">
+                        <i class="ph ph-arrows-clockwise"></i>
+                    </button>
+                    <button class="btn-primary" id="btnNovoGuia">
+                        <i class="ph ph-plus"></i> Nova Guia/Tipo
+                    </button>
+                </div>
             </header>
 
             <!-- Table Container: Demandas Abertas -->
@@ -291,21 +309,7 @@
 
             <!-- Container Guia / XP -->
             <div class="table-container" id="viewAjuda" style="display: none; padding-top: 15px;">
-                <div class="header-actions" style="margin-bottom: 20px; padding: 0 20px; display: flex; gap: 15px; align-items: center; width: 100%;">
-                    <div class="search-box" style="flex: 1;">
-                        <i class="ph ph-magnifying-glass"></i>
-                        <input type="text" id="inputBuscarGuia" placeholder="Pesquisar...">
-                    </div>
-                    <select id="filterGuiaTipo" class="filter-select" style="width: 200px;">
-                        <option value="">Tipo (Todos)</option>
-                    </select>
-                    <button class="icon-btn" id="btnResetGuia" title="Reiniciar filtros">
-                        <i class="ph ph-arrows-clockwise"></i>
-                    </button>
-                    <button class="btn-primary" id="btnNovoGuia">
-                        <i class="ph ph-plus"></i> Nova Guia/Tipo
-                    </button>
-                </div>
+
 
                 <table class="demand-table">
                     <thead>

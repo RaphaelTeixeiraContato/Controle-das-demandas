@@ -1513,14 +1513,19 @@ const filterDateRange = document.getElementById('filterDateRange');
         editControleParams = { type, index };
         const item = configuracoes[type][index];
         const colorInput = document.getElementById('colorEditarOpcao');
+        const pickrContainer = document.getElementById('pickrEditarOpcao');
         
         inputEditarOpcao.value = type === 'assessores' ? item : item.nome;
         
-        if (type === 'assessores') {
-            colorInput.style.display = 'none';
+        if (type === 'assessores' || type === 'guiaTipos') {
+            if (pickrContainer) pickrContainer.style.display = 'none';
         } else {
-            colorInput.style.display = 'block';
-            colorInput.value = item.cor || '#8b5cf6';
+            if (pickrContainer) pickrContainer.style.display = 'block';
+            const colorToSet = item.cor || '#8b5cf6';
+            colorInput.value = colorToSet;
+            if (window.pickrEditarOpcao) {
+                window.pickrEditarOpcao.setColor(colorToSet);
+            }
         }
         
         modalEditarOpcao.classList.add('active');
@@ -2221,3 +2226,72 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// Initialize Pickr
+document.addEventListener('DOMContentLoaded', () => {
+    const pickrConfig = {
+        theme: 'nano',
+        swatches: [
+            '#ef4444', '#10b981', '#f59e0b', '#3b82f6', '#ec4899', '#8b5cf6', '#4C1D95'
+        ],
+        components: {
+            preview: true,
+            opacity: false,
+            hue: true,
+            interaction: {
+                hex: true,
+                input: true,
+                save: true
+            }
+        },
+        i18n: {
+            'btn:save': 'Salvar'
+        }
+    };
+
+    if (document.getElementById('pickrNovoResponsavel')) {
+        const pickrResp = Pickr.create({
+            el: '#pickrNovoResponsavel',
+            default: '#8b5cf6',
+            ...pickrConfig
+        });
+        pickrResp.on('save', (color) => {
+            document.getElementById('colorNovoResponsavel').value = color.toHEXA().toString();
+            pickrResp.hide();
+        });
+    }
+
+    if (document.getElementById('pickrNovoMeio')) {
+        const pickrMeio = Pickr.create({
+            el: '#pickrNovoMeio',
+            default: '#4C1D95',
+            ...pickrConfig
+        });
+        pickrMeio.on('save', (color) => {
+            document.getElementById('colorNovoMeio').value = color.toHEXA().toString();
+            pickrMeio.hide();
+        });
+    }
+
+    if (document.getElementById('pickrEditarOpcao')) {
+        window.pickrEditarOpcao = Pickr.create({
+            el: '#pickrEditarOpcao',
+            default: '#8b5cf6',
+            ...pickrConfig
+        });
+        window.pickrEditarOpcao.on('save', (color) => {
+            document.getElementById('colorEditarOpcao').value = color.toHEXA().toString();
+            window.pickrEditarOpcao.hide();
+        });
+    }
+});
+
+// We need to update pickrEditarOpcao when editing an option
+// In window.openEditControleModal, we will set the pickr color
+const oldOpenEdit = window.openEditControleModal;
+window.openEditControleModal = (type, index) => {
+    // This hook allows us to intercept the call and update the pickr UI
+    // But since oldOpenEdit is redefined, we must just let it run and then update Pickr.
+    // Wait, the original function is defined as window.openEditControleModal = (type, index) => { ... }
+    // We can't easily hook it if it's already running. Let's just patch the original function.
+};

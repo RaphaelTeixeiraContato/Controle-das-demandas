@@ -20,6 +20,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="script.js?v=8" defer></script>
+
+    <!-- Pickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
 </head>
 <body>
     <!-- Overlay de Login -->
@@ -241,19 +245,7 @@
                         </div>
                         <div class="controle-add" style="display: flex; gap: 8px; width: 100%;">
                             <input type="text" id="inputNovoResponsavel" class="form-control" placeholder="Novo responsável...">
-                            <div class="custom-color-picker" data-target="colorNovoResponsavel">
-                            <input type="hidden" id="colorNovoResponsavel" value="#8b5cf6">
-                            <div class="color-swatches">
-                                <div class="color-swatch active" style="background-color: #8b5cf6;" data-color="#8b5cf6"></div>
-                                <div class="color-swatch" style="background-color: #ef4444;" data-color="#ef4444"></div>
-                                <div class="color-swatch" style="background-color: #10b981;" data-color="#10b981"></div>
-                                <div class="color-swatch" style="background-color: #f59e0b;" data-color="#f59e0b"></div>
-                                <div class="color-swatch" style="background-color: #3b82f6;" data-color="#3b82f6"></div>
-                                <div class="color-swatch" style="background-color: #ec4899;" data-color="#ec4899"></div>
-                                <div class="color-swatch custom-swatch" title="Cor Personalizada">
-                                    <input type="color" class="hidden-color-input" value="#8b5cf6">
-                                </div>
-                            </div>
+                            <div class="pickr-container" id="pickrNovoResponsavel"></div><input type="hidden" id="colorNovoResponsavel" value="#8b5cf6">
                         </div>
                             <button class="btn-submit" onclick="window.addControleItem('responsaveis')"><i class="ph ph-plus"></i></button>
                         </div>
@@ -278,19 +270,7 @@
                         </div>
                         <div class="controle-add" style="display: flex; gap: 8px; width: 100%;">
                             <input type="text" id="inputNovoMeio" class="form-control" placeholder="Novo meio...">
-                            <div class="custom-color-picker" data-target="colorNovoMeio">
-                            <input type="hidden" id="colorNovoMeio" value="#4C1D95">
-                            <div class="color-swatches">
-                                <div class="color-swatch active" style="background-color: #4C1D95;" data-color="#4C1D95"></div>
-                                <div class="color-swatch" style="background-color: #ef4444;" data-color="#ef4444"></div>
-                                <div class="color-swatch" style="background-color: #10b981;" data-color="#10b981"></div>
-                                <div class="color-swatch" style="background-color: #f59e0b;" data-color="#f59e0b"></div>
-                                <div class="color-swatch" style="background-color: #3b82f6;" data-color="#3b82f6"></div>
-                                <div class="color-swatch" style="background-color: #ec4899;" data-color="#ec4899"></div>
-                                <div class="color-swatch custom-swatch" title="Cor Personalizada">
-                                    <input type="color" class="hidden-color-input" value="#4C1D95">
-                                </div>
-                            </div>
+                            <div class="pickr-container" id="pickrNovoMeio"></div><input type="hidden" id="colorNovoMeio" value="#4C1D95">
                         </div>
                             <button class="btn-submit" onclick="window.addControleItem('meios')"><i class="ph ph-plus"></i></button>
                         </div>
@@ -507,19 +487,7 @@
                     <label>Novo Nome</label>
                     <div style="display: flex; gap: 8px;">
                         <input type="text" id="inputEditarOpcao" class="form-control" required>
-                        <div class="custom-color-picker" data-target="colorEditarOpcao">
-                            <input type="hidden" id="colorEditarOpcao" value="#8b5cf6">
-                            <div class="color-swatches">
-                                <div class="color-swatch active" style="background-color: #8b5cf6;" data-color="#8b5cf6"></div>
-                                <div class="color-swatch" style="background-color: #ef4444;" data-color="#ef4444"></div>
-                                <div class="color-swatch" style="background-color: #10b981;" data-color="#10b981"></div>
-                                <div class="color-swatch" style="background-color: #f59e0b;" data-color="#f59e0b"></div>
-                                <div class="color-swatch" style="background-color: #3b82f6;" data-color="#3b82f6"></div>
-                                <div class="color-swatch" style="background-color: #ec4899;" data-color="#ec4899"></div>
-                                <div class="color-swatch custom-swatch" title="Cor Personalizada">
-                                    <input type="color" class="hidden-color-input" value="#8b5cf6">
-                                </div>
-                            </div>
+                        <div class="pickr-container" id="pickrEditarOpcao"></div><input type="hidden" id="colorEditarOpcao" value="#8b5cf6">
                         </div>
                     </div>
                 </div>

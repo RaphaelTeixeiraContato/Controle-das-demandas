@@ -352,6 +352,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewAjuda').style.display = 'none';
                 headerActionsDemandas.style.display = 'none';
                 headerActionsAcessos.style.display = 'none';
+                if (headerActionsGuias) headerActionsGuias.style.display = 'none';
+                if (headerTitleContainer) headerTitleContainer.style.display = 'flex';
                 pageTitle.textContent = '';
                 countBadge.style.display = 'none';
                 btnNova.style.display = 'none';
@@ -364,6 +366,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewAjuda').style.display = 'none';
                 headerActionsDemandas.style.display = 'none';
                 headerActionsAcessos.style.display = 'flex';
+                if (headerActionsGuias) headerActionsGuias.style.display = 'none';
+                if (headerTitleContainer) headerTitleContainer.style.display = 'flex';
                 pageTitle.textContent = 'Gerenciar Acessos';
                 countBadge.style.display = 'none';
             } else if (page === 'log') {
@@ -375,6 +379,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewAjuda').style.display = 'none';
                 headerActionsDemandas.style.display = 'none';
                 headerActionsAcessos.style.display = 'none';
+                if (headerActionsGuias) headerActionsGuias.style.display = 'none';
+                if (headerTitleContainer) headerTitleContainer.style.display = 'flex';
                 pageTitle.textContent = 'Histórico de Movimentações';
                 countBadge.style.display = 'none';
             } else if (page === 'ajuda') {

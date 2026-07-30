@@ -1,7 +1,7 @@
 // Inicializar Supabase
 const supabaseUrl = 'https://jjclbgfcyilelaonlinz.supabase.co';
 const supabaseKey = 'sb_publishable_gZil1XA4TyqvEu4HGEIYow_NIFWqhPC';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 let loggedUser = null;
 let userAccessLevel = null;
 
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnLoginGoogle.addEventListener('click', async () => {
             try {
                 loginErrorMsg.style.display = 'none';
-                await supabase.auth.signInWithOAuth({ provider: 'google' });
+                await supabaseClient.auth.signInWithOAuth({ provider: 'google' });
             } catch (error) {
                 console.error("Erro no login:", error);
                 loginErrorMsg.textContent = "Erro ao fazer login: " + error.message;
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    supabase.auth.onAuthStateChange(async (event, session) => {
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
         const user = session?.user;
         if (user) {
             // Transform user.email and name for backward compatibility
@@ -122,12 +122,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Fetch usuarios and subscribe
             const fetchUsuarios = async () => {
-                const { data } = await supabase.from('usuarios').select('*');
+                const { data } = await supabaseClient.from('usuarios').select('*');
                 if (data) usuarios = data;
                 
                 if (usuarios.length === 0) {
                     // Primeiro usuário a logar no sistema vira Master
-                    await supabase.from('usuarios').insert([{
+                    await supabaseClient.from('usuarios').insert([{
                         nome: user.displayName,
                         email: user.email,
                         nivel: "Master"
@@ -150,13 +150,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     loginErrorMsg.textContent = "Você não tem permissão para acessar o sistema. E-mail logado: " + user.email;
                     loginErrorMsg.style.display = 'block';
-                    supabase.auth.signOut();
+                    supabaseClient.auth.signOut();
                 }
             };
             
             fetchUsuarios();
             
-            supabase.channel('usuarios_channel')
+            supabaseClient.channel('usuarios_channel')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'usuarios' }, fetchUsuarios)
                 .subscribe();
                 
@@ -174,27 +174,27 @@ document.addEventListener('DOMContentLoaded', () => {
         syncInitialized = true;
 
         const fetchDemandas = async () => {
-            const { data } = await supabase.from('demandas').select('*');
+            const { data } = await supabaseClient.from('demandas').select('*');
             if (data) { demandas = data; renderTables(); }
         };
         const fetchHistorico = async () => {
-            const { data } = await supabase.from('historico').select('*');
+            const { data } = await supabaseClient.from('historico').select('*');
             if (data) { historico = data; renderTables(); }
         };
         const fetchLogs = async () => {
-            const { data } = await supabase.from('logs').select('*');
+            const { data } = await supabaseClient.from('logs').select('*');
             if (data) {
                 logsAcoes = data.sort((a, b) => b.timestamp - a.timestamp);
                 renderLogs();
             }
         };
         const fetchConfiguracoes = async () => {
-            const { data } = await supabase.from('configuracoes').select('*').eq('id', 'geral').single();
+            const { data } = await supabaseClient.from('configuracoes').select('*').eq('id', 'geral').single();
             if (data && data.dados) {
                 configuracoes = data.dados;
             } else {
                 configuracoes = { responsaveis: [], assessores: [], meios: [], guiaTipos: [] };
-                await supabase.from('configuracoes').upsert([{ id: 'geral', dados: configuracoes }]);
+                await supabaseClient.from('configuracoes').upsert([{ id: 'geral', dados: configuracoes }]);
             }
             renderControleLists();
             renderSelectOptions();
@@ -207,10 +207,10 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchLogs();
         fetchConfiguracoes();
 
-        supabase.channel('demandas_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'demandas' }, fetchDemandas).subscribe();
-        supabase.channel('historico_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'historico' }, fetchHistorico).subscribe();
-        supabase.channel('logs_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'logs' }, fetchLogs).subscribe();
-        supabase.channel('configuracoes_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'configuracoes' }, fetchConfiguracoes).subscribe();
+        supabaseClient.channel('demandas_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'demandas' }, fetchDemandas).subscribe();
+        supabaseClient.channel('historico_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'historico' }, fetchHistorico).subscribe();
+        supabaseClient.channel('logs_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'logs' }, fetchLogs).subscribe();
+        supabaseClient.channel('configuracoes_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'configuracoes' }, fetchConfiguracoes).subscribe();
     };
 
     // Função helper para obter data e hora atual formatada
@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
             detalhes: detalhes
         };
         try {
-            await supabase.from('logs').insert([novoLog]);
+            await supabaseClient.from('logs').insert([novoLog]);
         } catch (e) {
             console.error("Erro ao registrar log", e);
         }
@@ -474,7 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     collectionName = 'historico';
                 }
                 
-                await supabase.from(collectionName).delete().eq("id", String(actionId));
+                await supabaseClient.from(collectionName).delete().eq("id", String(actionId));
                 
                 if (demandaDeletada) {
                     registrarLog('Excluiu Demanda', `Demanda "${demandaDeletada.demanda}" do cliente ${demandaDeletada.cliente} foi excluída.`);
@@ -492,20 +492,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 configuracoes[typeArray].splice(index, 1);
-                await supabase.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
+                await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
                 
                 registrarLog('Excluiu Opção de Controle', `A opção "${valorRemovido}" foi removida de ${typeArray}.`);
             } else if (deleteType === 'usuario' && actionId) {
                 const usuarioRemovido = usuarios.find(u => u.id === actionId);
                 
-                await supabase.from("usuarios").delete().eq("id", String(actionId));
+                await supabaseClient.from("usuarios").delete().eq("id", String(actionId));
                 
                 if (usuarioRemovido) {
                     registrarLog('Excluiu Usuário', `O usuário ${usuarioRemovido.nome} (${usuarioRemovido.email}) foi excluído.`);
                 }
             } else if (deleteType === 'guia' && actionId) {
                 const guiaRemovida = guias.find(g => g.id === actionId);
-                await supabase.from("guias").delete().eq("id", String(actionId));
+                await supabaseClient.from("guias").delete().eq("id", String(actionId));
                 if (guiaRemovida) {
                     registrarLog('Deletou Guia', `Guia: ${guiaRemovida.titulo}`);
                     showToast("Guia deletada com sucesso!", "success");
@@ -568,8 +568,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             demandaTransferida.comentarios = motivo;
                         }
                         
-                        await supabase.from("historico").insert([demandaTransferida]);
-                        await supabase.from("demandas").delete().eq("id", String(actionId));
+                        await supabaseClient.from("historico").insert([demandaTransferida]);
+                        await supabaseClient.from("demandas").delete().eq("id", String(actionId));
                         
                         registrarLog('Transferiu Demanda (Histórico)', `Demanda "${demanda.demanda}" do cliente ${demanda.cliente} encerrada. Motivo: ${motivo || 'Nenhum'}`);
                     }
@@ -580,8 +580,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         delete demandaRetornada.id;
                         delete demandaRetornada.dataEncerramento;
                         
-                        await supabase.from("demandas").insert([demandaRetornada]);
-                        await supabase.from("historico").delete().eq("id", String(actionId));
+                        await supabaseClient.from("demandas").insert([demandaRetornada]);
+                        await supabaseClient.from("historico").delete().eq("id", String(actionId));
                         
                         registrarLog('Retornou Demanda (Abertas)', `Demanda "${demanda.demanda}" do cliente ${demanda.cliente} retornada para as demandas em aberto.`);
                     }
@@ -859,7 +859,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const collectionName = currentPage === 'abertas' ? 'demandas' : 'historico';
-            await supabase.from(collectionName).delete().in('id', selectedIds);
+            await supabaseClient.from(collectionName).delete().in('id', selectedIds);
             
             registrarLog('Excluiu Demandas em Lote', `Excluiu ${selectedIds.length} demandas da aba ${collectionName}.`);
             
@@ -937,8 +937,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
                 if (historicoItems.length > 0) {
-                    await supabase.from("historico").insert(historicoItems);
-                    await supabase.from("demandas").delete().in("id", idsToDelete);
+                    await supabaseClient.from("historico").insert(historicoItems);
+                    await supabaseClient.from("demandas").delete().in("id", idsToDelete);
                 }
                 registrarLog('Transferiu Demandas em Lote', `Transferiu ${selectedIds.length} demandas para o histórico.`);
             } else {
@@ -962,8 +962,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
                 if (demandaItems.length > 0) {
-                    await supabase.from("demandas").insert(demandaItems);
-                    await supabase.from("historico").delete().in("id", idsToDelete);
+                    await supabaseClient.from("demandas").insert(demandaItems);
+                    await supabaseClient.from("historico").delete().in("id", idsToDelete);
                 }
                 registrarLog('Retornou Demandas em Lote', `Retornou ${selectedIds.length} demandas para Abertas.`);
             }
@@ -1182,10 +1182,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (editingId) {
                 const collectionName = currentPage === 'abertas' ? "demandas" : "historico";
-                await supabase.from(collectionName).update(dadosFormulario).eq("id", String(editingId));
+                await supabaseClient.from(collectionName).update(dadosFormulario).eq("id", String(editingId));
                 registrarLog('Editou Demanda', `Demanda "${dadosFormulario.demanda}" do cliente ${dadosFormulario.cliente} foi editada.`);
             } else {
-                await supabase.from("demandas").insert([dadosFormulario]);
+                await supabaseClient.from("demandas").insert([dadosFormulario]);
                 registrarLog('Criou Demanda', `Nova demanda "${dadosFormulario.demanda}" criada para o cliente ${dadosFormulario.cliente}.`);
             }
             closeModal();
@@ -1285,7 +1285,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 try {
-                    await supabase.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
+                    await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
                     registrarLog('Adicionou Opção de Controle', `A opção "${val}" foi adicionada a ${type}.`);
                     input.value = '';
                 } catch (e) {
@@ -1344,7 +1344,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (adicionados > 0) {
                 configuracoes.assessores.sort();
                 try {
-                    await supabase.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
+                    await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
                     registrarLog('Adicionou Assessores em Lote', `Foram adicionados ${adicionados} novos assessores.`);
                     closeLoteAssessoresModal();
                 } catch (error) {
@@ -1409,7 +1409,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                     try {
-                        await supabase.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
+                        await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
                         registrarLog('Editou Opção de Controle', `A opção "${val}" foi editada em ${type}.`);
                         closeEditControleModal();
                     } catch (e) {
@@ -1518,10 +1518,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             if (editingUsuarioId) {
-                await supabase.from("usuarios").update(userData).eq("id", String(editingUsuarioId));
+                await supabaseClient.from("usuarios").update(userData).eq("id", String(editingUsuarioId));
                 registrarLog('Editou Usuário', `O usuário ${userData.nome} (${userData.email}) foi editado.`);
             } else {
-                await supabase.from("usuarios").insert([userData]);
+                await supabaseClient.from("usuarios").insert([userData]);
                 registrarLog('Criou Usuário', `O usuário ${userData.nome} (${userData.email}) com nível ${userData.nivel} foi criado.`);
             }
             closeUsuarioModal();
@@ -1584,14 +1584,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- LÓGICA DA PÁGINA DE GUIAS ---
     // Listener de guias (Supabase)
     const fetchGuias = async () => {
-        const { data } = await supabase.from('guias').select('*');
+        const { data } = await supabaseClient.from('guias').select('*');
         if (data) {
             guias = data;
             if (currentPage === 'ajuda') renderGuias();
         }
     };
     fetchGuias();
-    supabase.channel('guias_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'guias' }, fetchGuias).subscribe();
+    supabaseClient.channel('guias_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'guias' }, fetchGuias).subscribe();
     
     // Ensure configuracoes has guiaTipos
     if (!configuracoes.guiaTipos) configuracoes.guiaTipos = [];
@@ -1691,7 +1691,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if(!configuracoes.guiaTipos) configuracoes.guiaTipos = [];
                         configuracoes.guiaTipos.push(novoTipo);
                         configuracoes.guiaTipos.sort();
-                        await supabase.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
+                        await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
                         showToast(`Tipo "${novoTipo}" criado com sucesso!`, "success");
                         registrarLog('Criou Tipo de Guia', `O tipo ${novoTipo} foi adicionado.`);
                     }
@@ -1706,14 +1706,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     };
                     
                     if (currentEditGuiaId) {
-                        await supabase.from("guias").update(dataObj).eq("id", currentEditGuiaId);
+                        await supabaseClient.from("guias").update(dataObj).eq("id", currentEditGuiaId);
                         showToast("Guia atualizada com sucesso!", "success");
                         registrarLog('Editou Guia', `Guia: ${dataObj.titulo}`);
                     } else {
                         const currentUser = usuarios.find(u => u.email === loggedUser.email);
                         dataObj.autor = currentUser ? currentUser.nome : loggedUser.email;
                         dataObj.dataCriacao = Date.now();
-                        await supabase.from("guias").insert([dataObj]);
+                        await supabaseClient.from("guias").insert([dataObj]);
                         showToast("Nova guia criada com sucesso!", "success");
                         registrarLog('Criou Guia', `Guia: ${dataObj.titulo}`);
                     }
@@ -1910,7 +1910,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnClearLogs.addEventListener('click', async () => {
             if (confirm("Tem certeza que deseja limpar todo o histórico de movimentações? Esta ação não pode ser desfeita.")) {
                 try {
-                    await supabase.from("logs").delete().neq("id", "0");
+                    await supabaseClient.from("logs").delete().neq("id", "0");
                     showToast("Histórico limpo com sucesso!", "success");
                 } catch(err) {
                     console.error("Erro ao limpar logs:", err);

@@ -479,7 +479,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     collectionName = 'historico';
                 }
                 
-                await supabaseClient.from(collectionName).delete().eq("id", String(actionId));
+                const { error: _err1 } = await supabaseClient.from(collectionName).delete().eq("id", String(actionId));
+                if (_err1) throw _err1;
                 
                 if (demandaDeletada) {
                     registrarLog('Excluiu Demanda', `Demanda "${demandaDeletada.demanda}" do cliente ${demandaDeletada.cliente} foi excluída.`);
@@ -503,14 +504,16 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (deleteType === 'usuario' && actionId) {
                 const usuarioRemovido = usuarios.find(u => u.id === actionId);
                 
-                await supabaseClient.from("usuarios").delete().eq("id", String(actionId));
+                const { error: _err2 } = await supabaseClient.from("usuarios").delete().eq("id", String(actionId));
+                if (_err2) throw _err2;
                 
                 if (usuarioRemovido) {
                     registrarLog('Excluiu Usuário', `O usuário ${usuarioRemovido.nome} (${usuarioRemovido.email}) foi excluído.`);
                 }
             } else if (deleteType === 'guia' && actionId) {
                 const guiaRemovida = guias.find(g => g.id === actionId);
-                await supabaseClient.from("guias").delete().eq("id", String(actionId));
+                const { error: _err3 } = await supabaseClient.from("guias").delete().eq("id", String(actionId));
+                if (_err3) throw _err3;
                 if (guiaRemovida) {
                     registrarLog('Deletou Guia', `Guia: ${guiaRemovida.titulo}`);
                     showToast("Guia deletada com sucesso!", "success");
@@ -574,7 +577,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         
                         await supabaseClient.from("historico").insert([demandaTransferida]);
-                        await supabaseClient.from("demandas").delete().eq("id", String(actionId));
+                        const { error: _err4 } = await supabaseClient.from("demandas").delete().eq("id", String(actionId));
+                if (_err4) throw _err4;
                         
                         registrarLog('Transferiu Demanda (Histórico)', `Demanda "${demanda.demanda}" do cliente ${demanda.cliente} encerrada. Motivo: ${motivo || 'Nenhum'}`);
                     }
@@ -586,7 +590,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         delete demandaRetornada.dataEncerramento;
                         
                         await supabaseClient.from("demandas").insert([demandaRetornada]);
-                        await supabaseClient.from("historico").delete().eq("id", String(actionId));
+                        const { error: _err5 } = await supabaseClient.from("historico").delete().eq("id", String(actionId));
+                if (_err5) throw _err5;
                         
                         registrarLog('Retornou Demanda (Abertas)', `Demanda "${demanda.demanda}" do cliente ${demanda.cliente} retornada para as demandas em aberto.`);
                     }
@@ -864,7 +869,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const collectionName = currentPage === 'abertas' ? 'demandas' : 'historico';
-            await supabaseClient.from(collectionName).delete().in('id', selectedIds);
+            const { error: _err6 } = await supabaseClient.from(collectionName).delete().in('id', selectedIds);
+                if (_err6) throw _err6;
             
             registrarLog('Excluiu Demandas em Lote', `Excluiu ${selectedIds.length} demandas da aba ${collectionName}.`);
             
@@ -873,7 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modalBulkExcluir.classList.remove('active');
         } catch (error) {
             console.error("Erro ao excluir em lote:", error);
-            showToast("Erro ao excluir demandas. Tente novamente.", 'info');
+            showToast(`Erro ao excluir demandas. Tente novamente.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, 'info');
         } finally {
             btn.textContent = 'Excluir';
             btn.disabled = false;
@@ -943,7 +949,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 if (historicoItems.length > 0) {
                     await supabaseClient.from("historico").insert(historicoItems);
-                    await supabaseClient.from("demandas").delete().in("id", idsToDelete);
+                    const { error: _err7 } = await supabaseClient.from("demandas").delete().in("id", idsToDelete);
+                if (_err7) throw _err7;
                 }
                 registrarLog('Transferiu Demandas em Lote', `Transferiu ${selectedIds.length} demandas para o histórico.`);
             } else {
@@ -968,7 +975,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 if (demandaItems.length > 0) {
                     await supabaseClient.from("demandas").insert(demandaItems);
-                    await supabaseClient.from("historico").delete().in("id", idsToDelete);
+                    const { error: _err8 } = await supabaseClient.from("historico").delete().in("id", idsToDelete);
+                if (_err8) throw _err8;
                 }
                 registrarLog('Retornou Demandas em Lote', `Retornou ${selectedIds.length} demandas para Abertas.`);
             }
@@ -977,7 +985,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modalBulkTransferir.classList.remove('active');
         } catch (error) {
             console.error("Erro na transferência em lote:", error);
-            showToast("Erro ao transferir demandas. Tente novamente.", 'info');
+            showToast(`Erro ao transferir demandas. Tente novamente.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, 'info');
         } finally {
             btn.textContent = 'Transferir';
             btn.disabled = false;
@@ -1196,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             closeModal();
         } catch (error) {
             console.error("Erro ao salvar demanda:", error);
-            showToast("Erro ao salvar demanda. Tente novamente.", 'info');
+            showToast(`Erro ao salvar demanda. Tente novamente.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, 'info');
         }
         
         btnSubmit.textContent = originalText;
@@ -1354,7 +1362,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     closeLoteAssessoresModal();
                 } catch (error) {
                     console.error("Erro ao salvar assessores em lote:", error);
-                    showToast("Erro ao salvar. Tente novamente.", 'info');
+                    showToast(`Erro ao salvar. Tente novamente.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, 'info');
                 }
             } else {
                 showToast("Nenhum nome novo encontrado (todos já estavam cadastrados).", 'info');
@@ -1532,7 +1540,7 @@ document.addEventListener('DOMContentLoaded', () => {
             closeUsuarioModal();
         } catch (error) {
             console.error("Erro ao salvar usuário:", error);
-            showToast("Erro ao salvar usuário. Tente novamente.", 'info');
+            showToast(`Erro ao salvar usuário. Tente novamente.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, 'info');
         }
         
         btnSubmit.textContent = originalText;
@@ -1726,7 +1734,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 modalNovaGuia.classList.remove('active');
             } catch (err) {
                 console.error("Erro ao salvar guia:", err);
-                showToast("Erro ao salvar guia.", "error");
+                showToast(`Erro ao salvar guia.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, "error");
             } finally {
                 btnSubmit.disabled = false;
             }
@@ -1915,11 +1923,12 @@ document.addEventListener('DOMContentLoaded', () => {
         btnClearLogs.addEventListener('click', async () => {
             if (confirm("Tem certeza que deseja limpar todo o histórico de movimentações? Esta ação não pode ser desfeita.")) {
                 try {
-                    await supabaseClient.from("logs").delete().neq("id", "0");
+                    const { error: _err9 } = await supabaseClient.from("logs").delete().neq("id", "0");
+                if (_err9) throw _err9;
                     showToast("Histórico limpo com sucesso!", "success");
                 } catch(err) {
                     console.error("Erro ao limpar logs:", err);
-                    showToast("Erro ao limpar histórico.", "error");
+                    showToast(`Erro ao limpar histórico.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, "error");
                 }
             }
         });

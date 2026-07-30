@@ -119,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    let usuariosSyncInit = false;
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
         const user = session?.user;
         if (user) {
@@ -1700,10 +1701,14 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('inputGuiaAnexo').value = g.anexo || '';
             
             switchGuiaModalMode('caminho');
+            document.getElementById('guiaModalToggleRow').style.display = 'none';
+            document.querySelector('#modalNovaGuiaTitle').textContent = "Editar guia";
             document.querySelector('#formNovaGuia .btn-submit').textContent = "Salvar";
         } else {
             formNovaGuia.reset();
             switchGuiaModalMode('caminho');
+            document.getElementById('guiaModalToggleRow').style.display = 'flex';
+            document.querySelector('#modalNovaGuiaTitle').textContent = "Criar nova guia";
             document.querySelector('#formNovaGuia .btn-submit').textContent = "Criar";
         }
         

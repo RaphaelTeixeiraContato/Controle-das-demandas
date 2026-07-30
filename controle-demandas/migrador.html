@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Migrador de Dados - Firebase para Supabase</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; background: #1e1e2e; color: #fff; }
+        .container { background: #2a2a35; padding: 30px; border-radius: 12px; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        h1 { color: #89b4fa; text-align: center; }
+        button { background: #89b4fa; color: #1e1e2e; border: none; padding: 15px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 20px;}
+        button:hover { background: #b4befe; }
+        #log { background: #11111b; padding: 15px; border-radius: 8px; height: 300px; overflow-y: auto; font-family: monospace; white-space: pre-wrap; font-size: 14px; }
+        .success { color: #a6e3a1; }
+        .error { color: #f38ba8; }
+        .info { color: #89b4fa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Migrador de Dados 🚀</h1>
+        <p style="text-align: center; margin-bottom: 30px; color: #cdd6f4;">Clique no botão abaixo para puxar os dados do Firebase e jogá-los para o Supabase.</p>
+        
+        <button id="btnMigrar">1. Iniciar Migração (Login no Google)</button>
+        
+        <div id="log">Aguardando...</div>
+    </div>
+
+    <!-- Firebase SDK Compat -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        const logDiv = document.getElementById('log');
+        const btnMigrar = document.getElementById('btnMigrar');
+
+        function appendLog(msg, type='info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `> ${msg}`;
+            logDiv.appendChild(div);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBywYqNKB6TS66-FriFPG4iS7uzRYLydcA",
+            authDomain: "controle-de-demandas-2ac73.firebaseapp.com",
+            projectId: "controle-de-demandas-2ac73",
+            storageBucket: "controle-de-demandas-2ac73.firebasestorage.app",
+            messagingSenderId: "790348353428",
+            appId: "1:790348353428:web:dbed86cd5582a422ecc981"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // --- SUPABASE CONFIG ---
+        const supabaseUrl = 'https://jjclbgfcyilelaonlinz.supabase.co';
+        const supabaseKey = 'sb_publishable_gZil1XA4TyqvEu4HGEIYow_NIFWqhPC';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        const collections = ['demandas', 'historico', 'logs', 'guias', 'usuarios', 'configuracoes'];
+
+        btnMigrar.addEventListener('click', async () => {
+            try {
+                btnMigrar.disabled = true;
+                appendLog("Iniciando login no Firebase...", "info");
+                const provider = new firebase.auth.GoogleAuthProvider();
+                await auth.signInWithPopup(provider);
+                appendLog("Login Firebase realizado com sucesso!", "success");
+
+                appendLog("Lendo dados do Firebase...", "info");
+
+                for (let coll of collections) {
+                    appendLog(`Buscando coleção: ${coll}...`, "info");
+                    const snapshot = await db.collection(coll).get();
+                    if (snapshot.empty) {
+                        appendLog(`-- Coleção ${coll} está vazia.`, "info");
+                        continue;
+                    }
+
+                    const docs = [];
+                    snapshot.forEach(doc => {
+                        docs.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    appendLog(`-- Encontrados ${docs.length} registros em ${coll}. Inserindo no Supabase...`, "info");
+                    
+                    // No Supabase, já criamos as tabelas com a coluna ID sendo texto
+                    const { error } = await supabaseClient.from(coll).upsert(docs);
+                    if (error) {
+                        appendLog(`Erro ao inserir em ${coll}: ${error.message}`, "error");
+                    } else {
+                        appendLog(`-- ${coll} migrada com sucesso! ✅`, "success");
+                    }
+                }
+
+                appendLog("=======================", "info");
+                appendLog("MIGRAÇÃO CONCLUÍDA! 🎉", "success");
+                appendLog("Você já pode fechar esta tela e usar o novo site.", "success");
+
+            } catch (err) {
+                appendLog("Erro crítico: " + err.message, "error");
+                btnMigrar.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

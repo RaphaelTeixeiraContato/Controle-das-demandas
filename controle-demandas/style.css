@@ -70,7 +70,6 @@ body {
 }
 
 .sidebar.collapsed .sidebar-header h2,
-.sidebar.collapsed .nav-item,
 .sidebar.collapsed .theme-text {
     font-size: 0;
     display: none;
@@ -79,6 +78,7 @@ body {
 .sidebar.collapsed .nav-item {
     justify-content: center;
     padding: 12px 0;
+    font-size: 0;
 }
 
 .sidebar.collapsed .sidebar-header {
@@ -948,4 +948,50 @@ input[type="checkbox"]:checked::before {
     background-color: #fff;
     color: #000;
     border-color: #fff;
+}
+
+
+/* Custom Color Picker */
+.custom-color-picker {
+    display: inline-block;
+}
+
+.color-swatches {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.color-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+}
+
+.color-swatch.active {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px var(--brand-primary);
+}
+
+.custom-swatch {
+    background: conic-gradient(from 180deg at 50% 50%, #ff0000, #ff8a00, #ffe500, #14ff00, #00a3ff, #0500ff, #ad00ff, #ff00c7, #ff0000);
+}
+
+.hidden-color-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
 }

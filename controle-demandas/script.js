@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const historicoTableBody = document.getElementById('historicoTableBody');
     const countBadge = document.getElementById('demandCount');
     const pageTitle = document.getElementById('pageTitle');
+            const headerTitleContainer = document.querySelector('.header-title');
     
     const inputBuscar = document.getElementById('inputBuscar');
     const btnReset = document.getElementById('btnReset');
@@ -326,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (headerActionsGuias) headerActionsGuias.style.display = 'none';
                 pageTitle.textContent = 'Demandas em aberto';
                 countBadge.style.display = 'inline-block';
+                if (headerTitleContainer) headerTitleContainer.style.display = 'flex';
                 btnNova.style.display = 'flex';
             } else if (page === 'historico') {
                 viewAbertas.style.display = 'none';
@@ -339,6 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (headerActionsGuias) headerActionsGuias.style.display = 'none';
                 pageTitle.textContent = 'Histórico de demandas';
                 countBadge.style.display = 'inline-block';
+                if (headerTitleContainer) headerTitleContainer.style.display = 'flex';
                 btnNova.style.display = 'none'; // Não adiciona no histórico diretamente
             } else if (page === 'controle') {
                 viewAbertas.style.display = 'none';
@@ -386,6 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (headerActionsGuias) headerActionsGuias.style.display = 'flex';
                 pageTitle.textContent = 'Guia';
                 countBadge.style.display = 'none';
+                if (headerTitleContainer) headerTitleContainer.style.display = 'none';
                 btnNova.style.display = 'none';
                 renderGuias();
             }
@@ -1089,7 +1093,104 @@ document.addEventListener('DOMContentLoaded', () => {
     // Configurar Date Picker
     const btnDateFilter = document.getElementById('btnDateFilter');
     const dateFilterValue = document.getElementById('dateFilterValue');
-    const filterDateRange = document.getElementById('filterDateRange');
+    
+    // Select all logs
+    const selectAllLogs = document.getElementById('selectAllLogs');
+    if (selectAllLogs) {
+        selectAllLogs.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            const tbody = document.getElementById('logTableBody');
+            const checkboxes = tbody.querySelectorAll('.log-checkbox');
+            
+            checkboxes.forEach(cb => {
+                cb.checked = isChecked;
+                const val = cb.value;
+                if (isChecked && !selectedLogsIds.includes(val)) {
+                    selectedLogsIds.push(val);
+                } else if (!isChecked) {
+                    selectedLogsIds = selectedLogsIds.filter(id => id !== val);
+                }
+            });
+            renderLogs();
+            updateLogsBulkVisibility();
+        });
+    }
+
+    const btnBulkExcluirLogs = document.getElementById('btnBulkExcluirLogs');
+    if (btnBulkExcluirLogs) {
+        btnBulkExcluirLogs.addEventListener('click', async () => {
+            if(selectedLogsIds.length === 0) return;
+            if(confirm(`Tem certeza que deseja excluir ${selectedLogsIds.length} registros do histórico?`)) {
+                try {
+                    const { error } = await supabaseClient.from('logs').delete().in('id', selectedLogsIds);
+                    if(error) throw error;
+                    showToast(`${selectedLogsIds.length} registros excluídos`, 'success');
+                    selectedLogsIds = [];
+                    updateLogsBulkVisibility();
+                } catch(e) {
+                    showToast('Erro ao excluir registros', 'error');
+                }
+            }
+        });
+    }
+
+    const inputBuscarLogs = document.getElementById('inputBuscarLogs');
+    if (inputBuscarLogs) {
+        inputBuscarLogs.addEventListener('input', (e) => {
+            searchLogsQuery = e.target.value;
+            renderLogs();
+        });
+    }
+
+    const btnResetLogs = document.getElementById('btnResetLogs');
+    if (btnResetLogs) {
+        btnResetLogs.addEventListener('click', () => {
+            searchLogsQuery = '';
+            inputBuscarLogs.value = '';
+            selectedLogsDateInicio = null;
+            selectedLogsDateFim = null;
+            selectedLogsIds = [];
+            updateLogsBulkVisibility();
+            if (window.datePickerLogsInstance) {
+                window.datePickerLogsInstance.clear();
+                document.getElementById('dateFilterValueLogs').textContent = 'Período...';
+            }
+            renderLogs();
+        });
+    }
+
+    // Flatpickr logs
+    const filterDateRangeLogs = document.getElementById('filterDateRangeLogs');
+    if (filterDateRangeLogs) {
+        window.datePickerLogsInstance = flatpickr(filterDateRangeLogs, {
+            mode: "range",
+            dateFormat: "d/m/Y",
+            locale: "pt",
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length === 2) {
+                    selectedLogsDateInicio = selectedDates[0];
+                    selectedLogsDateInicio.setHours(0,0,0,0);
+                    selectedLogsDateFim = selectedDates[1];
+                    selectedLogsDateFim.setHours(23,59,59,999);
+                    document.getElementById('dateFilterValueLogs').textContent = dateStr;
+                    renderLogs();
+                } else if (selectedDates.length === 0) {
+                    selectedLogsDateInicio = null;
+                    selectedLogsDateFim = null;
+                    document.getElementById('dateFilterValueLogs').textContent = 'Período...';
+                    renderLogs();
+                }
+            }
+        });
+        
+        const btnDateFilterLogs = document.getElementById('btnDateFilterLogs');
+        if (btnDateFilterLogs) {
+            btnDateFilterLogs.addEventListener('click', () => {
+                window.datePickerLogsInstance.open();
+            });
+        }
+    }
+const filterDateRange = document.getElementById('filterDateRange');
 
     if (btnDateFilter && filterDateRange) {
         window.datePickerInstance = flatpickr(filterDateRange, {
@@ -1299,6 +1400,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderList('listResponsavel', configuracoes.responsaveis, 'responsaveis');
         renderList('listAssessor', configuracoes.assessores, 'assessores');
         renderList('listMeio', configuracoes.meios, 'meios');
+        renderList('listGuiaTipo', configuracoes.guiaTipos, 'guiaTipos');
     };
 
     window.addControleItem = async (type) => {
@@ -1306,6 +1408,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(type === 'responsaveis') inputId = 'inputNovoResponsavel';
         if(type === 'assessores') inputId = 'inputNovoAssessor';
         if(type === 'meios') inputId = 'inputNovoMeio';
+        if(type === 'guiaTipos') inputId = 'inputNovoTipoGuia';
 
         const input = document.getElementById(inputId);
         if(!input) return;
@@ -1932,27 +2035,132 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
 
+
+    let selectedLogsIds = [];
+    let searchLogsQuery = '';
+    let selectedLogsDateInicio = null;
+    let selectedLogsDateFim = null;
+    
+    window.updateLogsBulkVisibility = () => {
+        const bulkContainer = document.getElementById('bulkActionsLogs');
+        const countSpan = document.getElementById('bulkSelectedCountLogs');
+        if (!bulkContainer) return;
+        
+        if (selectedLogsIds.length > 0) {
+            bulkContainer.style.display = 'flex';
+            countSpan.textContent = selectedLogsIds.length;
+        } else {
+            bulkContainer.style.display = 'none';
+        }
+    };
+
+    window.deleteLog = async (logId, event) => {
+        event.stopPropagation();
+        if(confirm('Tem certeza que deseja excluir este registro do histórico?')) {
+            try {
+                const { error } = await supabaseClient.from('logs').delete().eq('id', logId);
+                if(error) throw error;
+                showToast('Registro excluído', 'success');
+            } catch(e) {
+                showToast('Erro ao excluir registro', 'error');
+            }
+        }
+    };
+
     const renderLogs = () => {
         const tbody = document.getElementById('logTableBody');
         if (!tbody) return;
         tbody.innerHTML = '';
 
-        if (logsAcoes.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center" style="padding: 30px;">Nenhuma ação registrada ainda.</td></tr>';
+        let filtered = logsAcoes;
+        
+        if (searchLogsQuery) {
+            const q = searchLogsQuery.toLowerCase();
+            filtered = filtered.filter(l => 
+                (l.usuario && l.usuario.toLowerCase().includes(q)) ||
+                (l.acao && l.acao.toLowerCase().includes(q)) ||
+                (l.detalhes && l.detalhes.toLowerCase().includes(q))
+            );
+        }
+        
+        if (selectedLogsDateInicio && selectedLogsDateFim) {
+            filtered = filtered.filter(l => {
+                if(!l.timestamp) return true;
+                const d = new Date(l.timestamp);
+                d.setHours(0,0,0,0);
+                return d >= selectedLogsDateInicio && d <= selectedLogsDateFim;
+            });
+        }
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding: 30px;">Nenhum registro encontrado.</td></tr>';
             return;
         }
 
-        logsAcoes.forEach(log => {
+        filtered.forEach(log => {
             const tr = document.createElement('tr');
+            const isChecked = selectedLogsIds.includes(log.id) ? 'checked' : '';
+            tr.className = isChecked ? 'selected-row' : '';
+            
+            tr.addEventListener('click', (e) => {
+                if(e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
+                const cb = tr.querySelector('.log-checkbox');
+                cb.checked = !cb.checked;
+                cb.dispatchEvent(new Event('change'));
+            });
+            
             tr.innerHTML = `
+                <td onclick="event.stopPropagation()">
+                    <input type="checkbox" class="log-checkbox" value="${log.id}" ${isChecked}>
+                </td>
                 <td style="white-space: nowrap;"><i class="ph ph-clock"></i> ${log.dataHora}</td>
                 <td><strong>${log.usuario}</strong></td>
                 <td><span class="pill pill-black">${log.acao}</span></td>
                 <td>${log.detalhes}</td>
+                <td onclick="event.stopPropagation()">
+                    <button class="btn-delete" onclick="window.deleteLog('${log.id}', event)" title="Excluir"><i class="ph ph-trash"></i></button>
+                </td>
             `;
+            
+            const cb = tr.querySelector('.log-checkbox');
+            cb.addEventListener('change', (e) => {
+                if(e.target.checked) {
+                    if(!selectedLogsIds.includes(log.id)) selectedLogsIds.push(log.id);
+                    tr.classList.add('selected-row');
+                } else {
+                    selectedLogsIds = selectedLogsIds.filter(id => id !== log.id);
+                    tr.classList.remove('selected-row');
+                }
+                updateLogsBulkVisibility();
+                updateLogsSelectAllCheckbox(filtered);
+            });
+            
             tbody.appendChild(tr);
         });
+        updateLogsSelectAllCheckbox(filtered);
     };
+    
+    function updateLogsSelectAllCheckbox(filtered) {
+        const selectAllCb = document.getElementById('selectAllLogs');
+        if (!selectAllCb) return;
+        const currentIds = filtered.map(l => l.id);
+        const selectedCurrent = currentIds.filter(id => selectedLogsIds.includes(id));
+        
+        if (currentIds.length === 0) {
+            selectAllCb.checked = false;
+            selectAllCb.indeterminate = false;
+        } else if (selectedCurrent.length === currentIds.length) {
+            selectAllCb.checked = true;
+            selectAllCb.indeterminate = false;
+        } else if (selectedCurrent.length > 0) {
+            selectAllCb.checked = false;
+            selectAllCb.indeterminate = true;
+        } else {
+            selectAllCb.checked = false;
+            selectAllCb.indeterminate = false;
+        }
+    }
+
 
     const btnClearLogs = document.getElementById('btnClearLogs');
     if (btnClearLogs) {
@@ -1986,4 +2194,30 @@ document.addEventListener('DOMContentLoaded', () => {
     renderControleLists();
     renderUsuarios();
     renderLogs();
+});
+
+// Initialize Custom Color Pickers
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.custom-color-picker').forEach(picker => {
+        const targetId = picker.getAttribute('data-target');
+        const hiddenInput = document.getElementById(targetId);
+        const swatches = picker.querySelectorAll('.color-swatch:not(.custom-swatch)');
+        const customSwatchInput = picker.querySelector('.hidden-color-input');
+
+        swatches.forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                picker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                swatch.classList.add('active');
+                hiddenInput.value = swatch.getAttribute('data-color');
+            });
+        });
+
+        if (customSwatchInput) {
+            customSwatchInput.addEventListener('input', (e) => {
+                picker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                customSwatchInput.parentElement.classList.add('active');
+                hiddenInput.value = e.target.value;
+            });
+        }
+    });
 });

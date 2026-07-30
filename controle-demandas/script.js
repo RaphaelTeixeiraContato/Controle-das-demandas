@@ -873,17 +873,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const chunkSize = 10;
             for (let i = 0; i < selectedIds.length; i += chunkSize) {
                 const chunk = selectedIds.slice(i, i + chunkSize);
-                const { error: _errBulk } = 
-            const chunkSize = 10;
-            for (let i = 0; i < chunk.length; i += chunkSize) {
-                const chunk = chunk.slice(i, i + chunkSize);
-                const { error: _errBulkX } = await supabaseClient.from(collectionName).delete().in('id', chunk);
-                if (_errBulkX) throw _errBulkX;
-            }
-    
+                const { error: _errBulk } = await supabaseClient.from(collectionName).delete().in('id', chunk);
                 if (_errBulk) throw _errBulk;
             }
-
             
             registrarLog('Excluiu Demandas em Lote', `Excluiu ${selectedIds.length} demandas da aba ${collectionName}.`);
             
@@ -966,17 +958,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const chunkSize = 10;
                     for (let i = 0; i < idsToDelete.length; i += chunkSize) {
                         const chunk = idsToDelete.slice(i, i + chunkSize);
-                        const { error: _errT1 } = 
-            const chunkSize = 10;
-            for (let i = 0; i < chunk.length; i += chunkSize) {
-                const chunk = chunk.slice(i, i + chunkSize);
-                const { error: _errBulkX } = await supabaseClient.from("demandas").delete().in("id", chunk);
-                if (_errBulkX) throw _errBulkX;
-            }
-    
+                        const { error: _errT1 } = await supabaseClient.from("demandas").delete().in("id", chunk);
                         if (_errT1) throw _errT1;
                     }
-
                 }
                 registrarLog('Transferiu Demandas em Lote', `Transferiu ${selectedIds.length} demandas para o histórico.`);
             } else {
@@ -1005,17 +989,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const chunkSize = 10;
                     for (let i = 0; i < idsToDelete.length; i += chunkSize) {
                         const chunk = idsToDelete.slice(i, i + chunkSize);
-                        const { error: _errT2 } = 
-            const chunkSize = 10;
-            for (let i = 0; i < chunk.length; i += chunkSize) {
-                const chunk = chunk.slice(i, i + chunkSize);
-                const { error: _errBulkX } = await supabaseClient.from("historico").delete().in("id", chunk);
-                if (_errBulkX) throw _errBulkX;
-            }
-    
+                        const { error: _errT2 } = await supabaseClient.from("historico").delete().in("id", chunk);
                         if (_errT2) throw _errT2;
                     }
-
                 }
                 registrarLog('Retornou Demandas em Lote', `Retornou ${selectedIds.length} demandas para Abertas.`);
             }

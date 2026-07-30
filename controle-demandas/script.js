@@ -161,9 +161,15 @@ document.addEventListener('DOMContentLoaded', () => {
             
             fetchUsuarios();
             
-            supabaseClient.channel('usuarios_channel')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'usuarios' }, fetchUsuarios)
-                .subscribe();
+                        let usuariosSyncInit = false;
+            const initUsuariosSync = () => {
+                if (usuariosSyncInit) return;
+                usuariosSyncInit = true;
+                supabaseClient.channel('usuarios_channel')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'usuarios' }, fetchUsuarios)
+                    .subscribe();
+            };
+            initUsuariosSync();
                 
         } else {
             loggedUser = null;
@@ -572,6 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const motivo = document.getElementById('inputMotivoEncerramento').value.trim();
                         const demandaTransferida = { ...demanda, dataEncerramento: inputDataEncerramento.value };
                         delete demandaTransferida.id; // Remover ID antes de salvar
+                        delete demandaTransferida.created_at; // Prevenir erro 400
                         if (motivo) {
                             demandaTransferida.comentarios = motivo;
                         }
@@ -588,6 +595,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         const demandaRetornada = { ...demanda };
                         delete demandaRetornada.id;
                         delete demandaRetornada.dataEncerramento;
+                        delete demandaRetornada.motivoEncerramento;
+                        delete demandaRetornada.timestampEncerramento;
+                        delete demandaRetornada.created_at;
+                        delete demandaRetornada.originalId;
                         
                         await supabaseClient.from("demandas").insert([demandaRetornada]);
                         const { error: _err5 } = await supabaseClient.from("historico").delete().eq("id", String(actionId));
@@ -943,6 +954,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             meio: demanda.meio,
                             protocolo: demanda.protocolo,
                             comentarios: demanda.comentarios,
+                            comQuem: demanda.comQuem,
                             data: demanda.data,
                             dataEncerramento: dataEncerramento,
                             motivoEncerramento: motivoEncerramento,
@@ -977,6 +989,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             meio: historicoItem.meio,
                             protocolo: historicoItem.protocolo,
                             comentarios: historicoItem.comentarios,
+                            comQuem: historicoItem.comQuem,
                             data: historicoItem.data,
                             timestamp: Date.now()
                         });

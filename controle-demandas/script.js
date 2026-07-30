@@ -105,7 +105,12 @@ document.addEventListener('DOMContentLoaded', () => {
         btnLoginGoogle.addEventListener('click', async () => {
             try {
                 loginErrorMsg.style.display = 'none';
-                await supabaseClient.auth.signInWithOAuth({ provider: 'google' });
+                await supabaseClient.auth.signInWithOAuth({ 
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + window.location.pathname
+                    }
+                });
             } catch (error) {
                 console.error("Erro no login:", error);
                 loginErrorMsg.textContent = "Erro ao fazer login: " + error.message;

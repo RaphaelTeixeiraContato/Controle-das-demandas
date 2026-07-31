@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.getElementById('demandTableBody');
     const historicoTableBody = document.getElementById('historicoTableBody');
     const countBadge = document.getElementById('demandCount');
+    const topHeader = document.querySelector('.top-header');
     const pageTitle = document.getElementById('pageTitle');
             const headerTitleContainer = document.querySelector('.header-title');
     
@@ -318,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const headerActionsGuias = document.getElementById('headerActionsGuias');
 
             if (page === 'abertas') {
+                if (topHeader) topHeader.style.display = 'flex';
                 viewAbertas.style.display = 'block';
                 viewHistorico.style.display = 'none';
                 document.getElementById('viewControle').style.display = 'none';
@@ -332,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (headerTitleContainer) headerTitleContainer.style.display = 'flex';
                 btnNova.style.display = 'flex';
             } else if (page === 'historico') {
+                if (topHeader) topHeader.style.display = 'flex';
                 viewAbertas.style.display = 'none';
                 viewHistorico.style.display = 'block';
                 document.getElementById('viewControle').style.display = 'none';
@@ -346,6 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (headerTitleContainer) headerTitleContainer.style.display = 'flex';
                 btnNova.style.display = 'none'; // Não adiciona no histórico diretamente
             } else if (page === 'controle') {
+                if (topHeader) topHeader.style.display = 'flex';
                 viewAbertas.style.display = 'none';
                 viewHistorico.style.display = 'none';
                 document.getElementById('viewControle').style.display = 'block';
@@ -362,6 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (page === 'acessos') {
                 viewAbertas.style.display = 'none';
                 viewHistorico.style.display = 'none';
+                if (topHeader) topHeader.style.display = 'flex';
                 document.getElementById('viewControle').style.display = 'none';
                 document.getElementById('viewAcessos').style.display = 'block';
                 document.getElementById('viewLog').style.display = 'none';
@@ -376,6 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 viewAbertas.style.display = 'none';
                 viewHistorico.style.display = 'none';
                 document.getElementById('viewControle').style.display = 'none';
+                if (topHeader) topHeader.style.display = 'none';
                 document.getElementById('viewAcessos').style.display = 'none';
                 document.getElementById('viewLog').style.display = 'block';
                 document.getElementById('viewAjuda').style.display = 'none';
@@ -390,6 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 viewHistorico.style.display = 'none';
                 document.getElementById('viewControle').style.display = 'none';
                 document.getElementById('viewAcessos').style.display = 'none';
+                if (topHeader) topHeader.style.display = 'flex';
                 document.getElementById('viewLog').style.display = 'none';
                 document.getElementById('viewAjuda').style.display = 'block';
                 headerActionsDemandas.style.display = 'none';

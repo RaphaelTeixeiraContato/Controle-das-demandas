@@ -382,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headerActionsDemandas.style.display = 'none';
                 headerActionsAcessos.style.display = 'none';
                 if (headerActionsGuias) headerActionsGuias.style.display = 'none';
-                if (headerTitleContainer) headerTitleContainer.style.display = 'flex';
+                if (headerTitleContainer) headerTitleContainer.style.display = 'none';
                 pageTitle.textContent = 'Histórico de Movimentações';
                 countBadge.style.display = 'none';
             } else if (page === 'ajuda') {

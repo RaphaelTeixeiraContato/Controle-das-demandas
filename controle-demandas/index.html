@@ -19,7 +19,7 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script.js?v=9" defer></script>
+    <script src="script.js?v=10" defer></script>
 
     <!-- Pickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css"/>
@@ -303,7 +303,7 @@
                             <i class="ph ph-magnifying-glass" style="color: var(--text-secondary); margin-right: 8px;"></i>
                             <input type="text" id="inputBuscarLogs" placeholder="Buscar..." style="background: transparent; border: none; color: #fff; outline: none; width: 150px; font-size: 14px;">
                         </div>
-                        <div class="custom-date-filter" id="btnDateFilterLogs">
+                        <div class="custom-date-filter" id="btnDateFilterLogs" style="min-width: 250px;">
                             <i class="ph ph-calendar-blank"></i>
                             <div class="date-filter-text">
                                 <span class="date-filter-label">Período</span>
@@ -321,7 +321,7 @@
                                 <i class="ph ph-trash"></i> Excluir Selecionados
                             </button>
                         </div>
-                        <button class="btn-danger" id="btnClearLogs">Limpar Histórico</button>
+                        
                     </div>
                 </div>
                 <table class="demand-table">

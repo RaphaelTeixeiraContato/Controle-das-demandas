@@ -19,7 +19,7 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script.js?v=11" defer></script>
+    <script src="script.js?v=12" defer></script>
 
     <!-- Pickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css"/>
@@ -576,6 +576,39 @@
                     <button type="submit" class="btn-submit">Importar Nomes</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    
+    <!-- Modal Gerenciar Tipos (Guia) -->
+    <div class="modal-overlay" id="modalGerenciarTiposGuia">
+        <div class="modal-content modal-md">
+            <h2 class="modal-title">Gerenciar Tipos de Guia</h2>
+            <div style="margin-bottom: 20px;">
+                <p style="color: var(--text-sidebar); font-size: 14px; margin-bottom: 10px;">Abaixo estão os tipos disponíveis para as guias. Você pode editá-los ou excluí-los.</p>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="inputNovoTipoGuia" placeholder="Novo tipo..." style="flex: 1;">
+                    <button class="btn-primary" id="btnAdicionarTipoGuia"><i class="ph ph-plus"></i> Adicionar</button>
+                </div>
+            </div>
+            
+            <div class="table-container" style="max-height: 300px; overflow-y: auto;">
+                <table class="demand-table">
+                    <thead>
+                        <tr>
+                            <th>TIPO</th>
+                            <th width="100">AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tiposGuiaTableBody">
+                        <!-- Gerado via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="btnCloseTiposGuia">Fechar</button>
+            </div>
         </div>
     </div>
 

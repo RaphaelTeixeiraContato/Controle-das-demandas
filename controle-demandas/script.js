@@ -1134,12 +1134,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (text) text.textContent = `Você tem certeza que quer deletar ${selectedLogsIds.length} registros do histórico?`;
             if (modal) modal.classList.add('active');
         });
-    } catch(e) {
-                    showToast('Erro ao excluir registros', 'error');
-                }
-            }
-        });
     }
+    
 
     const inputBuscarLogs = document.getElementById('inputBuscarLogs');
     if (inputBuscarLogs) {
@@ -2180,13 +2176,8 @@ const filterDateRange = document.getElementById('filterDateRange');
             if (text) text.textContent = 'Tem certeza que deseja limpar todo o histórico de movimentações? Esta ação não pode ser desfeita.';
             if (modal) modal.classList.add('active');
         });
-    } catch(err) {
-                    console.error("Erro ao limpar logs:", err);
-                    showToast(`Erro ao limpar histórico.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, "error");
-                }
-            }
-        });
     }
+    
 
     renderLogs();
 

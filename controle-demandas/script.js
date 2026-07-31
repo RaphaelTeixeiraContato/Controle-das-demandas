@@ -2129,9 +2129,6 @@ const filterDateRange = document.getElementById('filterDateRange');
                 <td><span class="pill pill-black">${log.acao}</span></td>
                 <td>${log.detalhes}</td>
                 <td style="white-space: nowrap;"><i class="ph ph-clock"></i> ${log.dataHora}</td>
-                <td onclick="event.stopPropagation()">
-                    <button class="btn-delete" onclick="window.deleteLog('${log.id}', event)" title="Excluir"><i class="ph ph-trash"></i></button>
-                </td>
             `;
             
             const cb = tr.querySelector('.log-checkbox');
@@ -2370,4 +2367,145 @@ document.addEventListener('DOMContentLoaded', () => {
             currentLogDeleteId = null;
         });
     }
+});
+
+
+// Lógica para Gerenciar Tipos Guia
+document.addEventListener('DOMContentLoaded', () => {
+    const modalGerenciarTiposGuia = document.getElementById('modalGerenciarTiposGuia');
+    const btnGerenciarTiposGuia = document.getElementById('btnGerenciarTiposGuia');
+    const btnCloseTiposGuia = document.getElementById('btnCloseTiposGuia');
+    const btnAdicionarTipoGuia = document.getElementById('btnAdicionarTipoGuia');
+    const inputNovoTipoGuia = document.getElementById('inputNovoTipoGuia');
+    const tiposGuiaTableBody = document.getElementById('tiposGuiaTableBody');
+
+    const renderTiposGuiaTable = () => {
+        if (!tiposGuiaTableBody) return;
+        tiposGuiaTableBody.innerHTML = '';
+        if (!configuracoes.guiaTipos || configuracoes.guiaTipos.length === 0) {
+            tiposGuiaTableBody.innerHTML = '<tr><td colspan="2" class="text-center" style="padding: 20px;">Nenhum tipo cadastrado.</td></tr>';
+            return;
+        }
+
+        configuracoes.guiaTipos.forEach((tipo, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${tipo}</strong></td>
+                <td style="display: flex; gap: 8px;">
+                    <button class="icon-btn btn-primary" onclick="window.editarTipoGuia(${index})" title="Editar" style="padding: 4px;"><i class="ph ph-pencil-simple"></i></button>
+                    <button class="icon-btn btn-delete" onclick="window.deletarTipoGuia(${index})" title="Excluir" style="padding: 4px;"><i class="ph ph-trash"></i></button>
+                </td>
+            `;
+            tiposGuiaTableBody.appendChild(tr);
+        });
+    };
+
+    if (btnGerenciarTiposGuia) {
+        btnGerenciarTiposGuia.addEventListener('click', () => {
+            renderTiposGuiaTable();
+            modalGerenciarTiposGuia.classList.add('active');
+        });
+    }
+
+    if (btnCloseTiposGuia) {
+        btnCloseTiposGuia.addEventListener('click', () => {
+            modalGerenciarTiposGuia.classList.remove('active');
+        });
+    }
+
+    if (btnAdicionarTipoGuia) {
+        btnAdicionarTipoGuia.addEventListener('click', async () => {
+            const novoTipo = inputNovoTipoGuia.value.trim();
+            if (!novoTipo) return;
+            
+            if (!configuracoes.guiaTipos) configuracoes.guiaTipos = [];
+            if (configuracoes.guiaTipos.includes(novoTipo)) {
+                showToast('Tipo já existe', 'error');
+                return;
+            }
+
+            configuracoes.guiaTipos.push(novoTipo);
+            
+            try {
+                btnAdicionarTipoGuia.disabled = true;
+                const { error } = await supabaseClient
+                    .from('configuracoes')
+                    .update({ guiaTipos: configuracoes.guiaTipos })
+                    .eq('id', 1);
+
+                if (error) throw error;
+
+                inputNovoTipoGuia.value = '';
+                renderTiposGuiaTable();
+                showToast('Tipo adicionado com sucesso', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Erro ao adicionar tipo', 'error');
+                // revert
+                configuracoes.guiaTipos.pop();
+            } finally {
+                btnAdicionarTipoGuia.disabled = false;
+            }
+        });
+    }
+
+    window.deletarTipoGuia = async (index) => {
+        const tipo = configuracoes.guiaTipos[index];
+        if (confirm(`Tem certeza que deseja excluir o tipo "${tipo}"?`)) {
+            const oldValue = configuracoes.guiaTipos[index];
+            configuracoes.guiaTipos.splice(index, 1);
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('configuracoes')
+                    .update({ guiaTipos: configuracoes.guiaTipos })
+                    .eq('id', 1);
+
+                if (error) throw error;
+                
+                renderTiposGuiaTable();
+                showToast('Tipo excluído', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Erro ao excluir tipo', 'error');
+                // revert
+                configuracoes.guiaTipos.splice(index, 0, oldValue);
+            }
+        }
+    };
+
+    window.editarTipoGuia = async (index) => {
+        const tipo = configuracoes.guiaTipos[index];
+        const novoNome = prompt(`Editar nome do tipo "${tipo}":`, tipo);
+        if (novoNome && novoNome.trim() !== '' && novoNome !== tipo) {
+            
+            if (configuracoes.guiaTipos.includes(novoNome)) {
+                showToast('Este tipo já existe', 'error');
+                return;
+            }
+
+            const oldValue = configuracoes.guiaTipos[index];
+            configuracoes.guiaTipos[index] = novoNome;
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('configuracoes')
+                    .update({ guiaTipos: configuracoes.guiaTipos })
+                    .eq('id', 1);
+
+                if (error) throw error;
+                
+                renderTiposGuiaTable();
+                showToast('Tipo atualizado', 'success');
+                
+                // Optional: Update existing guias with this type?
+                // Depending on the business logic, we could do it here
+            } catch (err) {
+                console.error(err);
+                showToast('Erro ao editar tipo', 'error');
+                // revert
+                configuracoes.guiaTipos[index] = oldValue;
+            }
+        }
+    };
 });

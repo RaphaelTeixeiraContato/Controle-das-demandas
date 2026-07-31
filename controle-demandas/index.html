@@ -299,6 +299,10 @@
                 <div class="header-actions" style="margin-bottom: 20px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
                     
                     <div class="left-actions" style="display: flex; gap: 15px; align-items: center;">
+                        <div class="search-box" style="display: flex; align-items: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 0 12px; height: 38px;">
+                            <i class="ph ph-magnifying-glass" style="color: var(--text-secondary); margin-right: 8px;"></i>
+                            <input type="text" id="inputBuscarLogs" placeholder="Buscar..." style="background: transparent; border: none; color: #fff; outline: none; width: 150px; font-size: 14px;">
+                        </div>
                         <div class="custom-date-filter" id="btnDateFilterLogs">
                             <i class="ph ph-calendar-blank"></i>
                             <div class="date-filter-text">
@@ -326,11 +330,11 @@
                             <th width="40">
                                 <input type="checkbox" id="selectAllLogs" class="select-all-checkbox">
                             </th>
-                            <th>DATA / HORA</th>
                             <th>USUÁRIO</th>
                             <th>AÇÃO</th>
-                            <th>DETALHES</th>
-                            <th>AÇÕES</th>
+                            <th>DESCRIÇÃO</th>
+                            <th>DATA</th>
+                            <th>AÇÃO</th>
                         </tr>
                     </thead>
                     <tbody id="logTableBody">
@@ -439,6 +443,19 @@
                     <button type="submit" class="btn-submit">Adicionar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    
+    <!-- Modal Excluir Log -->
+    <div class="modal-overlay" id="modalExcluirLog">
+        <div class="modal-content modal-sm text-center">
+            <h3 class="modal-title-center" id="modalDeleteLogTitle">Excluir registro</h3>
+            <p class="modal-text" id="modalDeleteLogText">Você tem certeza que quer deletar este registro?</p>
+            <div class="modal-footer-center">
+                <button type="button" class="btn-secondary" id="btnCancelDeleteLog">Não</button>
+                <button type="button" class="btn-danger" id="btnConfirmDeleteLog">Sim</button>
+            </div>
         </div>
     </div>
 

@@ -90,7 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewHistorico = document.getElementById('viewHistorico');
 
     // Estado da aplicação
-    let currentPage = 'abertas'; // 'abertas' | 'historico'
+    let currentPage = 'abertas';
+    let currentLogDeleteAction = null;
+    let currentLogDeleteId = null; // 'abertas' | 'historico'
     let selectedIds = [];
     
     // Bulk Elements
@@ -1126,14 +1128,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnBulkExcluirLogs) {
         btnBulkExcluirLogs.addEventListener('click', async () => {
             if(selectedLogsIds.length === 0) return;
-            if(confirm(`Tem certeza que deseja excluir ${selectedLogsIds.length} registros do histórico?`)) {
-                try {
-                    const { error } = await supabaseClient.from('logs').delete().in('id', selectedLogsIds);
-                    if(error) throw error;
-                    showToast(`${selectedLogsIds.length} registros excluídos`, 'success');
-                    selectedLogsIds = [];
-                    updateLogsBulkVisibility();
-                } catch(e) {
+            currentLogDeleteAction = 'bulk';
+            const modal = document.getElementById('modalExcluirLog');
+            const text = document.getElementById('modalDeleteLogText');
+            if (text) text.textContent = `Você tem certeza que quer deletar ${selectedLogsIds.length} registros do histórico?`;
+            if (modal) modal.classList.add('active');
+        });
+    } catch(e) {
                     showToast('Erro ao excluir registros', 'error');
                 }
             }
@@ -2067,15 +2068,12 @@ const filterDateRange = document.getElementById('filterDateRange');
 
     window.deleteLog = async (logId, event) => {
         event.stopPropagation();
-        if(confirm('Tem certeza que deseja excluir este registro do histórico?')) {
-            try {
-                const { error } = await supabaseClient.from('logs').delete().eq('id', logId);
-                if(error) throw error;
-                showToast('Registro excluído', 'success');
-            } catch(e) {
-                showToast('Erro ao excluir registro', 'error');
-            }
-        }
+        currentLogDeleteAction = 'single';
+        currentLogDeleteId = logId;
+        const modal = document.getElementById('modalExcluirLog');
+        const text = document.getElementById('modalDeleteLogText');
+        if (text) text.textContent = 'Você tem certeza que quer deletar este registro?';
+        if (modal) modal.classList.add('active');
     };
 
     const renderLogs = () => {
@@ -2124,10 +2122,10 @@ const filterDateRange = document.getElementById('filterDateRange');
                 <td onclick="event.stopPropagation()">
                     <input type="checkbox" class="log-checkbox" value="${log.id}" ${isChecked}>
                 </td>
-                <td style="white-space: nowrap;"><i class="ph ph-clock"></i> ${log.dataHora}</td>
                 <td><strong>${log.usuario}</strong></td>
                 <td><span class="pill pill-black">${log.acao}</span></td>
                 <td>${log.detalhes}</td>
+                <td style="white-space: nowrap;"><i class="ph ph-clock"></i> ${log.dataHora}</td>
                 <td onclick="event.stopPropagation()">
                     <button class="btn-delete" onclick="window.deleteLog('${log.id}', event)" title="Excluir"><i class="ph ph-trash"></i></button>
                 </td>
@@ -2176,12 +2174,13 @@ const filterDateRange = document.getElementById('filterDateRange');
     const btnClearLogs = document.getElementById('btnClearLogs');
     if (btnClearLogs) {
         btnClearLogs.addEventListener('click', async () => {
-            if (confirm("Tem certeza que deseja limpar todo o histórico de movimentações? Esta ação não pode ser desfeita.")) {
-                try {
-                    const { error: _err9 } = await supabaseClient.from("logs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-                if (_err9) throw _err9;
-                    showToast("Histórico limpo com sucesso!", "success");
-                } catch(err) {
+            currentLogDeleteAction = 'clear';
+            const modal = document.getElementById('modalExcluirLog');
+            const text = document.getElementById('modalDeleteLogText');
+            if (text) text.textContent = 'Tem certeza que deseja limpar todo o histórico de movimentações? Esta ação não pode ser desfeita.';
+            if (modal) modal.classList.add('active');
+        });
+    } catch(err) {
                     console.error("Erro ao limpar logs:", err);
                     showToast(`Erro ao limpar histórico.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, "error");
                 }
@@ -2316,6 +2315,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
         closeModalGerenciarTipos.addEventListener('click', () => {
             modalGerenciarTipos.classList.remove('active');
+        });
+    }
+});
+
+
+// Modal Excluir Log Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const modalExcluirLog = document.getElementById('modalExcluirLog');
+    const btnCancelDeleteLog = document.getElementById('btnCancelDeleteLog');
+    const btnConfirmDeleteLog = document.getElementById('btnConfirmDeleteLog');
+
+    if (btnCancelDeleteLog) {
+        btnCancelDeleteLog.addEventListener('click', () => {
+            if(modalExcluirLog) modalExcluirLog.classList.remove('active');
+            currentLogDeleteAction = null;
+            currentLogDeleteId = null;
+        });
+    }
+
+    if (btnConfirmDeleteLog) {
+        btnConfirmDeleteLog.addEventListener('click', async () => {
+            if (!currentLogDeleteAction) return;
+            
+            if (currentLogDeleteAction === 'single' && currentLogDeleteId) {
+                try {
+                    const { error } = await supabaseClient.from('logs').delete().eq('id', currentLogDeleteId);
+                    if(error) throw error;
+                    showToast('Registro excluído', 'success');
+                } catch(e) {
+                    showToast('Erro ao excluir registro', 'error');
+                }
+            } else if (currentLogDeleteAction === 'bulk' && selectedLogsIds.length > 0) {
+                try {
+                    const { error } = await supabaseClient.from('logs').delete().in('id', selectedLogsIds);
+                    if(error) throw error;
+                    showToast(`${selectedLogsIds.length} registros excluídos`, 'success');
+                    selectedLogsIds = [];
+                    // Need to trigger a custom event or let realtime handle it
+                } catch(e) {
+                    showToast('Erro ao excluir registros', 'error');
+                }
+            } else if (currentLogDeleteAction === 'clear') {
+                try {
+                    const { error: _err9 } = await supabaseClient.from("logs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+                    if (_err9) throw _err9;
+                    showToast("Histórico limpo com sucesso!", "success");
+                    selectedLogsIds = [];
+                } catch(err) {
+                    showToast('Erro ao limpar histórico', 'error');
+                }
+            }
+            
+            if(modalExcluirLog) modalExcluirLog.classList.remove('active');
+            currentLogDeleteAction = null;
+            currentLogDeleteId = null;
         });
     }
 });

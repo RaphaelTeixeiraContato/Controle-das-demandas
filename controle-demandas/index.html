@@ -237,45 +237,38 @@
             </div>
             
             <!-- Container Controle -->
-            <div class="controle-container" id="viewControle" style="display: none; padding: 20px; padding-top: 60px;">
-                <div class="controle-grid">
-                    <!-- Responsável Card -->
-                    <div class="controle-card">
-                        <div class="controle-card-header">
-                            <h3>Responsáveis</h3>
+            <div class="controle-container table-container" id="viewControle" style="display: none;">
+                <div class="header-actions" style="margin-top: 24px; margin-bottom: 20px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select class="filter-select" id="selectCategoriaControle" style="min-width: 200px;">
+                            <option value="responsaveis">Responsáveis</option>
+                            <option value="assessores">Assessores</option>
+                            <option value="meios">Meio</option>
+                            <option value="comQuem">Com quem</option>
+                        </select>
+                        <div class="search-box">
+                            <input type="text" id="inputBuscarControle" placeholder="Pesquisar...">
                         </div>
-                        <div class="controle-add" style="display: flex; gap: 8px; width: 100%;">
-                            <input type="text" id="inputNovoResponsavel" class="form-control" placeholder="Novo responsável...">
-                            <div class="pickr-container" id="pickrNovoResponsavel"></div><input type="hidden" id="colorNovoResponsavel" value="#8b5cf6">
-                            <button class="btn-submit" onclick="window.addControleItem('responsaveis')"><i class="ph ph-plus"></i></button>
-                        </div>
-                        <ul class="controle-list" id="listResponsavel"></ul>
-                    </div>
-                    <!-- Assessor Card -->
-                    <div class="controle-card">
-                        <div class="controle-card-header">
-                            <h3>Assessores</h3>
-                        </div>
-                        <div class="controle-add" style="display: flex; gap: 8px; width: 100%;">
-                            <input type="text" id="inputNovoAssessor" class="form-control" placeholder="Novo assessor...">
-                            <button class="btn-submit" onclick="window.addControleItem('assessores')" title="Adicionar um"><i class="ph ph-plus"></i></button>
-                            <button class="btn-secondary" onclick="window.openLoteAssessoresModal()" title="Adicionar em lote" style="padding: 0 10px;"><i class="ph ph-users"></i> Lote</button>
-                        </div>
-                        <ul class="controle-list" id="listAssessor"></ul>
-                    </div>
-                    <!-- Meio Card -->
-                    <div class="controle-card">
-                        <div class="controle-card-header">
-                            <h3>Meios de Contato</h3>
-                        </div>
-                        <div class="controle-add" style="display: flex; gap: 8px; width: 100%;">
-                            <input type="text" id="inputNovoMeio" class="form-control" placeholder="Novo meio...">
-                            <div class="pickr-container" id="pickrNovoMeio"></div><input type="hidden" id="colorNovoMeio" value="#4C1D95">
-                            <button class="btn-submit" onclick="window.addControleItem('meios')"><i class="ph ph-plus"></i></button>
-                        </div>
-                        <ul class="controle-list" id="listMeio"></ul>
+                        <button class="icon-btn" id="btnResetControle" title="Reiniciar pesquisa"><i class="ph ph-arrows-clockwise"></i></button>
+                        <button class="btn-submit" id="btnNovaOpcaoControle" style="padding: 0 15px;"><i class="ph ph-plus"></i></button>
+                        <button class="btn-secondary" id="btnLoteAssessoresControle" title="Adicionar em lote" style="display: none; padding: 0 10px;"><i class="ph ph-users"></i> Lote</button>
                     </div>
                 </div>
+
+                <table class="demand-table">
+                    <thead>
+                        <tr>
+                            <th>NOME</th>
+                            <th id="thCorControle">COR</th>
+                            <th>DATA CRIADO</th>
+                            <th>DATA ATUALIZADO</th>
+                            <th>AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="controleTableBody">
+                        <!-- Linhas geradas via JS -->
+                    </tbody>
+                </table>
             </div>
 
             <!-- Container Acessos -->
@@ -307,8 +300,8 @@
                         <div class="custom-date-filter" id="btnDateFilterLogs">
                             <i class="ph ph-calendar-blank"></i>
                             <div class="date-filter-text">
-                                <span class="date-filter-label">Período</span>
-                                <span class="date-filter-value" id="dateFilterValueLogs">Filtrar...</span>
+                                <span class="date-filter-label">Data de solicitação</span>
+                                <span class="date-filter-value" id="dateFilterValueLogs">Período...</span>
                             </div>
                             <input type="text" id="filterDateRangeLogs" style="display: none;">
                         </div>
@@ -496,18 +489,24 @@
 
     <!-- Modal Editar Opção Controle -->
     <div class="modal-overlay" id="modalEditarOpcao">
-        <div class="modal-content modal-sm text-center">
-            <h3 class="modal-title-center">Editar Opção</h3>
-            <div class="form-row" style="flex-direction: column; align-items: stretch; gap: 12px; margin-bottom: 24px; max-width: 280px; margin-left: auto; margin-right: auto;">
+        <div class="modal-content text-center">
+            <div class="modal-header">
+                <h2 id="titleEditarOpcao" style="margin: 0; font-size: 20px;">Editar Opção</h2>
+                <button class="close-modal" id="btnCloseEditarOpcao"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <div class="form-row" style="flex-direction: column; align-items: stretch; gap: 16px; margin-top: 20px; margin-bottom: 24px; max-width: 320px; margin-left: auto; margin-right: auto;">
                 <div class="form-group" style="width: 100%; text-align: left;">
-                    <label>Novo Nome</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="inputEditarOpcao" class="form-control" required>
-                        <div class="pickr-container" id="pickrEditarOpcao"></div><input type="hidden" id="colorEditarOpcao" value="#8b5cf6">
-                    </div>
+                    <label>Nome</label>
+                    <input type="text" id="inputEditarOpcao" class="form-control" required style="width: 100%;">
+                </div>
+                <div class="form-group" style="width: 100%; text-align: left;">
+                    <label>Cor</label>
+                    <div class="pickr-container" id="pickrEditarOpcao"></div>
+                    <input type="hidden" id="colorEditarOpcao" value="#8b5cf6">
                 </div>
             </div>
-            <div class="modal-footer-center">
+            <div class="modal-footer" style="justify-content: flex-end;">
                 <button type="button" class="btn-secondary" id="btnCancelEditarOpcao">Cancelar</button>
                 <button type="button" class="btn-submit" id="btnConfirmEditarOpcao">Salvar</button>
             </div>

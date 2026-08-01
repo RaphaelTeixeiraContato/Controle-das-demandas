@@ -207,11 +207,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data } = await supabaseClient.from('configuracoes').select('*').eq('id', 'geral').single();
             if (data && data.dados) {
                 configuracoes = data.dados;
+                if (!configuracoes.comQuem) {
+                    const now = new Date().toISOString();
+                    configuracoes.comQuem = [
+                        { nome: "XP", cor: "#8b5cf6", criadoEm: now, atualizadoEm: now },
+                        { nome: "Cliente", cor: "#10b981", criadoEm: now, atualizadoEm: now },
+                        { nome: "Interno", cor: "#f59e0b", criadoEm: now, atualizadoEm: now }
+                    ];
+                }
             } else {
-                configuracoes = { responsaveis: [], assessores: [], meios: [], guiaTipos: [] };
+                configuracoes = { responsaveis: [], assessores: [], meios: [], guiaTipos: [], comQuem: [] };
                 await supabaseClient.from('configuracoes').upsert([{ id: 'geral', dados: configuracoes }]);
             }
-            renderControleLists();
+            
+            // RUNTIME MIGRATION para adicionar datas e transformar strings em objetos
+            ['responsaveis', 'meios', 'comQuem', 'assessores'].forEach(type => {
+                if (configuracoes[type]) {
+                    configuracoes[type] = configuracoes[type].map(item => {
+                        if (typeof item === 'string') {
+                            return { nome: item, cor: '#8b5cf6', criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString() };
+                        } else {
+                            if (!item.criadoEm) item.criadoEm = new Date().toISOString();
+                            if (!item.atualizadoEm) item.atualizadoEm = new Date().toISOString();
+                            return item;
+                        }
+                    });
+                }
+            });
+
+            if (typeof renderControleLists === 'function') renderControleLists();
             renderSelectOptions();
             updateFilterOptions();
             renderTables();
@@ -1392,6 +1416,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const selResp = document.getElementById('inputResponsavel');
         const selAssessor = document.getElementById('inputAssessor');
         const selMeio = document.getElementById('inputMeio');
+        const selComQuem = document.getElementById('inputComQuem');
 
         if (selResp) {
             const val = selResp.value;
@@ -1402,7 +1427,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selAssessor) {
             const val = selAssessor.value;
             selAssessor.innerHTML = '<option value="">Selecione</option>';
-            configuracoes.assessores.forEach(o => selAssessor.innerHTML += `<option value="${o}">${o}</option>`);
+            configuracoes.assessores.forEach(o => selAssessor.innerHTML += `<option value="${o.nome || o}">${o.nome || o}</option>`);
             selAssessor.value = val;
         }
         if (selMeio) {
@@ -1410,6 +1435,14 @@ document.addEventListener('DOMContentLoaded', () => {
             selMeio.innerHTML = '<option value="">Selecione</option>';
             configuracoes.meios.forEach(o => selMeio.innerHTML += `<option value="${o.nome}">${o.nome}</option>`);
             selMeio.value = val;
+        }
+        if (selComQuem) {
+            const val = selComQuem.value;
+            selComQuem.innerHTML = '<option value="">Selecione</option>';
+            if (configuracoes.comQuem) {
+                configuracoes.comQuem.forEach(o => selComQuem.innerHTML += `<option value="${o.nome}">${o.nome}</option>`);
+            }
+            selComQuem.value = val;
         }
     };
 

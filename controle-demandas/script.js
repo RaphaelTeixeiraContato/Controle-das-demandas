@@ -1543,7 +1543,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (document.getElementById('selectCategoriaControle')) {
-        document.getElementById('selectCategoriaControle').addEventListener('change', window.renderControleTable);
+        document.getElementById('selectCategoriaControle').addEventListener('change', () => {
+            const inputBuscar = document.getElementById('inputBuscarControle');
+            if (inputBuscar) inputBuscar.value = '';
+            window.renderControleTable();
+        });
     }
     if (document.getElementById('inputBuscarControle')) {
         document.getElementById('inputBuscarControle').addEventListener('input', window.renderControleTable);
@@ -1651,9 +1655,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btnConfirmEditarOpcao) btnConfirmEditarOpcao.textContent = 'Salvar';
             
             if (type === 'assessores' || type === 'guiaTipos') {
-                if (pickrContainer) pickrContainer.parentElement.style.display = 'none';
+                if (pickrContainer) document.getElementById('containerCorEditarOpcao').style.display = 'none';
             } else {
-                if (pickrContainer) pickrContainer.parentElement.style.display = 'block';
+                if (pickrContainer) document.getElementById('containerCorEditarOpcao').style.display = 'flex';
                 const colorToSet = item.cor || '#8b5cf6';
                 colorInput.value = colorToSet;
                 if (window.pickrEditarOpcao) {
@@ -1666,9 +1670,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (titleEditarOpcao) titleEditarOpcao.textContent = `Novo ${titleName}`;
             if (btnConfirmEditarOpcao) btnConfirmEditarOpcao.textContent = 'Criar';
             if (type === 'assessores' || type === 'guiaTipos') {
-                if (pickrContainer) pickrContainer.parentElement.style.display = 'none';
+                if (pickrContainer) document.getElementById('containerCorEditarOpcao').style.display = 'none';
             } else {
-                if (pickrContainer) pickrContainer.parentElement.style.display = 'block';
+                if (pickrContainer) document.getElementById('containerCorEditarOpcao').style.display = 'flex';
                 const colorToSet = '#8b5cf6';
                 colorInput.value = colorToSet;
                 if (window.pickrEditarOpcao) {
@@ -1681,7 +1685,30 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     window.openDeleteControleModal = (type, index) => {
-        if(confirm(`Tem certeza que deseja excluir esta opção?`)) {
+        const modalDelete = document.getElementById('modalExcluirOpcaoControle');
+        const btnCancel = document.getElementById('btnCancelDeleteOpcaoControle');
+        const btnConfirm = document.getElementById('btnConfirmDeleteOpcaoControle');
+
+        if (!modalDelete) {
+            // Fallback se não encontrar o modal
+            if(confirm(`Tem certeza que deseja excluir esta opção?`)) {
+                const oldValue = configuracoes[type][index];
+                configuracoes[type].splice(index, 1);
+                supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]).then(({error}) => {
+                    if(error) {
+                        showToast('Erro ao excluir opção.', 'error');
+                        configuracoes[type].splice(index, 0, oldValue); // revert
+                    } else {
+                        showToast('Opção excluída com sucesso!', 'success');
+                        window.renderControleTable();
+                        renderSelectOptions();
+                    }
+                });
+            }
+            return;
+        }
+
+        const handleConfirm = () => {
             const oldValue = configuracoes[type][index];
             configuracoes[type].splice(index, 1);
             supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]).then(({error}) => {
@@ -1692,9 +1719,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast('Opção excluída com sucesso!', 'success');
                     window.renderControleTable();
                     renderSelectOptions();
+                    renderTables();
                 }
             });
-        }
+            modalDelete.classList.remove('active');
+            cleanup();
+        };
+
+        const handleCancel = () => {
+            modalDelete.classList.remove('active');
+            cleanup();
+        };
+
+        const cleanup = () => {
+            btnConfirm.removeEventListener('click', handleConfirm);
+            btnCancel.removeEventListener('click', handleCancel);
+        };
+
+        btnConfirm.addEventListener('click', handleConfirm);
+        btnCancel.addEventListener('click', handleCancel);
+
+        modalDelete.classList.add('active');
     };
 
     const closeEditControleModal = () => {
@@ -1742,6 +1787,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         registrarLog(isNew ? 'Adicionou Opção de Controle' : 'Editou Opção de Controle', `A opção "${val}" foi modificada em ${type}.`);
                         window.renderControleTable();
                         renderSelectOptions();
+                        renderTables(); // Apply changes to main demands table immediately
                         closeEditControleModal();
                     } catch (e) {
                         console.error("Erro ao atualizar configuração", e);

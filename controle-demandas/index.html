@@ -19,7 +19,7 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script.js?v=12" defer></script>
+    <script src="script.js?v=13" defer></script>
 
     <!-- Pickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css"/>
@@ -249,9 +249,9 @@
                         <div class="search-box">
                             <input type="text" id="inputBuscarControle" placeholder="Pesquisar...">
                         </div>
-                        <button class="icon-btn" id="btnResetControle" title="Reiniciar pesquisa"><i class="ph ph-arrows-clockwise"></i></button>
-                        <button class="btn-submit" id="btnNovaOpcaoControle" style="padding: 0 15px;"><i class="ph ph-plus"></i></button>
-                        <button class="btn-secondary" id="btnLoteAssessoresControle" title="Adicionar em lote" style="display: none; padding: 0 10px;"><i class="ph ph-users"></i> Lote</button>
+                        <button class="icon-btn" id="btnResetControle" title="Reiniciar pesquisa" style="height: 38px;"><i class="ph ph-arrows-clockwise"></i></button>
+                        <button class="btn-submit" id="btnNovaOpcaoControle" style="height: 38px; padding: 0 15px;"><i class="ph ph-plus"></i></button>
+                        <button class="btn-secondary" id="btnLoteAssessoresControle" title="Adicionar em lote" style="display: none; height: 38px; padding: 0 15px;"><i class="ph ph-users"></i> Lote</button>
                     </div>
                 </div>
 
@@ -465,6 +465,18 @@
         </div>
     </div>
 
+    <!-- Modal Excluir Opcao Controle -->
+    <div class="modal-overlay" id="modalExcluirOpcaoControle">
+        <div class="modal-content modal-sm text-center">
+            <h3 class="modal-title-center">Excluir item</h3>
+            <p class="modal-text">Você tem certeza que quer deletar este item?</p>
+            <div class="modal-footer-center">
+                <button type="button" class="btn-secondary" id="btnCancelDeleteOpcaoControle">Não</button>
+                <button type="button" class="btn-danger" id="btnConfirmDeleteOpcaoControle">Sim</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Transferir Demanda -->
     <div class="modal-overlay" id="modalTransferirDemanda">
         <div class="modal-content modal-sm text-center">
@@ -490,9 +502,9 @@
     <!-- Modal Editar Opção Controle -->
     <div class="modal-overlay" id="modalEditarOpcao">
         <div class="modal-content text-center">
-            <div class="modal-header">
-                <h2 id="titleEditarOpcao" style="margin: 0; font-size: 20px;">Editar Opção</h2>
-                <button class="close-modal" id="btnCloseEditarOpcao"><i class="ph ph-x"></i></button>
+            <div class="modal-header" style="justify-content: center; position: relative;">
+                <h2 id="titleEditarOpcao" style="margin: 0; font-size: 20px; text-align: center; width: 100%;">Opção</h2>
+                <button class="close-modal" id="btnCloseEditarOpcao" style="position: absolute; right: 0; top: 0;"><i class="ph ph-x"></i></button>
             </div>
             
             <div class="form-row" style="flex-direction: column; align-items: stretch; gap: 16px; margin-top: 20px; margin-bottom: 24px; max-width: 320px; margin-left: auto; margin-right: auto;">
@@ -500,8 +512,8 @@
                     <label>Nome</label>
                     <input type="text" id="inputEditarOpcao" class="form-control" required style="width: 100%;">
                 </div>
-                <div class="form-group" style="width: 100%; text-align: left;">
-                    <label>Cor</label>
+                <div class="form-group" id="containerCorEditarOpcao" style="width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <label style="width: 100%; text-align: left;">Cor</label>
                     <div class="pickr-container" id="pickrEditarOpcao"></div>
                     <input type="hidden" id="colorEditarOpcao" value="#8b5cf6">
                 </div>

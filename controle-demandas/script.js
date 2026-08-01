@@ -434,6 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             updateFilterOptions();
             renderTables();
+            if (typeof renderLogs === 'function') renderLogs();
         });
     });
 
@@ -1205,6 +1206,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mode: "range",
             dateFormat: "d/m/Y",
             locale: "pt",
+            positionElement: document.getElementById('btnDateFilterLogs'),
             onChange: function(selectedDates, dateStr, instance) {
                 if (selectedDates.length === 2) {
                     selectedLogsDateInicio = selectedDates[0];

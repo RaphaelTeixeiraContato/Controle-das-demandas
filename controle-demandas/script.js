@@ -1447,80 +1447,99 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.renderControleTable = () => {
-        const tbody = document.getElementById('controleTableBody');
-        const selectCat = document.getElementById('selectCategoriaControle');
-        const searchInput = document.getElementById('inputBuscarControle');
-        const thCor = document.getElementById('thCorControle');
-        const btnLote = document.getElementById('btnLoteAssessoresControle');
+        try {
+            const tbody = document.getElementById('controleTableBody');
+            const selectCat = document.getElementById('selectCategoriaControle');
+            const searchInput = document.getElementById('inputBuscarControle');
+            const thCor = document.getElementById('thCorControle');
+            const btnLote = document.getElementById('btnLoteAssessoresControle');
 
-        if (!tbody || !selectCat) return;
+            if (!tbody || !selectCat) return;
 
-        const categoria = selectCat.value;
-        let items = configuracoes[categoria] || [];
-        
-        // Hide Lote and Cor if it's assessores
-        if (categoria === 'assessores') {
-            if (btnLote) btnLote.style.display = 'block';
-            if (thCor) thCor.style.display = 'none';
-        } else {
-            if (btnLote) btnLote.style.display = 'none';
-            if (thCor) thCor.style.display = 'table-cell';
-        }
-
-        const query = (searchInput.value || '').toLowerCase();
-        if (query) {
-            items = items.filter(i => (i.nome || i).toLowerCase().includes(query));
-        }
-
-        tbody.innerHTML = '';
-        if (items.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="padding: 20px;">Nenhum item encontrado.</td></tr>';
-            return;
-        }
-
-        items.forEach((item, index) => {
-            const tr = document.createElement('tr');
+            const categoria = selectCat.value;
+            let items = [];
+            if (configuracoes && configuracoes[categoria]) {
+                items = [...configuracoes[categoria]];
+            }
             
-            const nome = item.nome || item;
-            const cor = item.cor ? `<div style="width: 14px; height: 14px; border-radius: 50%; background-color: ${item.cor}; border: 1px solid rgba(255,255,255,0.2);"></div>` : '-';
-            
-            // Format dates
+            // Hide Lote and Cor if it's assessores
+            if (categoria === 'assessores') {
+                if (btnLote) btnLote.style.display = 'block';
+                if (thCor) thCor.style.display = 'none';
+            } else {
+                if (btnLote) btnLote.style.display = 'none';
+                if (thCor) thCor.style.display = 'table-cell';
+            }
+
+            const query = (searchInput.value || '').toLowerCase();
+            if (query) {
+                items = items.filter(i => {
+                    if (!i) return false;
+                    const val = i.nome !== undefined ? i.nome : i;
+                    return String(val).toLowerCase().includes(query);
+                });
+            }
+
+            tbody.innerHTML = '';
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="padding: 20px;">Nenhum item encontrado.</td></tr>';
+                return;
+            }
+
             const formatDateControle = (d) => {
                 if (!d) return '-';
                 const dateObj = new Date(d);
+                if (isNaN(dateObj.getTime())) return d;
                 return `${dateObj.toLocaleDateString('pt-BR')} às ${dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`;
             };
-            const criadoEm = formatDateControle(item.criadoEm);
-            const atualizadoEm = formatDateControle(item.atualizadoEm);
 
-            if (categoria === 'assessores') {
-                tr.innerHTML = `
-                    <td>${nome}</td>
-                    <td>${criadoEm}</td>
-                    <td>${atualizadoEm}</td>
-                    <td>
-                        <div class="action-icons">
-                            <i class="ph ph-pencil-simple" title="Editar" onclick="window.openEditControleModal('${categoria}', ${index})"></i>
-                            <i class="ph ph-trash" title="Remover" onclick="window.openDeleteControleModal('${categoria}', ${index})"></i>
-                        </div>
-                    </td>
-                `;
-            } else {
-                tr.innerHTML = `
-                    <td>${nome}</td>
-                    <td><div style="display:flex;">${cor}</div></td>
-                    <td>${criadoEm}</td>
-                    <td>${atualizadoEm}</td>
-                    <td>
-                        <div class="action-icons">
-                            <i class="ph ph-pencil-simple" title="Editar" onclick="window.openEditControleModal('${categoria}', ${index})"></i>
-                            <i class="ph ph-trash" title="Remover" onclick="window.openDeleteControleModal('${categoria}', ${index})"></i>
-                        </div>
-                    </td>
-                `;
-            }
-            tbody.appendChild(tr);
-        });
+            items.forEach((item, index) => {
+                if (!item) return;
+                const tr = document.createElement('tr');
+                
+                const nome = item.nome !== undefined ? item.nome : item;
+                const cor = item.cor ? `<div style="width: 14px; height: 14px; border-radius: 50%; background-color: ${item.cor}; border: 1px solid rgba(255,255,255,0.2);"></div>` : '-';
+                
+                const criadoEm = formatDateControle(item.criadoEm);
+                const atualizadoEm = formatDateControle(item.atualizadoEm);
+
+                // For the original index in the true array if filtered:
+                const originalIndex = configuracoes[categoria].indexOf(item);
+                const actionIndex = originalIndex > -1 ? originalIndex : index;
+
+                if (categoria === 'assessores') {
+                    tr.innerHTML = `
+                        <td>${nome}</td>
+                        <td>${criadoEm}</td>
+                        <td>${atualizadoEm}</td>
+                        <td>
+                            <div class="action-icons">
+                                <i class="ph ph-pencil-simple" title="Editar" onclick="window.openEditControleModal('${categoria}', ${actionIndex})"></i>
+                                <i class="ph ph-trash" title="Remover" onclick="window.openDeleteControleModal('${categoria}', ${actionIndex})"></i>
+                            </div>
+                        </td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td>${nome}</td>
+                        <td><div style="display:flex;">${cor}</div></td>
+                        <td>${criadoEm}</td>
+                        <td>${atualizadoEm}</td>
+                        <td>
+                            <div class="action-icons">
+                                <i class="ph ph-pencil-simple" title="Editar" onclick="window.openEditControleModal('${categoria}', ${actionIndex})"></i>
+                                <i class="ph ph-trash" title="Remover" onclick="window.openDeleteControleModal('${categoria}', ${actionIndex})"></i>
+                            </div>
+                        </td>
+                    `;
+                }
+                tbody.appendChild(tr);
+            });
+        } catch (e) {
+            console.error("Erro no renderControleTable: ", e);
+            const tbody = document.getElementById('controleTableBody');
+            if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 20px; color: red;">Erro ao renderizar dados. Verifique o console.</td></tr>`;
+        }
     };
 
     if (document.getElementById('selectCategoriaControle')) {

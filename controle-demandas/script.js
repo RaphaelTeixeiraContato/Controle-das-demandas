@@ -14,28 +14,28 @@ let usuarios = [];
 const showToast = (message, type = 'success') => {
     const container = document.getElementById('toastContainer');
     if (!container) return;
-    
+
     const toast = document.createElement('div');
     toast.className = 'toast ' + type;
-    
+
     let icon = 'ph-check-circle';
-    if(type === 'error') icon = 'ph-x-circle';
-    else if(type === 'warning') icon = 'ph-warning-circle';
-    else if(type === 'info') icon = 'ph-info';
-    
+    if (type === 'error') icon = 'ph-x-circle';
+    else if (type === 'warning') icon = 'ph-warning-circle';
+    else if (type === 'info') icon = 'ph-info';
+
     toast.innerHTML = `<i class="ph ${icon}"></i><span class="toast-message">${message}</span><button class="toast-close"><i class="ph ph-x"></i></button>`;
-    
+
     container.appendChild(toast);
-    
+
     const closeBtn = toast.querySelector('.toast-close');
-    
+
     const removeToast = () => {
         toast.classList.add('hiding');
         setTimeout(() => toast.remove(), 300);
     };
-    
+
     closeBtn.addEventListener('click', removeToast);
-    
+
     setTimeout(() => {
         if (toast.parentElement) {
             removeToast();
@@ -54,15 +54,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('modalNovaDemanda');
     const modalExcluir = document.getElementById('modalExcluirDemanda');
     const modalTransferir = document.getElementById('modalTransferirDemanda');
-    
+
     // Botões
     const btnNova = document.getElementById('btnNovaDemanda');
     const btnClose = document.getElementById('btnCloseModal');
     const btnCancel = document.getElementById('btnCancelModal');
-    
+
     const btnCancelDelete = document.getElementById('btnCancelDelete');
     const btnConfirmDelete = document.getElementById('btnConfirmDelete');
-    
+
     const btnCancelTransfer = document.getElementById('btnCancelTransfer');
     const btnConfirmTransfer = document.getElementById('btnConfirmTransfer');
     const inputDataEncerramento = document.getElementById('inputDataEncerramento');
@@ -73,8 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const countBadge = document.getElementById('demandCount');
     const topHeader = document.querySelector('.top-header');
     const pageTitle = document.getElementById('pageTitle');
-            const headerTitleContainer = document.querySelector('.header-title');
-    
+    const headerTitleContainer = document.querySelector('.header-title');
+
     const inputBuscar = document.getElementById('inputBuscar');
     const btnReset = document.getElementById('btnReset');
     const btnExport = document.getElementById('btnExport');
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnToggleSidebar = document.getElementById('btnToggleSidebar');
     const sidebar = document.querySelector('.sidebar');
     const tableHeaders = document.querySelectorAll('.demand-table th[data-col]');
-    
+
     const filterResponsavel = document.getElementById('filterResponsavel');
     const filterMeio = document.getElementById('filterMeio');
 
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentLogDeleteAction = null;
     let currentLogDeleteId = null; // 'abertas' | 'historico'
     let selectedIds = [];
-    
+
     // Bulk Elements
     const bulkActionsContainer = document.getElementById('bulkActionsContainer');
     const bulkSelectedCount = document.getElementById('bulkSelectedCount');
@@ -103,13 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnBulkTransferir = document.getElementById('btnBulkTransferir');
     // Autenticação e Sincronização (Supabase)
     // ==========================================
-    
+
     // Login com Google
     if (btnLoginGoogle) {
         btnLoginGoogle.addEventListener('click', async () => {
             try {
                 loginErrorMsg.style.display = 'none';
-                await supabaseClient.auth.signInWithOAuth({ 
+                await supabaseClient.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
                         redirectTo: window.location.origin + window.location.pathname
@@ -129,12 +129,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             // Transform user.email and name for backward compatibility
             user.displayName = user.user_metadata?.full_name || user.email.split('@')[0];
-            
+
             // Fetch usuarios and subscribe
             const fetchUsuarios = async () => {
                 const { data } = await supabaseClient.from('usuarios').select('*');
                 if (data) usuarios = data;
-                
+
                 if (usuarios.length === 0) {
                     // Primeiro usuário a logar no sistema vira Master
                     await supabaseClient.from('usuarios').insert([{
@@ -146,16 +146,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const currentUserDoc = usuarios.find(u => u.email === user.email);
-                          if (currentUserDoc) {
+                if (currentUserDoc) {
                     loggedUser = user;
                     userAccessLevel = currentUserDoc.nivel;
                     applyRBAC();
                     renderTables(); // Re-render to hide/show action buttons
                     initDataSync();
-                    
+
                     loginOverlay.style.display = 'none';
                     appContainer.style.display = 'flex';
-                    
+
                     if (typeof renderUsuarios !== 'undefined') renderUsuarios();
                 } else {
                     loginErrorMsg.textContent = "Você não tem permissão para acessar o sistema. E-mail logado: " + user.email;
@@ -163,9 +163,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     supabaseClient.auth.signOut();
                 }
             };
-            
+
             fetchUsuarios();
-            
+
             const initUsuariosSync = () => {
                 if (usuariosSyncInit) return;
                 usuariosSyncInit = true;
@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .subscribe();
             };
             initUsuariosSync();
-                
+
         } else {
             loggedUser = null;
             userAccessLevel = null;
@@ -236,18 +236,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${data} às ${hora}`;
     };
 
-    
+
     function applyRBAC() {
         const navControle = document.querySelector('.nav-item[data-page="controle"]');
         const navAcessos = document.querySelector('.nav-item[data-page="acessos"]');
         const navLog = document.querySelector('.nav-item[data-page="log"]');
-        
+
         const btnNovaDemanda = document.getElementById('btnNovaDemanda');
         const btnNovoGuia = document.getElementById('btnNovoGuia');
         const btnDeleteSelected = document.getElementById('btnDeleteSelected');
         const btnTransferSelected = document.getElementById('btnTransferSelected');
         const theadCheck = document.getElementById('selectAll');
-        
+
         if (userAccessLevel === 'Master') {
             if (navControle) navControle.style.display = 'flex';
             if (navAcessos) navAcessos.style.display = 'flex';
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (navControle) navControle.style.display = 'none';
             if (navAcessos) navAcessos.style.display = 'none';
             if (navLog) navLog.style.display = 'none';
-            
+
             if (btnNovaDemanda) btnNovaDemanda.style.display = 'none';
             if (btnNovoGuia) btnNovoGuia.style.display = 'none';
             if (theadCheck) {
@@ -292,10 +292,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedMeio = '';
     let selectedDateInicio = null;
     let selectedDateFim = null;
-    
+
     let editingId = null;
     let actionId = null; // Serve tanto para delete quanto para transfer
-    
+
     let deleteType = 'demanda'; // 'demanda' | 'controle'
     let deleteControleParams = { type: null, index: null };
     let editControleParams = { type: null, index: null };
@@ -417,10 +417,10 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedDateInicio = null;
             selectedDateFim = null;
             selectedIds = [];
-            
+
             selectedLogsIds = [];
             if (typeof updateLogsBulkVisibility === 'function') updateLogsBulkVisibility();
-            
+
             updateBulkActionsVisibility();
             document.querySelectorAll('.select-all-checkbox').forEach(cb => {
                 cb.checked = false;
@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('inputData').valueAsDate = new Date();
         }
     };
-    
+
     const closeModal = () => {
         modal.classList.remove('active');
         editingId = null;
@@ -501,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const originalText = btnConfirmDelete.textContent;
         btnConfirmDelete.textContent = "Aguarde...";
         btnConfirmDelete.disabled = true;
-        
+
         try {
             if (deleteType === 'demanda' && actionId) {
                 let demandaDeletada;
@@ -512,10 +512,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     demandaDeletada = historico.find(d => d.id === actionId);
                     collectionName = 'historico';
                 }
-                
+
                 const { error: _err1 } = await supabaseClient.from(collectionName).delete().eq("id", String(actionId));
                 if (_err1) throw _err1;
-                
+
                 if (demandaDeletada) {
                     registrarLog('Excluiu Demanda', `Demanda "${demandaDeletada.demanda}" do cliente ${demandaDeletada.cliente} foi excluída.`);
                 }
@@ -524,23 +524,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 const typeArray = deleteControleParams.type;
                 const index = deleteControleParams.index;
                 let valorRemovido;
-                
+
                 if (typeArray === 'responsaveis' || typeArray === 'meios') {
                     valorRemovido = configuracoes[typeArray][index].nome;
                 } else {
                     valorRemovido = configuracoes[typeArray][index];
                 }
-                
+
                 configuracoes[typeArray].splice(index, 1);
                 await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
-                
+
                 registrarLog('Excluiu Opção de Controle', `A opção "${valorRemovido}" foi removida de ${typeArray}.`);
             } else if (deleteType === 'usuario' && actionId) {
                 const usuarioRemovido = usuarios.find(u => u.id === actionId);
-                
+
                 const { error: _err2 } = await supabaseClient.from("usuarios").delete().eq("id", String(actionId));
                 if (_err2) throw _err2;
-                
+
                 if (usuarioRemovido) {
                     registrarLog('Excluiu Usuário', `O usuário ${usuarioRemovido.nome} (${usuarioRemovido.email}) foi excluído.`);
                 }
@@ -557,7 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error("Erro ao excluir:", error);
         }
-        
+
         btnConfirmDelete.textContent = originalText;
         btnConfirmDelete.disabled = false;
     });
@@ -571,7 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputMotivo = document.getElementById('inputMotivoEncerramento');
         const groupMotivo = document.getElementById('groupMotivoEncerramento');
         if (inputMotivo) inputMotivo.value = '';
-        
+
         if (currentPage === 'historico') {
             document.querySelector('#modalTransferirDemanda h3').textContent = 'Retornar para Abertas';
             document.querySelector('#modalTransferirDemanda p').textContent = 'Deseja retornar esta demanda para as em aberto?';
@@ -583,7 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
             inputDataEncerramento.parentElement.style.display = 'block'; // Mostrar input de data
             if (groupMotivo) groupMotivo.style.display = 'block'; // Mostrar motivo
         }
-        
+
         modalTransferir.classList.add('active');
     };
 
@@ -598,7 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalText = btnConfirmTransfer.textContent;
             btnConfirmTransfer.textContent = "Aguarde...";
             btnConfirmTransfer.disabled = true;
-            
+
             try {
                 if (currentPage === 'abertas' && inputDataEncerramento.value) {
                     const demanda = demandas.find(d => d.id === actionId);
@@ -610,11 +610,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (motivo) {
                             demandaTransferida.comentarios = motivo;
                         }
-                        
+
                         await supabaseClient.from("historico").insert([demandaTransferida]);
                         const { error: _err4 } = await supabaseClient.from("demandas").delete().eq("id", String(actionId));
-                if (_err4) throw _err4;
-                        
+                        if (_err4) throw _err4;
+
                         registrarLog('Transferiu Demanda (Histórico)', `Demanda "${demanda.demanda}" do cliente ${demanda.cliente} encerrada. Motivo: ${motivo || 'Nenhum'}`);
                     }
                 } else if (currentPage === 'historico') {
@@ -627,11 +627,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         delete demandaRetornada.timestampEncerramento;
                         delete demandaRetornada.created_at;
                         delete demandaRetornada.originalId;
-                        
+
                         await supabaseClient.from("demandas").insert([demandaRetornada]);
                         const { error: _err5 } = await supabaseClient.from("historico").delete().eq("id", String(actionId));
-                if (_err5) throw _err5;
-                        
+                        if (_err5) throw _err5;
+
                         registrarLog('Retornou Demanda (Abertas)', `Demanda "${demanda.demanda}" do cliente ${demanda.cliente} retornada para as demandas em aberto.`);
                     }
                 }
@@ -639,7 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) {
                 console.error("Erro ao transferir demanda", e);
             }
-            
+
             btnConfirmTransfer.textContent = originalText;
             btnConfirmTransfer.disabled = false;
         }
@@ -649,9 +649,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Utilitários
     // ==========================================
     const formatDate = (dateString) => {
-        if(!dateString) return '-';
+        if (!dateString) return '-';
         const parts = dateString.split('-');
-        if(parts.length !== 3) return dateString;
+        if (parts.length !== 3) return dateString;
         return `${parts[2]}/${parts[1]}/${parts[0]}`;
     };
 
@@ -664,7 +664,7 @@ document.addEventListener('DOMContentLoaded', () => {
             configuracoes.responsaveis.forEach(r => {
                 const opt = document.createElement('option');
                 opt.value = r.nome || r; opt.textContent = r.nome || r;
-                if((r.nome || r) === currResp) opt.selected = true;
+                if ((r.nome || r) === currResp) opt.selected = true;
                 filterResponsavel.appendChild(opt);
             });
         }
@@ -674,7 +674,7 @@ document.addEventListener('DOMContentLoaded', () => {
             configuracoes.meios.forEach(m => {
                 const opt = document.createElement('option');
                 opt.value = m.nome || m; opt.textContent = m.nome || m;
-                if((m.nome || m) === currMeio) opt.selected = true;
+                if ((m.nome || m) === currMeio) opt.selected = true;
                 filterMeio.appendChild(opt);
             });
         }
@@ -685,16 +685,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const applyFiltersAndSort = (sourceData) => {
         let result = sourceData;
-        
+
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             result = result.filter(d => {
-                return Object.values(d).some(val => 
+                return Object.values(d).some(val =>
                     String(val).toLowerCase().includes(query)
                 );
             });
         }
-        
+
         if (selectedResponsavel) {
             result = result.filter(d => d.responsavel === selectedResponsavel);
         }
@@ -712,7 +712,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const col = sortConfig.column;
             const valA = String(a[col] || '').toLowerCase();
             const valB = String(b[col] || '').toLowerCase();
-            
+
             if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
             if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
             return 0;
@@ -726,10 +726,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     const renderTables = () => {
         const dataToRender = currentPage === 'abertas' ? applyFiltersAndSort([...demandas]) : applyFiltersAndSort([...historico]);
-        
+
         if (currentPage === 'abertas') {
             tableBody.innerHTML = '';
-            
+
             dataToRender.forEach((d) => {
                 const tr = document.createElement('tr');
                 if (selectedIds.includes(d.id)) {
@@ -737,7 +737,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const respObj = configuracoes.responsaveis.find(r => r.nome === d.responsavel);
                 const meioObj = configuracoes.meios.find(m => m.nome === d.meio);
-                
+
                 const respStyle = respObj && respObj.cor ? `style="background-color: ${respObj.cor}; color: #fff; border: none;"` : 'class="pill pill-red"';
                 const meioStyle = meioObj && meioObj.cor ? `style="background-color: ${meioObj.cor}; color: #fff; border: none;"` : 'class="pill pill-blue"';
                 let quemClass = 'pill-black';
@@ -769,7 +769,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } else if (currentPage === 'historico') {
             historicoTableBody.innerHTML = '';
-            
+
             dataToRender.forEach((d) => {
                 const tr = document.createElement('tr');
                 if (selectedIds.includes(d.id)) {
@@ -777,7 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const respObj = configuracoes.responsaveis.find(r => r.nome === d.responsavel);
                 const meioObj = configuracoes.meios.find(m => m.nome === d.meio);
-                
+
                 const respStyle = respObj && respObj.cor ? `style="background-color: ${respObj.cor}; color: #fff; border: none;"` : 'class="pill pill-red"';
                 const meioStyle = meioObj && meioObj.cor ? `style="background-color: ${meioObj.cor}; color: #fff; border: none;"` : 'class="pill pill-blue"';
 
@@ -811,8 +811,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tableHeaders.forEach(th => {
             th.classList.remove('sort-asc', 'sort-desc');
             const icon = th.querySelector('i');
-            if (icon) icon.className = 'ph ph-caret-up-down'; 
-            
+            if (icon) icon.className = 'ph ph-caret-up-down';
+
             if (th.dataset.col === sortConfig.column) {
                 th.classList.add(sortConfig.direction === 'asc' ? 'sort-asc' : 'sort-desc');
                 if (icon) icon.className = sortConfig.direction === 'asc' ? 'ph ph-caret-up' : 'ph ph-caret-down';
@@ -840,10 +840,10 @@ document.addEventListener('DOMContentLoaded', () => {
             selectAllBoxes.forEach(cb => { cb.checked = false; cb.indeterminate = false; });
             return;
         }
-        
+
         const allOnPageSelected = currentData.every(d => selectedIds.includes(d.id));
         const someOnPageSelected = currentData.some(d => selectedIds.includes(d.id));
-        
+
         selectAllBoxes.forEach(cb => {
             cb.checked = allOnPageSelected;
             cb.indeterminate = !allOnPageSelected && someOnPageSelected;
@@ -861,11 +861,11 @@ document.addEventListener('DOMContentLoaded', () => {
             updateBulkActionsVisibility();
             renderTables(); // Re-render to update row styles and master checkbox
         }
-        
+
         if (e.target.classList.contains('select-all-checkbox')) {
             const isChecked = e.target.checked;
             const sourceData = currentPage === 'abertas' ? applyFiltersAndSort([...demandas]) : applyFiltersAndSort([...historico]);
-            
+
             if (isChecked) {
                 sourceData.forEach(d => {
                     if (!selectedIds.includes(d.id)) selectedIds.push(d.id);
@@ -918,19 +918,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.getElementById('btnConfirmBulkDelete');
         btn.textContent = 'Aguarde...';
         btn.disabled = true;
-        
+
         try {
             const collectionName = currentPage === 'abertas' ? 'demandas' : 'historico';
-            
+
             const chunkSize = 10;
             for (let i = 0; i < selectedIds.length; i += chunkSize) {
                 const chunk = selectedIds.slice(i, i + chunkSize);
                 const { error: _errBulk } = await supabaseClient.from(collectionName).delete().in('id', chunk);
                 if (_errBulk) throw _errBulk;
             }
-            
+
             registrarLog('Excluiu Demandas em Lote', `Excluiu ${selectedIds.length} demandas da aba ${collectionName}.`);
-            
+
             selectedIds = [];
             updateBulkActionsVisibility();
             modalBulkExcluir.classList.remove('active');
@@ -947,7 +947,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnBulkTransferir.addEventListener('click', () => {
             document.getElementById('bulkTransferCountText').textContent = selectedIds.length;
             document.getElementById('inputBulkDataEncerramento').value = new Date().toISOString().split('T')[0];
-            
+
             if (currentPage === 'abertas') {
                 document.getElementById('groupBulkMotivoEncerramento').style.display = 'block';
                 document.getElementById('inputBulkMotivoEncerramento').value = '';
@@ -966,7 +966,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.getElementById('btnConfirmBulkTransfer');
         const dataEncerramento = document.getElementById('inputBulkDataEncerramento').value;
         const motivoEncerramento = document.getElementById('inputBulkMotivoEncerramento').value;
-        
+
         if (!dataEncerramento) {
             showToast('Por favor, preencha a data de encerramento.', 'info');
             return;
@@ -1007,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 if (historicoItems.length > 0) {
                     await supabaseClient.from("historico").insert(historicoItems);
-                    
+
                     const chunkSize = 10;
                     for (let i = 0; i < idsToDelete.length; i += chunkSize) {
                         const chunk = idsToDelete.slice(i, i + chunkSize);
@@ -1039,7 +1039,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 if (demandaItems.length > 0) {
                     await supabaseClient.from("demandas").insert(demandaItems);
-                    
+
                     const chunkSize = 10;
                     for (let i = 0; i < idsToDelete.length; i += chunkSize) {
                         const chunk = idsToDelete.slice(i, i + chunkSize);
@@ -1082,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.querySelector('#modalNovaDemanda h2').textContent = 'Editar Demanda';
             document.querySelector('#formNovaDemanda .btn-submit').textContent = 'Salvar Alterações';
-            
+
             openModal();
         }
     };
@@ -1090,7 +1090,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // Eventos de Busca, Ordenação, Filtros e Exportação
     // ==========================================
-    
+
     inputBuscar.addEventListener('input', (e) => {
         searchQuery = e.target.value;
         renderTables();
@@ -1126,7 +1126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Configurar Date Picker
     const btnDateFilter = document.getElementById('btnDateFilter');
     const dateFilterValue = document.getElementById('dateFilterValue');
-    
+
     // Select all logs
     const selectAllLogs = document.getElementById('selectAllLogs');
     if (selectAllLogs) {
@@ -1134,7 +1134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isChecked = e.target.checked;
             const tbody = document.getElementById('logTableBody');
             const checkboxes = tbody.querySelectorAll('.log-checkbox');
-            
+
             checkboxes.forEach(cb => {
                 cb.checked = isChecked;
                 const val = cb.value;
@@ -1152,7 +1152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnBulkExcluirLogs = document.getElementById('btnBulkExcluirLogs');
     if (btnBulkExcluirLogs) {
         btnBulkExcluirLogs.addEventListener('click', async () => {
-            if(selectedLogsIds.length === 0) return;
+            if (selectedLogsIds.length === 0) return;
             currentLogDeleteAction = 'bulk';
             const modal = document.getElementById('modalExcluirLog');
             const text = document.getElementById('modalDeleteLogText');
@@ -1160,7 +1160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (modal) modal.classList.add('active');
         });
     }
-    
+
     const btnCancelBulkLogs = document.getElementById('btnCancelBulkLogs');
     if (btnCancelBulkLogs) {
         btnCancelBulkLogs.addEventListener('click', () => {
@@ -1207,12 +1207,12 @@ document.addEventListener('DOMContentLoaded', () => {
             dateFormat: "d/m/Y",
             locale: "pt",
             positionElement: document.getElementById('btnDateFilterLogs'),
-            onChange: function(selectedDates, dateStr, instance) {
+            onChange: function (selectedDates, dateStr, instance) {
                 if (selectedDates.length === 2) {
                     selectedLogsDateInicio = selectedDates[0];
-                    selectedLogsDateInicio.setHours(0,0,0,0);
+                    selectedLogsDateInicio.setHours(0, 0, 0, 0);
                     selectedLogsDateFim = selectedDates[1];
-                    selectedLogsDateFim.setHours(23,59,59,999);
+                    selectedLogsDateFim.setHours(23, 59, 59, 999);
                     document.getElementById('dateFilterValueLogs').textContent = dateStr;
                     renderLogs();
                 } else if (selectedDates.length === 0) {
@@ -1223,7 +1223,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
-        
+
         const btnDateFilterLogs = document.getElementById('btnDateFilterLogs');
         if (btnDateFilterLogs) {
             btnDateFilterLogs.addEventListener('click', () => {
@@ -1231,7 +1231,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-const filterDateRange = document.getElementById('filterDateRange');
+    const filterDateRange = document.getElementById('filterDateRange');
 
     if (btnDateFilter && filterDateRange) {
         window.datePickerInstance = flatpickr(filterDateRange, {
@@ -1239,14 +1239,14 @@ const filterDateRange = document.getElementById('filterDateRange');
             dateFormat: "Y-m-d",
             locale: "pt",
             positionElement: btnDateFilter,
-            onChange: function(selectedDates, dateStr, instance) {
+            onChange: function (selectedDates, dateStr, instance) {
                 if (selectedDates.length === 2) {
                     selectedDateInicio = instance.formatDate(selectedDates[0], "Y-m-d");
                     selectedDateFim = instance.formatDate(selectedDates[1], "Y-m-d");
-                    
+
                     const formatBr = (date) => instance.formatDate(date, "d/m/Y");
                     dateFilterValue.textContent = `${formatBr(selectedDates[0])} - ${formatBr(selectedDates[1])}`;
-                    
+
                     renderTables();
                 } else if (selectedDates.length === 0) {
                     selectedDateInicio = null;
@@ -1288,12 +1288,12 @@ const filterDateRange = document.getElementById('filterDateRange');
         } else {
             headers = ['Responsável', 'Assessor', 'Cliente', 'Demanda', 'Meio', 'Protocolo', 'Comentários', 'Data', 'Data de encerramento'];
         }
-        
+
         // Criar estrutura de tabela HTML para suportar cores no Excel
         let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
         htmlContent += '<head><meta charset="UTF-8"></head><body>';
         htmlContent += '<table border="1">';
-        
+
         // Header da tabela
         htmlContent += '<tr>';
         headers.forEach(h => {
@@ -1305,10 +1305,10 @@ const filterDateRange = document.getElementById('filterDateRange');
             // Pegar as cores das configurações
             const respObj = configuracoes.responsaveis.find(r => r.nome === d.responsavel);
             const meioObj = configuracoes.meios.find(m => m.nome === d.meio);
-            
+
             const respBg = respObj && respObj.cor ? respObj.cor : '';
             const meioBg = meioObj && meioObj.cor ? meioObj.cor : '';
-            
+
             const respStyle = respBg ? `style="background-color: ${respBg}; color: #ffffff;"` : '';
             const meioStyle = meioBg ? `style="background-color: ${meioBg}; color: #ffffff;"` : '';
 
@@ -1320,7 +1320,7 @@ const filterDateRange = document.getElementById('filterDateRange');
             htmlContent += `<td ${meioStyle}>${d.meio || '-'}</td>`;
             htmlContent += `<td>${d.protocolo || '-'}</td>`;
             htmlContent += `<td>${d.comentarios || '-'}</td>`;
-            
+
             if (currentPage === 'abertas') {
                 htmlContent += `<td>${d.comQuem || '-'}</td>`;
                 htmlContent += `<td>${formatDate(d.data)}</td>`;
@@ -1348,12 +1348,12 @@ const filterDateRange = document.getElementById('filterDateRange');
     // ==========================================
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         const btnSubmit = form.querySelector('.btn-submit');
         const originalText = btnSubmit.textContent;
         btnSubmit.textContent = "Aguarde...";
         btnSubmit.disabled = true;
-        
+
         const dadosFormulario = {
             responsavel: document.getElementById('inputResponsavel').value,
             assessor: document.getElementById('inputAssessor').value,
@@ -1380,7 +1380,7 @@ const filterDateRange = document.getElementById('filterDateRange');
             console.error("Erro ao salvar demanda:", error);
             showToast(`Erro ao salvar demanda. Tente novamente.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, 'info');
         }
-        
+
         btnSubmit.textContent = originalText;
         btnSubmit.disabled = false;
     });
@@ -1393,19 +1393,19 @@ const filterDateRange = document.getElementById('filterDateRange');
         const selAssessor = document.getElementById('inputAssessor');
         const selMeio = document.getElementById('inputMeio');
 
-        if(selResp) {
+        if (selResp) {
             const val = selResp.value;
             selResp.innerHTML = '<option value="">Selecione</option>';
             configuracoes.responsaveis.forEach(o => selResp.innerHTML += `<option value="${o.nome}">${o.nome}</option>`);
             selResp.value = val;
         }
-        if(selAssessor) {
+        if (selAssessor) {
             const val = selAssessor.value;
             selAssessor.innerHTML = '<option value="">Selecione</option>';
             configuracoes.assessores.forEach(o => selAssessor.innerHTML += `<option value="${o}">${o}</option>`);
             selAssessor.value = val;
         }
-        if(selMeio) {
+        if (selMeio) {
             const val = selMeio.value;
             selMeio.innerHTML = '<option value="">Selecione</option>';
             configuracoes.meios.forEach(o => selMeio.innerHTML += `<option value="${o.nome}">${o.nome}</option>`);
@@ -1416,14 +1416,14 @@ const filterDateRange = document.getElementById('filterDateRange');
     const renderControleLists = () => {
         const renderList = (id, items, type) => {
             const list = document.getElementById(id);
-            if(!list) return;
+            if (!list) return;
             list.innerHTML = '';
             items.forEach((item, index) => {
                 const li = document.createElement('li');
                 const isObj = typeof item === 'object';
                 const nome = isObj ? item.nome : item;
                 const cor = isObj && item.cor ? `<div style="width: 14px; height: 14px; border-radius: 50%; background-color: ${item.cor}; border: 1px solid rgba(255,255,255,0.2);"></div>` : '';
-                
+
                 li.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 8px;">
                         ${cor}
@@ -1446,33 +1446,33 @@ const filterDateRange = document.getElementById('filterDateRange');
 
     window.addControleItem = async (type) => {
         let inputId = '';
-        if(type === 'responsaveis') inputId = 'inputNovoResponsavel';
-        if(type === 'assessores') inputId = 'inputNovoAssessor';
-        if(type === 'meios') inputId = 'inputNovoMeio';
-        if(type === 'guiaTipos') inputId = 'inputNovoTipoGuia';
+        if (type === 'responsaveis') inputId = 'inputNovoResponsavel';
+        if (type === 'assessores') inputId = 'inputNovoAssessor';
+        if (type === 'meios') inputId = 'inputNovoMeio';
+        if (type === 'guiaTipos') inputId = 'inputNovoTipoGuia';
 
         const input = document.getElementById(inputId);
-        if(!input) return;
+        if (!input) return;
         const val = input.value.trim();
-        
-        if(val) {
-            let colorVal = null;
-            if(type === 'responsaveis') colorVal = document.getElementById('colorNovoResponsavel')?.value || '#8b5cf6';
-            if(type === 'meios') colorVal = document.getElementById('colorNovoMeio')?.value || '#4C1D95';
 
-            const exists = type === 'assessores' 
-                ? configuracoes[type].includes(val) 
+        if (val) {
+            let colorVal = null;
+            if (type === 'responsaveis') colorVal = document.getElementById('colorNovoResponsavel')?.value || '#8b5cf6';
+            if (type === 'meios') colorVal = document.getElementById('colorNovoMeio')?.value || '#4C1D95';
+
+            const exists = type === 'assessores'
+                ? configuracoes[type].includes(val)
                 : configuracoes[type].some(x => x.nome.toLowerCase() === val.toLowerCase());
 
-            if(!exists) {
-                if(type === 'assessores') {
+            if (!exists) {
+                if (type === 'assessores') {
                     configuracoes[type].push(val);
                     configuracoes[type].sort();
                 } else {
-                    configuracoes[type].push({nome: val, cor: colorVal});
-                    configuracoes[type].sort((a,b) => a.nome.localeCompare(b.nome));
+                    configuracoes[type].push({ nome: val, cor: colorVal });
+                    configuracoes[type].sort((a, b) => a.nome.localeCompare(b.nome));
                 }
-                
+
                 try {
                     await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
                     registrarLog('Adicionou Opção de Controle', `A opção "${val}" foi adicionada a ${type}.`);
@@ -1513,7 +1513,7 @@ const filterDateRange = document.getElementById('filterDateRange');
     if (formLoteAssessores) {
         formLoteAssessores.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const btnSubmit = formLoteAssessores.querySelector('.btn-submit');
             const originalText = btnSubmit.textContent;
             btnSubmit.textContent = "Aguarde...";
@@ -1521,7 +1521,7 @@ const filterDateRange = document.getElementById('filterDateRange');
 
             const text = document.getElementById('inputListaAssessores').value;
             const nomes = text.split('\n').map(n => n.trim()).filter(n => n.length > 0);
-            
+
             let adicionados = 0;
             nomes.forEach(val => {
                 if (!configuracoes.assessores.includes(val)) {
@@ -1555,9 +1555,9 @@ const filterDateRange = document.getElementById('filterDateRange');
         const item = configuracoes[type][index];
         const colorInput = document.getElementById('colorEditarOpcao');
         const pickrContainer = document.getElementById('pickrEditarOpcao');
-        
+
         inputEditarOpcao.value = type === 'assessores' ? item : item.nome;
-        
+
         if (type === 'assessores' || type === 'guiaTipos') {
             if (pickrContainer) pickrContainer.style.display = 'none';
         } else {
@@ -1568,7 +1568,7 @@ const filterDateRange = document.getElementById('filterDateRange');
                 window.pickrEditarOpcao.setColor(colorToSet);
             }
         }
-        
+
         modalEditarOpcao.classList.add('active');
     };
 
@@ -1577,21 +1577,21 @@ const filterDateRange = document.getElementById('filterDateRange');
     };
 
     if (btnCancelEditarOpcao) btnCancelEditarOpcao.addEventListener('click', closeEditControleModal);
-    
+
     if (btnConfirmEditarOpcao) {
         btnConfirmEditarOpcao.addEventListener('click', async () => {
             const val = inputEditarOpcao.value.trim();
             const cor = document.getElementById('colorEditarOpcao').value;
             const { type, index } = editControleParams;
-            if(val && type) {
+            if (val && type) {
                 let exists = false;
-                if(type === 'assessores') {
+                if (type === 'assessores') {
                     exists = configuracoes[type].includes(val) && configuracoes[type][index] !== val;
                 } else {
                     exists = configuracoes[type].some((x, i) => x.nome.toLowerCase() === val.toLowerCase() && i !== index);
                 }
 
-                if(exists) {
+                if (exists) {
                     showToast('Esta opção já existe!', 'info');
                 } else {
                     if (type === 'assessores') {
@@ -1599,9 +1599,9 @@ const filterDateRange = document.getElementById('filterDateRange');
                         configuracoes[type].sort();
                     } else {
                         configuracoes[type][index] = { nome: val, cor: cor };
-                        configuracoes[type].sort((a,b) => a.nome.localeCompare(b.nome));
+                        configuracoes[type].sort((a, b) => a.nome.localeCompare(b.nome));
                     }
-                    
+
                     try {
                         await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
                         registrarLog('Editou Opção de Controle', `A opção "${val}" foi editada em ${type}.`);
@@ -1613,14 +1613,14 @@ const filterDateRange = document.getElementById('filterDateRange');
             }
         });
     }
-    
+
     // Adicionar eventos de Enter para inputs do Controle
     const mapInputToType = {
         'inputNovoResponsavel': 'responsaveis',
         'inputNovoAssessor': 'assessores',
         'inputNovoMeio': 'meios'
     };
-    
+
     Object.keys(mapInputToType).forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -1644,7 +1644,7 @@ const filterDateRange = document.getElementById('filterDateRange');
         btnToggleSenha.addEventListener('click', () => {
             const type = inputUsuarioSenha.getAttribute('type') === 'password' ? 'text' : 'password';
             inputUsuarioSenha.setAttribute('type', type);
-            
+
             // Trocar ícone
             if (type === 'text') {
                 iconToggleSenha.className = 'ph ph-eye-slash';
@@ -1659,7 +1659,7 @@ const filterDateRange = document.getElementById('filterDateRange');
     const inputUsuarioNome = document.getElementById('inputUsuarioNome');
     const inputUsuarioEmail = document.getElementById('inputUsuarioEmail');
     const inputUsuarioNivel = document.getElementById('inputUsuarioNivel');
-    
+
     let editingUsuarioId = null;
 
     const openUsuarioModal = (id = null) => {
@@ -1670,7 +1670,7 @@ const filterDateRange = document.getElementById('filterDateRange');
                 document.getElementById('modalUsuarioTitle').textContent = 'Editar Usuário';
                 inputUsuarioNome.value = user.nome;
                 inputUsuarioEmail.value = user.email;
-                if(inputUsuarioSenha) inputUsuarioSenha.value = '********'; // Simulação
+                if (inputUsuarioSenha) inputUsuarioSenha.value = '********'; // Simulação
                 inputUsuarioNivel.value = user.nivel;
             }
         } else {
@@ -1687,7 +1687,7 @@ const filterDateRange = document.getElementById('filterDateRange');
 
     document.getElementById('btnCloseModalUsuario').addEventListener('click', closeUsuarioModal);
     document.getElementById('btnCancelModalUsuario').addEventListener('click', closeUsuarioModal);
-    
+
     // Bind to the new Novo Usuário button
     const btnNovoUsuario = document.getElementById('btnNovoUsuario');
     if (btnNovoUsuario) {
@@ -1698,12 +1698,12 @@ const filterDateRange = document.getElementById('filterDateRange');
 
     formUsuario.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         const btnSubmit = formUsuario.querySelector('.btn-submit');
         const originalText = btnSubmit.textContent;
         btnSubmit.textContent = "Aguarde...";
         btnSubmit.disabled = true;
-        
+
         const userData = {
             nome: inputUsuarioNome.value,
             email: inputUsuarioEmail.value,
@@ -1723,7 +1723,7 @@ const filterDateRange = document.getElementById('filterDateRange');
             console.error("Erro ao salvar usuário:", error);
             showToast(`Erro ao salvar usuário. Tente novamente.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, 'info');
         }
-        
+
         btnSubmit.textContent = originalText;
         btnSubmit.disabled = false;
     });
@@ -1738,7 +1738,7 @@ const filterDateRange = document.getElementById('filterDateRange');
 
     const renderUsuarios = () => {
         const tbody = document.getElementById('acessosTableBody');
-        if(!tbody) return;
+        if (!tbody) return;
         tbody.innerHTML = '';
 
         if (usuarios.length === 0) {
@@ -1748,11 +1748,11 @@ const filterDateRange = document.getElementById('filterDateRange');
 
         usuarios.forEach(user => {
             const tr = document.createElement('tr');
-            
+
             let badgeClass = 'badge-viewer';
-            if(user.nivel === 'Master') badgeClass = 'badge-master';
-            if(user.nivel === 'Administrador') badgeClass = 'badge-admin';
-            if(user.nivel === 'Editor') badgeClass = 'badge-editor';
+            if (user.nivel === 'Master') badgeClass = 'badge-master';
+            if (user.nivel === 'Administrador') badgeClass = 'badge-admin';
+            if (user.nivel === 'Editor') badgeClass = 'badge-editor';
 
             tr.innerHTML = `
                 <td><strong>${user.nome}</strong></td>
@@ -1774,7 +1774,7 @@ const filterDateRange = document.getElementById('filterDateRange');
     // ==========================================
     // Funções de Log de Ações
     // ==========================================
-    
+
     // --- LÓGICA DA PÁGINA DE GUIAS ---
     // Listener de guias (Supabase)
     const fetchGuias = async () => {
@@ -1786,7 +1786,7 @@ const filterDateRange = document.getElementById('filterDateRange');
     };
     fetchGuias();
     supabaseClient.channel('guias_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'guias' }, fetchGuias).subscribe();
-    
+
     // Ensure configuracoes has guiaTipos
     if (!configuracoes.guiaTipos) configuracoes.guiaTipos = [];
 
@@ -1795,22 +1795,22 @@ const filterDateRange = document.getElementById('filterDateRange');
     const formNovaGuia = document.getElementById('formNovaGuia');
     const btnCloseGuia = document.getElementById('btnCloseGuia');
     const btnCancelGuia = document.getElementById('btnCancelGuia');
-    
+
     const btnToggleCaminho = document.getElementById('btnToggleCaminho');
     const btnToggleTipo = document.getElementById('btnToggleTipo');
     const inputGuiaTipoForm = document.getElementById('inputGuiaTipoForm');
-    
+
     const sectionCaminho = document.getElementById('formSectionCaminho');
     const sectionTipo = document.getElementById('formSectionTipo');
     const inputGuiaTipoSelect = document.getElementById('inputGuiaTipoSelect');
-    
+
     // Switch between Caminho and Tipo
     const switchGuiaModalMode = (mode) => {
         if (mode === 'caminho') {
             btnToggleCaminho.classList.add('active');
             btnToggleTipo.classList.remove('active');
             inputGuiaTipoForm.value = 'caminho';
-            
+
             sectionCaminho.style.display = 'block';
             sectionTipo.style.display = 'none';
             document.getElementById('inputGuiaTitulo').required = true;
@@ -1821,7 +1821,7 @@ const filterDateRange = document.getElementById('filterDateRange');
             btnToggleTipo.classList.add('active');
             btnToggleCaminho.classList.remove('active');
             inputGuiaTipoForm.value = 'tipo';
-            
+
             sectionCaminho.style.display = 'none';
             sectionTipo.style.display = 'block';
             document.getElementById('inputGuiaTitulo').required = false;
@@ -1831,12 +1831,12 @@ const filterDateRange = document.getElementById('filterDateRange');
         }
     };
 
-    if(btnToggleCaminho) btnToggleCaminho.addEventListener('click', () => switchGuiaModalMode('caminho'));
-    if(btnToggleTipo) btnToggleTipo.addEventListener('click', () => switchGuiaModalMode('tipo'));
+    if (btnToggleCaminho) btnToggleCaminho.addEventListener('click', () => switchGuiaModalMode('caminho'));
+    if (btnToggleTipo) btnToggleTipo.addEventListener('click', () => switchGuiaModalMode('tipo'));
 
     const openGuiaModal = (editId = null) => {
         currentEditGuiaId = editId;
-        
+
         // Popula select de tipos
         inputGuiaTipoSelect.innerHTML = '<option value="">Selecione o Tipo</option>';
         if (configuracoes.guiaTipos) {
@@ -1844,14 +1844,14 @@ const filterDateRange = document.getElementById('filterDateRange');
                 inputGuiaTipoSelect.innerHTML += `<option value="${t}">${t}</option>`;
             });
         }
-        
+
         if (editId) {
             const g = guias.find(x => x.id === editId);
             document.getElementById('inputGuiaTitulo').value = g.titulo;
             inputGuiaTipoSelect.value = g.tipo;
             document.getElementById('inputGuiaConteudo').value = g.conteudo;
             document.getElementById('inputGuiaAnexo').value = g.anexo || '';
-            
+
             switchGuiaModalMode('caminho');
             document.getElementById('guiaModalToggleRow').style.display = 'none';
             document.querySelector('#modalNovaGuiaTitle').textContent = "Editar guia";
@@ -1863,7 +1863,7 @@ const filterDateRange = document.getElementById('filterDateRange');
             document.querySelector('#modalNovaGuiaTitle').textContent = "Criar nova guia";
             document.querySelector('#formNovaGuia .btn-submit').textContent = "Criar";
         }
-        
+
         modalNovaGuia.classList.add('active');
     };
 
@@ -1876,9 +1876,9 @@ const filterDateRange = document.getElementById('filterDateRange');
             e.preventDefault();
             const btnSubmit = formNovaGuia.querySelector('.btn-submit');
             btnSubmit.disabled = true;
-            
+
             const isCaminho = inputGuiaTipoForm.value === 'caminho';
-            
+
             try {
                 if (!isCaminho) {
                     // Creating new Tipo
@@ -1886,7 +1886,7 @@ const filterDateRange = document.getElementById('filterDateRange');
                     if (configuracoes.guiaTipos && configuracoes.guiaTipos.includes(novoTipo)) {
                         showToast("Este tipo já existe!", "warning");
                     } else {
-                        if(!configuracoes.guiaTipos) configuracoes.guiaTipos = [];
+                        if (!configuracoes.guiaTipos) configuracoes.guiaTipos = [];
                         configuracoes.guiaTipos.push(novoTipo);
                         configuracoes.guiaTipos.sort();
                         await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
@@ -1902,7 +1902,7 @@ const filterDateRange = document.getElementById('filterDateRange');
                         anexo: document.getElementById('inputGuiaAnexo').value.trim(),
                         dataAtualizacao: Date.now()
                     };
-                    
+
                     if (currentEditGuiaId) {
                         await supabaseClient.from("guias").update(dataObj).eq("id", currentEditGuiaId);
                         showToast("Guia atualizada com sucesso!", "success");
@@ -1932,22 +1932,22 @@ const filterDateRange = document.getElementById('filterDateRange');
     const btnResetGuia = document.getElementById('btnResetGuia');
 
     const updateGuiaFilterOptions = () => {
-        if(!filterGuiaTipo) return;
+        if (!filterGuiaTipo) return;
         const currentVal = filterGuiaTipo.value;
         filterGuiaTipo.innerHTML = '<option value="">Tipo (Todos)</option>';
-        if(configuracoes.guiaTipos) {
+        if (configuracoes.guiaTipos) {
             configuracoes.guiaTipos.forEach(t => {
                 const opt = document.createElement('option');
                 opt.value = t; opt.textContent = t;
-                if(t === currentVal) opt.selected = true;
+                if (t === currentVal) opt.selected = true;
                 filterGuiaTipo.appendChild(opt);
             });
         }
     };
 
-    if(inputBuscarGuia) inputBuscarGuia.addEventListener('input', () => renderGuias());
-    if(filterGuiaTipo) filterGuiaTipo.addEventListener('change', () => renderGuias());
-    if(btnResetGuia) {
+    if (inputBuscarGuia) inputBuscarGuia.addEventListener('input', () => renderGuias());
+    if (filterGuiaTipo) filterGuiaTipo.addEventListener('change', () => renderGuias());
+    if (btnResetGuia) {
         btnResetGuia.addEventListener('click', () => {
             inputBuscarGuia.value = '';
             filterGuiaTipo.value = '';
@@ -1961,17 +1961,17 @@ const filterDateRange = document.getElementById('filterDateRange');
 
     window.visualizarGuia = (id) => {
         const g = guias.find(x => x.id === id);
-        if(!g) return;
-        
+        if (!g) return;
+
         document.getElementById('viewGuiaTitulo').textContent = g.titulo || g.tipo || 'Sem Título';
-        
+
         const conteudoEl = document.getElementById('viewGuiaConteudo');
-        if(g.conteudo) {
+        if (g.conteudo) {
             conteudoEl.textContent = g.conteudo;
         } else {
             conteudoEl.innerHTML = '<span style="color: var(--text-muted); font-style: italic;">Sem descrição disponível.</span>';
         }
-        
+
         const anexoEl = document.getElementById('viewGuiaAnexo');
         if (g.anexo) {
             if (g.anexo.startsWith('http://') || g.anexo.startsWith('https://')) {
@@ -1982,7 +1982,7 @@ const filterDateRange = document.getElementById('filterDateRange');
         } else {
             anexoEl.innerHTML = '<span style="color: var(--text-muted); font-style: italic;">Nenhum anexo.</span>';
         }
-        
+
         modalViewGuia.classList.add('active');
     };
 
@@ -2004,94 +2004,94 @@ const filterDateRange = document.getElementById('filterDateRange');
 
     const renderGuias = () => {
         const tbody = document.getElementById('guiaTableBody');
-        if(!tbody) return;
-        
+        if (!tbody) return;
+
         const searchQueryGuia = (document.getElementById('inputBuscarGuia')?.value || '').toLowerCase();
         const tipoQueryGuia = document.getElementById('filterGuiaTipo')?.value || '';
-        
+
         let filtered = guias;
 
-        if(tipoQueryGuia) {
+        if (tipoQueryGuia) {
             filtered = filtered.filter(g => g.tipo === tipoQueryGuia);
         }
-        
-        if(searchQueryGuia) {
-            filtered = filtered.filter(g => 
+
+        if (searchQueryGuia) {
+            filtered = filtered.filter(g =>
                 (g.titulo && g.titulo.toLowerCase().includes(searchQueryGuia)) ||
                 (g.conteudo && g.conteudo.toLowerCase().includes(searchQueryGuia)) ||
                 (g.tipo && g.tipo.toLowerCase().includes(searchQueryGuia))
             );
         }
-        
+
         // Sort newest first by default
-        filtered.sort((a,b) => (b.dataAtualizacao || 0) - (a.dataAtualizacao || 0));
-        
+        filtered.sort((a, b) => (b.dataAtualizacao || 0) - (a.dataAtualizacao || 0));
+
         tbody.innerHTML = '';
-        if(filtered.length === 0) {
+        if (filtered.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Nenhuma guia encontrada.</td></tr>`;
             return;
         }
-        
+
         filtered.forEach(g => {
             const tr = document.createElement('tr');
-            
+
             const tdDesc = document.createElement('td');
             tdDesc.textContent = g.titulo || '-';
-            
+
             const tdTipo = document.createElement('td');
             tdTipo.innerHTML = `<span class="status-badge" style="background-color: rgba(255,255,255,0.1);">${g.tipo || '-'}</span>`;
-            
+
             const tdAutor = document.createElement('td');
             tdAutor.textContent = g.autor || '-';
-            
+
             const dataC = g.dataCriacao ? new Date(g.dataCriacao).toLocaleDateString('pt-BR') : '-';
             const tdCriacao = document.createElement('td');
             tdCriacao.textContent = dataC;
-            
+
             const dataA = g.dataAtualizacao ? new Date(g.dataAtualizacao).toLocaleDateString('pt-BR') : '-';
             const tdAtt = document.createElement('td');
             tdAtt.textContent = dataA;
-            
+
             const tdActions = document.createElement('td');
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'actions';
-            
+
             actionsDiv.innerHTML = `
                 <button class="action-btn view" onclick="visualizarGuia('${g.id}')" title="Visualizar"><i class="ph ph-eye"></i></button>
             `;
-            
+
             if (userAccessLevel !== 'Visualizador') {
                 actionsDiv.innerHTML += `
                     <button class="action-btn edit" onclick="editGuia('${g.id}')" title="Editar"><i class="ph ph-pencil-simple"></i></button>
                     <button class="action-btn delete" onclick="deletarGuia('${g.id}')" title="Excluir"><i class="ph ph-trash"></i></button>
                 `;
             }
-            
+
             tdActions.appendChild(actionsDiv);
-            
+
             tr.appendChild(tdDesc);
             tr.appendChild(tdTipo);
             tr.appendChild(tdAutor);
             tr.appendChild(tdCriacao);
             tr.appendChild(tdAtt);
             tr.appendChild(tdActions);
-            
+
             tbody.appendChild(tr);
         });
     };
-    
+
 
 
     let selectedLogsIds = [];
     let searchLogsQuery = '';
     let selectedLogsDateInicio = null;
     let selectedLogsDateFim = null;
-    
+
     window.updateLogsBulkVisibility = () => {
         const bulkContainer = document.getElementById('bulkActionsLogs');
         const countSpan = document.getElementById('bulkSelectedCountLogs');
         if (!bulkContainer) return;
-        
+
         if (selectedLogsIds.length > 0) {
             bulkContainer.style.display = 'flex';
             countSpan.textContent = selectedLogsIds.length;
@@ -2116,21 +2116,21 @@ const filterDateRange = document.getElementById('filterDateRange');
         tbody.innerHTML = '';
 
         let filtered = logsAcoes;
-        
+
         if (searchLogsQuery) {
             const q = searchLogsQuery.toLowerCase();
-            filtered = filtered.filter(l => 
+            filtered = filtered.filter(l =>
                 (l.usuario && l.usuario.toLowerCase().includes(q)) ||
                 (l.acao && l.acao.toLowerCase().includes(q)) ||
                 (l.detalhes && l.detalhes.toLowerCase().includes(q))
             );
         }
-        
+
         if (selectedLogsDateInicio && selectedLogsDateFim) {
             filtered = filtered.filter(l => {
-                if(!l.timestamp) return true;
+                if (!l.timestamp) return true;
                 const d = new Date(l.timestamp);
-                d.setHours(0,0,0,0);
+                d.setHours(0, 0, 0, 0);
                 return d >= selectedLogsDateInicio && d <= selectedLogsDateFim;
             });
         }
@@ -2144,14 +2144,14 @@ const filterDateRange = document.getElementById('filterDateRange');
             const tr = document.createElement('tr');
             const isChecked = selectedLogsIds.includes(log.id) ? 'checked' : '';
             tr.className = isChecked ? 'selected-row' : '';
-            
+
             tr.addEventListener('click', (e) => {
-                if(e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
+                if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
                 const cb = tr.querySelector('.log-checkbox');
                 cb.checked = !cb.checked;
                 cb.dispatchEvent(new Event('change'));
             });
-            
+
             tr.innerHTML = `
                 <td onclick="event.stopPropagation()">
                     <input type="checkbox" class="log-checkbox" value="${log.id}" ${isChecked}>
@@ -2161,11 +2161,11 @@ const filterDateRange = document.getElementById('filterDateRange');
                 <td>${log.detalhes}</td>
                 <td style="white-space: nowrap;"><i class="ph ph-clock"></i> ${log.dataHora}</td>
             `;
-            
+
             const cb = tr.querySelector('.log-checkbox');
             cb.addEventListener('change', (e) => {
-                if(e.target.checked) {
-                    if(!selectedLogsIds.includes(log.id)) selectedLogsIds.push(log.id);
+                if (e.target.checked) {
+                    if (!selectedLogsIds.includes(log.id)) selectedLogsIds.push(log.id);
                     tr.classList.add('selected-row');
                 } else {
                     selectedLogsIds = selectedLogsIds.filter(id => id !== log.id);
@@ -2174,18 +2174,18 @@ const filterDateRange = document.getElementById('filterDateRange');
                 updateLogsBulkVisibility();
                 updateLogsSelectAllCheckbox(filtered);
             });
-            
+
             tbody.appendChild(tr);
         });
         updateLogsSelectAllCheckbox(filtered);
     };
-    
+
     function updateLogsSelectAllCheckbox(filtered) {
         const selectAllCb = document.getElementById('selectAllLogs');
         if (!selectAllCb) return;
         const currentIds = filtered.map(l => l.id);
         const selectedCurrent = currentIds.filter(id => selectedLogsIds.includes(id));
-        
+
         if (currentIds.length === 0) {
             selectAllCb.checked = false;
             selectAllCb.indeterminate = false;
@@ -2212,7 +2212,7 @@ const filterDateRange = document.getElementById('filterDateRange');
             if (modal) modal.classList.add('active');
         });
     }
-    
+
 
     renderLogs();
 
@@ -2354,7 +2354,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnCancelDeleteLog) {
         btnCancelDeleteLog.addEventListener('click', () => {
-            if(modalExcluirLog) modalExcluirLog.classList.remove('active');
+            if (modalExcluirLog) modalExcluirLog.classList.remove('active');
             currentLogDeleteAction = null;
             currentLogDeleteId = null;
         });
@@ -2363,23 +2363,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnConfirmDeleteLog) {
         btnConfirmDeleteLog.addEventListener('click', async () => {
             if (!currentLogDeleteAction) return;
-            
+
             if (currentLogDeleteAction === 'single' && currentLogDeleteId) {
                 try {
                     const { error } = await supabaseClient.from('logs').delete().eq('id', currentLogDeleteId);
-                    if(error) throw error;
+                    if (error) throw error;
                     showToast('Registro excluído', 'success');
-                } catch(e) {
+                } catch (e) {
                     showToast('Erro ao excluir registro', 'error');
                 }
             } else if (currentLogDeleteAction === 'bulk' && selectedLogsIds.length > 0) {
                 try {
                     const { error } = await supabaseClient.from('logs').delete().in('id', selectedLogsIds);
-                    if(error) throw error;
+                    if (error) throw error;
                     showToast(`${selectedLogsIds.length} registros excluídos`, 'success');
                     selectedLogsIds = [];
                     // Need to trigger a custom event or let realtime handle it
-                } catch(e) {
+                } catch (e) {
                     showToast('Erro ao excluir registros', 'error');
                 }
             } else if (currentLogDeleteAction === 'clear') {
@@ -2388,12 +2388,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (_err9) throw _err9;
                     showToast("Histórico limpo com sucesso!", "success");
                     selectedLogsIds = [];
-                } catch(err) {
+                } catch (err) {
                     showToast('Erro ao limpar histórico', 'error');
                 }
             }
-            
-            if(modalExcluirLog) modalExcluirLog.classList.remove('active');
+
+            if (modalExcluirLog) modalExcluirLog.classList.remove('active');
             currentLogDeleteAction = null;
             currentLogDeleteId = null;
         });
@@ -2448,7 +2448,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnAdicionarTipoGuia.addEventListener('click', async () => {
             const novoTipo = inputNovoTipoGuia.value.trim();
             if (!novoTipo) return;
-            
+
             if (!configuracoes.guiaTipos) configuracoes.guiaTipos = [];
             if (configuracoes.guiaTipos.includes(novoTipo)) {
                 showToast('Tipo já existe', 'error');
@@ -2456,7 +2456,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             configuracoes.guiaTipos.push(novoTipo);
-            
+
             try {
                 btnAdicionarTipoGuia.disabled = true;
                 const { error } = await supabaseClient
@@ -2485,7 +2485,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (confirm(`Tem certeza que deseja excluir o tipo "${tipo}"?`)) {
             const oldValue = configuracoes.guiaTipos[index];
             configuracoes.guiaTipos.splice(index, 1);
-            
+
             try {
                 const { error } = await supabaseClient
                     .from('configuracoes')
@@ -2493,7 +2493,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .eq('id', 1);
 
                 if (error) throw error;
-                
+
                 renderTiposGuiaTable();
                 showToast('Tipo excluído', 'success');
             } catch (err) {
@@ -2509,7 +2509,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tipo = configuracoes.guiaTipos[index];
         const novoNome = prompt(`Editar nome do tipo "${tipo}":`, tipo);
         if (novoNome && novoNome.trim() !== '' && novoNome !== tipo) {
-            
+
             if (configuracoes.guiaTipos.includes(novoNome)) {
                 showToast('Este tipo já existe', 'error');
                 return;
@@ -2517,7 +2517,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const oldValue = configuracoes.guiaTipos[index];
             configuracoes.guiaTipos[index] = novoNome;
-            
+
             try {
                 const { error } = await supabaseClient
                     .from('configuracoes')
@@ -2525,10 +2525,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     .eq('id', 1);
 
                 if (error) throw error;
-                
+
                 renderTiposGuiaTable();
                 showToast('Tipo atualizado', 'success');
-                
+
                 // Optional: Update existing guias with this type?
                 // Depending on the business logic, we could do it here
             } catch (err) {

@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            if (typeof renderControleLists === 'function') renderControleLists();
+            if (typeof window.renderControleTable === 'function') window.renderControleTable();
             renderSelectOptions();
             updateFilterOptions();
             renderTables();

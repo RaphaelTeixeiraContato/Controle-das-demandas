@@ -417,6 +417,10 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedDateInicio = null;
             selectedDateFim = null;
             selectedIds = [];
+            
+            selectedLogsIds = [];
+            if (typeof updateLogsBulkVisibility === 'function') updateLogsBulkVisibility();
+            
             updateBulkActionsVisibility();
             document.querySelectorAll('.select-all-checkbox').forEach(cb => {
                 cb.checked = false;
@@ -892,6 +896,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const btnCancelBulkDemandas = document.getElementById('btnCancelBulkDemandas');
+    if (btnCancelBulkDemandas) {
+        btnCancelBulkDemandas.addEventListener('click', () => {
+            selectedIds = [];
+            updateBulkActionsVisibility();
+            document.querySelectorAll('.select-all-checkbox').forEach(cb => {
+                cb.checked = false;
+                cb.indeterminate = false;
+            });
+            renderTables();
+        });
+    }
+
     document.getElementById('btnCancelBulkDelete').addEventListener('click', () => {
         modalBulkExcluir.classList.remove('active');
     });
@@ -1143,6 +1160,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    const btnCancelBulkLogs = document.getElementById('btnCancelBulkLogs');
+    if (btnCancelBulkLogs) {
+        btnCancelBulkLogs.addEventListener('click', () => {
+            selectedLogsIds = [];
+            if (typeof updateLogsBulkVisibility === 'function') updateLogsBulkVisibility();
+            document.querySelectorAll('#viewLog .select-all-checkbox').forEach(cb => {
+                cb.checked = false;
+                cb.indeterminate = false;
+            });
+            if (typeof renderLogs === 'function') renderLogs();
+        });
+    }
 
     const inputBuscarLogs = document.getElementById('inputBuscarLogs');
     if (inputBuscarLogs) {

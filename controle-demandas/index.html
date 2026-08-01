@@ -152,8 +152,9 @@
                 </div>
                 
                 <!-- Bulk Actions -->
-                <div class="bulk-actions" id="bulkActionsContainer" style="display: none;">
+                <div class="bulk-actions" id="bulkActionsContainer" style="display: none; align-items: center; gap: 10px;">
                     <span style="font-size: 14px; font-weight: 500;"><span id="bulkSelectedCount">0</span> selecionados</span>
+                    <button class="btn-cancel" id="btnCancelBulkDemandas" style="padding: 6px 12px; font-size: 13px;">Cancelar</button>
                     <button class="btn-danger" id="btnBulkExcluir">
                         <i class="ph ph-trash"></i> Excluir Selecionados
                     </button>
@@ -296,14 +297,14 @@
 
             <!-- Container Log de Ações -->
             <div class="table-container" id="viewLog" style="display: none;">
-                <div class="header-actions" style="margin-bottom: 20px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div class="header-actions" style="margin-top: 24px; margin-bottom: 20px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
                     
                     <div class="left-actions" style="display: flex; gap: 15px; align-items: center;">
                         <div class="search-box" style="display: flex; align-items: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 0 12px; height: 38px;">
                             <i class="ph ph-magnifying-glass" style="color: var(--text-secondary); margin-right: 8px;"></i>
                             <input type="text" id="inputBuscarLogs" placeholder="Buscar..." style="background: transparent; border: none; color: #fff; outline: none; width: 150px; font-size: 14px;">
                         </div>
-                        <div class="custom-date-filter" id="btnDateFilterLogs" style="min-width: 300px;">
+                        <div class="custom-date-filter" id="btnDateFilterLogs">
                             <i class="ph ph-calendar-blank"></i>
                             <div class="date-filter-text">
                                 <span class="date-filter-label">Período</span>
@@ -317,6 +318,7 @@
                     <div class="right-actions" style="display: flex; gap: 15px; align-items: center;">
                         <div class="bulk-actions" id="bulkActionsLogs" style="display: none; align-items: center; gap: 15px; background: rgba(239, 68, 68, 0.1); padding: 5px 15px; border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.2);">
                             <span style="font-size: 14px; font-weight: 500; color: #ef4444;"><span id="bulkSelectedCountLogs">0</span> selecionados</span>
+                            <button class="btn-cancel" id="btnCancelBulkLogs" style="padding: 6px 12px; font-size: 13px;">Cancelar</button>
                             <button class="btn-danger" id="btnBulkExcluirLogs" style="padding: 6px 12px; font-size: 13px;">
                                 <i class="ph ph-trash"></i> Excluir Selecionados
                             </button>

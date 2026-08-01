@@ -1446,84 +1446,108 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const renderControleLists = () => {
-        const renderList = (id, items, type) => {
-            const list = document.getElementById(id);
-            if (!list) return;
-            list.innerHTML = '';
-            items.forEach((item, index) => {
-                const li = document.createElement('li');
-                const isObj = typeof item === 'object';
-                const nome = isObj ? item.nome : item;
-                const cor = isObj && item.cor ? `<div style="width: 14px; height: 14px; border-radius: 50%; background-color: ${item.cor}; border: 1px solid rgba(255,255,255,0.2);"></div>` : '';
+    window.renderControleTable = () => {
+        const tbody = document.getElementById('controleTableBody');
+        const selectCat = document.getElementById('selectCategoriaControle');
+        const searchInput = document.getElementById('inputBuscarControle');
+        const thCor = document.getElementById('thCorControle');
+        const btnLote = document.getElementById('btnLoteAssessoresControle');
 
-                li.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        ${cor}
-                        <span>${nome}</span>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn-delete" style="color: #666;" onclick="window.openEditControleModal('${type}', ${index})" title="Editar"><i class="ph ph-pencil-simple"></i></button>
-                        <button class="btn-delete" onclick="window.openDeleteControleModal('${type}', ${index})" title="Remover"><i class="ph ph-trash"></i></button>
-                    </div>
-                `;
-                list.appendChild(li);
-            });
-        };
+        if (!tbody || !selectCat) return;
 
-        renderList('listResponsavel', configuracoes.responsaveis, 'responsaveis');
-        renderList('listAssessor', configuracoes.assessores, 'assessores');
-        renderList('listMeio', configuracoes.meios, 'meios');
-        renderList('listGuiaTipo', configuracoes.guiaTipos, 'guiaTipos');
-    };
-
-    window.addControleItem = async (type) => {
-        let inputId = '';
-        if (type === 'responsaveis') inputId = 'inputNovoResponsavel';
-        if (type === 'assessores') inputId = 'inputNovoAssessor';
-        if (type === 'meios') inputId = 'inputNovoMeio';
-        if (type === 'guiaTipos') inputId = 'inputNovoTipoGuia';
-
-        const input = document.getElementById(inputId);
-        if (!input) return;
-        const val = input.value.trim();
-
-        if (val) {
-            let colorVal = null;
-            if (type === 'responsaveis') colorVal = document.getElementById('colorNovoResponsavel')?.value || '#8b5cf6';
-            if (type === 'meios') colorVal = document.getElementById('colorNovoMeio')?.value || '#4C1D95';
-
-            const exists = type === 'assessores'
-                ? configuracoes[type].includes(val)
-                : configuracoes[type].some(x => x.nome.toLowerCase() === val.toLowerCase());
-
-            if (!exists) {
-                if (type === 'assessores') {
-                    configuracoes[type].push(val);
-                    configuracoes[type].sort();
-                } else {
-                    configuracoes[type].push({ nome: val, cor: colorVal });
-                    configuracoes[type].sort((a, b) => a.nome.localeCompare(b.nome));
-                }
-
-                try {
-                    await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
-                    registrarLog('Adicionou Opção de Controle', `A opção "${val}" foi adicionada a ${type}.`);
-                    input.value = '';
-                } catch (e) {
-                    console.error("Erro ao salvar configuração", e);
-                }
-            } else {
-                showToast('Esta opção já existe!', 'info');
-            }
+        const categoria = selectCat.value;
+        let items = configuracoes[categoria] || [];
+        
+        // Hide Lote and Cor if it's assessores
+        if (categoria === 'assessores') {
+            if (btnLote) btnLote.style.display = 'block';
+            if (thCor) thCor.style.display = 'none';
+        } else {
+            if (btnLote) btnLote.style.display = 'none';
+            if (thCor) thCor.style.display = 'table-cell';
         }
+
+        const query = (searchInput.value || '').toLowerCase();
+        if (query) {
+            items = items.filter(i => (i.nome || i).toLowerCase().includes(query));
+        }
+
+        tbody.innerHTML = '';
+        if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="padding: 20px;">Nenhum item encontrado.</td></tr>';
+            return;
+        }
+
+        items.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            
+            const nome = item.nome || item;
+            const cor = item.cor ? `<div style="width: 14px; height: 14px; border-radius: 50%; background-color: ${item.cor}; border: 1px solid rgba(255,255,255,0.2);"></div>` : '-';
+            
+            // Format dates
+            const formatDateControle = (d) => {
+                if (!d) return '-';
+                const dateObj = new Date(d);
+                return `${dateObj.toLocaleDateString('pt-BR')} às ${dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`;
+            };
+            const criadoEm = formatDateControle(item.criadoEm);
+            const atualizadoEm = formatDateControle(item.atualizadoEm);
+
+            if (categoria === 'assessores') {
+                tr.innerHTML = `
+                    <td>${nome}</td>
+                    <td>${criadoEm}</td>
+                    <td>${atualizadoEm}</td>
+                    <td>
+                        <div class="action-icons">
+                            <i class="ph ph-pencil-simple" title="Editar" onclick="window.openEditControleModal('${categoria}', ${index})"></i>
+                            <i class="ph ph-trash" title="Remover" onclick="window.openDeleteControleModal('${categoria}', ${index})"></i>
+                        </div>
+                    </td>
+                `;
+            } else {
+                tr.innerHTML = `
+                    <td>${nome}</td>
+                    <td><div style="display:flex;">${cor}</div></td>
+                    <td>${criadoEm}</td>
+                    <td>${atualizadoEm}</td>
+                    <td>
+                        <div class="action-icons">
+                            <i class="ph ph-pencil-simple" title="Editar" onclick="window.openEditControleModal('${categoria}', ${index})"></i>
+                            <i class="ph ph-trash" title="Remover" onclick="window.openDeleteControleModal('${categoria}', ${index})"></i>
+                        </div>
+                    </td>
+                `;
+            }
+            tbody.appendChild(tr);
+        });
     };
 
-    // Modal de Edição de Controle
+    if (document.getElementById('selectCategoriaControle')) {
+        document.getElementById('selectCategoriaControle').addEventListener('change', window.renderControleTable);
+    }
+    if (document.getElementById('inputBuscarControle')) {
+        document.getElementById('inputBuscarControle').addEventListener('input', window.renderControleTable);
+    }
+    if (document.getElementById('btnResetControle')) {
+        document.getElementById('btnResetControle').addEventListener('click', () => {
+            document.getElementById('inputBuscarControle').value = '';
+            window.renderControleTable();
+        });
+    }
+    if (document.getElementById('btnNovaOpcaoControle')) {
+        document.getElementById('btnNovaOpcaoControle').addEventListener('click', () => {
+            const cat = document.getElementById('selectCategoriaControle').value;
+            window.openEditControleModal(cat, null); // null index means "new"
+        });
+    }
+
+    // Modal de Edição de Controle (Serve para Novo e Editar)
     const modalEditarOpcao = document.getElementById('modalEditarOpcao');
     const inputEditarOpcao = document.getElementById('inputEditarOpcao');
     const btnCancelEditarOpcao = document.getElementById('btnCancelEditarOpcao');
     const btnConfirmEditarOpcao = document.getElementById('btnConfirmEditarOpcao');
+    const titleEditarOpcao = document.getElementById('titleEditarOpcao');
 
     // Modal de Lote de Assessores
     const modalLoteAssessores = document.getElementById('modalLoteAssessores');
@@ -1535,6 +1559,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('inputListaAssessores').value = '';
         modalLoteAssessores.classList.add('active');
     };
+
+    if (document.getElementById('btnLoteAssessoresControle')) {
+        document.getElementById('btnLoteAssessoresControle').addEventListener('click', window.openLoteAssessoresModal);
+    }
 
     const closeLoteAssessoresModal = () => {
         modalLoteAssessores.classList.remove('active');
@@ -1556,18 +1584,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const nomes = text.split('\n').map(n => n.trim()).filter(n => n.length > 0);
 
             let adicionados = 0;
+            const now = new Date().toISOString();
             nomes.forEach(val => {
-                if (!configuracoes.assessores.includes(val)) {
-                    configuracoes.assessores.push(val);
+                if (!configuracoes.assessores.some(a => (a.nome || a).toLowerCase() === val.toLowerCase())) {
+                    configuracoes.assessores.push({ nome: val, criadoEm: now, atualizadoEm: now });
                     adicionados++;
                 }
             });
 
             if (adicionados > 0) {
-                configuracoes.assessores.sort();
+                configuracoes.assessores.sort((a, b) => (a.nome || a).localeCompare(b.nome || b));
                 try {
                     await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
                     registrarLog('Adicionou Assessores em Lote', `Foram adicionados ${adicionados} novos assessores.`);
+                    window.renderControleTable();
+                    renderSelectOptions();
                     closeLoteAssessoresModal();
                 } catch (error) {
                     console.error("Erro ao salvar assessores em lote:", error);
@@ -1585,24 +1616,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openEditControleModal = (type, index) => {
         editControleParams = { type, index };
-        const item = configuracoes[type][index];
         const colorInput = document.getElementById('colorEditarOpcao');
         const pickrContainer = document.getElementById('pickrEditarOpcao');
+        
+        let titleName = 'Opção';
+        if(type==='responsaveis') titleName = 'Responsável';
+        if(type==='assessores') titleName = 'Assessor';
+        if(type==='meios') titleName = 'Meio';
+        if(type==='comQuem') titleName = 'Com quem';
 
-        inputEditarOpcao.value = type === 'assessores' ? item : item.nome;
-
-        if (type === 'assessores' || type === 'guiaTipos') {
-            if (pickrContainer) pickrContainer.style.display = 'none';
+        if (index !== null) {
+            const item = configuracoes[type][index];
+            inputEditarOpcao.value = item.nome || item;
+            if (titleEditarOpcao) titleEditarOpcao.textContent = `Editar ${titleName}`;
+            if (btnConfirmEditarOpcao) btnConfirmEditarOpcao.textContent = 'Salvar';
+            
+            if (type === 'assessores' || type === 'guiaTipos') {
+                if (pickrContainer) pickrContainer.parentElement.style.display = 'none';
+            } else {
+                if (pickrContainer) pickrContainer.parentElement.style.display = 'block';
+                const colorToSet = item.cor || '#8b5cf6';
+                colorInput.value = colorToSet;
+                if (window.pickrEditarOpcao) {
+                    window.pickrEditarOpcao.setColor(colorToSet);
+                }
+            }
         } else {
-            if (pickrContainer) pickrContainer.style.display = 'block';
-            const colorToSet = item.cor || '#8b5cf6';
-            colorInput.value = colorToSet;
-            if (window.pickrEditarOpcao) {
-                window.pickrEditarOpcao.setColor(colorToSet);
+            // New Item
+            inputEditarOpcao.value = '';
+            if (titleEditarOpcao) titleEditarOpcao.textContent = `Novo ${titleName}`;
+            if (btnConfirmEditarOpcao) btnConfirmEditarOpcao.textContent = 'Criar';
+            if (type === 'assessores' || type === 'guiaTipos') {
+                if (pickrContainer) pickrContainer.parentElement.style.display = 'none';
+            } else {
+                if (pickrContainer) pickrContainer.parentElement.style.display = 'block';
+                const colorToSet = '#8b5cf6';
+                colorInput.value = colorToSet;
+                if (window.pickrEditarOpcao) {
+                    window.pickrEditarOpcao.setColor(colorToSet);
+                }
             }
         }
 
         modalEditarOpcao.classList.add('active');
+    };
+    
+    window.openDeleteControleModal = (type, index) => {
+        if(confirm(`Tem certeza que deseja excluir esta opção?`)) {
+            const oldValue = configuracoes[type][index];
+            configuracoes[type].splice(index, 1);
+            supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]).then(({error}) => {
+                if(error) {
+                    showToast('Erro ao excluir opção.', 'error');
+                    configuracoes[type].splice(index, 0, oldValue); // revert
+                } else {
+                    showToast('Opção excluída com sucesso!', 'success');
+                    window.renderControleTable();
+                    renderSelectOptions();
+                }
+            });
+        }
     };
 
     const closeEditControleModal = () => {
@@ -1610,6 +1683,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (btnCancelEditarOpcao) btnCancelEditarOpcao.addEventListener('click', closeEditControleModal);
+    if (document.getElementById('btnCloseEditarOpcao')) {
+        document.getElementById('btnCloseEditarOpcao').addEventListener('click', closeEditControleModal);
+    }
 
     if (btnConfirmEditarOpcao) {
         btnConfirmEditarOpcao.addEventListener('click', async () => {
@@ -1617,54 +1693,45 @@ document.addEventListener('DOMContentLoaded', () => {
             const cor = document.getElementById('colorEditarOpcao').value;
             const { type, index } = editControleParams;
             if (val && type) {
-                let exists = false;
-                if (type === 'assessores') {
-                    exists = configuracoes[type].includes(val) && configuracoes[type][index] !== val;
-                } else {
-                    exists = configuracoes[type].some((x, i) => x.nome.toLowerCase() === val.toLowerCase() && i !== index);
-                }
+                const isNew = index === null;
+                const exists = configuracoes[type].some((x, i) => (x.nome || x).toLowerCase() === val.toLowerCase() && i !== index);
 
                 if (exists) {
                     showToast('Esta opção já existe!', 'info');
                 } else {
+                    const now = new Date().toISOString();
                     if (type === 'assessores') {
-                        configuracoes[type][index] = val;
-                        configuracoes[type].sort();
+                        if (isNew) {
+                            configuracoes[type].push({ nome: val, criadoEm: now, atualizadoEm: now });
+                        } else {
+                            configuracoes[type][index].nome = val;
+                            configuracoes[type][index].atualizadoEm = now;
+                        }
                     } else {
-                        configuracoes[type][index] = { nome: val, cor: cor };
-                        configuracoes[type].sort((a, b) => a.nome.localeCompare(b.nome));
+                        if (isNew) {
+                            configuracoes[type].push({ nome: val, cor: cor, criadoEm: now, atualizadoEm: now });
+                        } else {
+                            configuracoes[type][index].nome = val;
+                            configuracoes[type][index].cor = cor;
+                            configuracoes[type][index].atualizadoEm = now;
+                        }
                     }
+                    configuracoes[type].sort((a, b) => (a.nome || a).localeCompare(b.nome || b));
 
                     try {
                         await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
-                        registrarLog('Editou Opção de Controle', `A opção "${val}" foi editada em ${type}.`);
+                        registrarLog(isNew ? 'Adicionou Opção de Controle' : 'Editou Opção de Controle', `A opção "${val}" foi modificada em ${type}.`);
+                        window.renderControleTable();
+                        renderSelectOptions();
                         closeEditControleModal();
                     } catch (e) {
                         console.error("Erro ao atualizar configuração", e);
+                        showToast('Erro ao atualizar.', 'error');
                     }
                 }
             }
         });
     }
-
-    // Adicionar eventos de Enter para inputs do Controle
-    const mapInputToType = {
-        'inputNovoResponsavel': 'responsaveis',
-        'inputNovoAssessor': 'assessores',
-        'inputNovoMeio': 'meios'
-    };
-
-    Object.keys(mapInputToType).forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    window.addControleItem(mapInputToType[id]);
-                }
-            });
-        }
-    });
 
     // ==========================================
     // Funções de Usuários (Acessos)

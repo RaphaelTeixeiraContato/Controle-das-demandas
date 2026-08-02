@@ -16,6 +16,56 @@ let logsAcoes = [];
 let configuracoes = { responsaveis: [], assessores: [], meios: [] };
 let usuarios = [];
 
+let paginationState = {
+    abertas: 1,
+    historico: 1,
+    logs: 1,
+    controle: 1,
+    acessos: 1,
+    guias: 1,
+    tiposGuia: 1
+};
+
+const renderPagination = (containerId, moduleKey, totalItems, itemsPerPage, renderFunction) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    let currentPage = paginationState[moduleKey];
+
+    if (currentPage > totalPages) {
+        paginationState[moduleKey] = totalPages;
+        currentPage = totalPages;
+    }
+
+    container.innerHTML = `
+        <span class="pagination-info">Página ${currentPage} de ${totalPages} (${totalItems} itens)</span>
+        <button class="pagination-btn" id="btnPrev_${moduleKey}" ${currentPage === 1 ? 'disabled' : ''}><i class="ph ph-caret-left"></i> Anterior</button>
+        <button class="pagination-btn" id="btnNext_${moduleKey}" ${currentPage === totalPages ? 'disabled' : ''}>Próximo <i class="ph ph-caret-right"></i></button>
+    `;
+
+    const btnPrev = document.getElementById(`btnPrev_${moduleKey}`);
+    const btnNext = document.getElementById(`btnNext_${moduleKey}`);
+
+    if (btnPrev) {
+        btnPrev.addEventListener('click', () => {
+            if (paginationState[moduleKey] > 1) {
+                paginationState[moduleKey]--;
+                renderFunction();
+            }
+        });
+    }
+
+    if (btnNext) {
+        btnNext.addEventListener('click', () => {
+            if (paginationState[moduleKey] < totalPages) {
+                paginationState[moduleKey]++;
+                renderFunction();
+            }
+        });
+    }
+};
+
 const showToast = (message, type = 'success') => {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -787,12 +837,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Renderização
     // ==========================================
     const renderTables = () => {
-        const dataToRender = currentPage === 'abertas' ? applyFiltersAndSort([...demandas]) : applyFiltersAndSort([...historico]);
+        const sourceData = currentPage === 'abertas' ? applyFiltersAndSort([...demandas]) : applyFiltersAndSort([...historico]);
+        const isAbertas = currentPage === 'abertas';
+        const pageKey = isAbertas ? 'abertas' : 'historico';
+        const limit = isAbertas ? 50 : 100;
+        
+        const totalPages = Math.ceil(sourceData.length / limit) || 1;
+        if (paginationState[pageKey] > totalPages) paginationState[pageKey] = totalPages;
+        
+        const start = (paginationState[pageKey] - 1) * limit;
+        const pagedData = sourceData.slice(start, start + limit);
 
-        if (currentPage === 'abertas') {
+        if (isAbertas) {
             tableBody.innerHTML = '';
 
-            dataToRender.forEach((d) => {
+            pagedData.forEach((d) => {
                 const tr = document.createElement('tr');
                 if (selectedIds.includes(d.id)) {
                     tr.classList.add('selected-row');
@@ -828,12 +887,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 tableBody.appendChild(tr);
             });
-            countBadge.textContent = `(${dataToRender.length})`;
+            countBadge.textContent = `(${sourceData.length})`;
+            renderPagination('paginationAbertasContainer', 'abertas', sourceData.length, limit, renderTables);
 
         } else if (currentPage === 'historico') {
             historicoTableBody.innerHTML = '';
 
-            dataToRender.forEach((d) => {
+            pagedData.forEach((d) => {
                 const tr = document.createElement('tr');
                 if (selectedIds.includes(d.id)) {
                     tr.classList.add('selected-row');
@@ -867,7 +927,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 historicoTableBody.appendChild(tr);
             });
-            countBadge.textContent = `(${dataToRender.length})`;
+            countBadge.textContent = `(${sourceData.length})`;
+            renderPagination('paginationHistoricoContainer', 'historico', sourceData.length, limit, renderTables);
         }
 
         // Atualizar ícones de ordenação
@@ -882,7 +943,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         // Atualizar checkbox master
-        updateSelectAllCheckboxState(dataToRender);
+        updateSelectAllCheckboxState(pagedData);
     };
 
     // ==========================================
@@ -927,7 +988,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (e.target.classList.contains('select-all-checkbox')) {
             const isChecked = e.target.checked;
-            const sourceData = currentPage === 'abertas' ? applyFiltersAndSort([...demandas]) : applyFiltersAndSort([...historico]);
+            const fullData = currentPage === 'abertas' ? applyFiltersAndSort([...demandas]) : applyFiltersAndSort([...historico]);
+            const isAbertas = currentPage === 'abertas';
+            const pageKey = isAbertas ? 'abertas' : 'historico';
+            const limit = isAbertas ? 50 : 100;
+            const start = (paginationState[pageKey] - 1) * limit;
+            const sourceData = fullData.slice(start, start + limit);
 
             if (isChecked) {
                 sourceData.forEach(d => {
@@ -1631,7 +1697,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `${dateObj.toLocaleDateString('pt-BR')} às ${dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
             };
 
-            items.forEach((item, index) => {
+            const limit = 100;
+            const totalPages = Math.ceil(items.length / limit) || 1;
+            if (paginationState.controle > totalPages) paginationState.controle = totalPages;
+            const start = (paginationState.controle - 1) * limit;
+            const pagedItems = items.slice(start, start + limit);
+
+            pagedItems.forEach((item, index) => {
                 if (!item) return;
                 const tr = document.createElement('tr');
 
@@ -1641,9 +1713,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const criadoEm = formatDateControle(item.criadoEm);
                 const atualizadoEm = formatDateControle(item.atualizadoEm);
 
-                // For the original index in the true array if filtered:
+                // For the original index in the true array if filtered/paginated:
                 const originalIndex = configuracoes[categoria].indexOf(item);
-                const actionIndex = originalIndex > -1 ? originalIndex : index;
+                const actionIndex = originalIndex > -1 ? originalIndex : (start + index);
 
                 if (categoria === 'assessores') {
                     tr.innerHTML = `
@@ -1675,6 +1747,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tbody.appendChild(tr);
             });
             bindCheckboxEventsControle();
+            renderPagination('paginationControleContainer', 'controle', items.length, limit, window.renderControleTable);
         } catch (e) {
             console.error("Erro no renderControleTable: ", e);
             const tbody = document.getElementById('controleTableBody');
@@ -2054,7 +2127,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        usuarios.forEach(user => {
+        const limit = 10;
+        const totalPages = Math.ceil(usuarios.length / limit) || 1;
+        if (paginationState.acessos > totalPages) paginationState.acessos = totalPages;
+        const start = (paginationState.acessos - 1) * limit;
+        const pagedUsuarios = usuarios.slice(start, start + limit);
+
+        pagedUsuarios.forEach(user => {
             const tr = document.createElement('tr');
 
             let badgeClass = 'badge-viewer';
@@ -2073,6 +2152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             tbody.appendChild(tr);
         });
+        renderPagination('paginationAcessosContainer', 'acessos', usuarios.length, limit, renderUsuarios);
     };
 
     window.openEditUsuario = (id) => {
@@ -2313,7 +2393,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        filtered.forEach(g => {
+        const limit = 15;
+        const totalPages = Math.ceil(filtered.length / limit) || 1;
+        if (paginationState.guia > totalPages) paginationState.guia = totalPages;
+        const start = (paginationState.guia - 1) * limit;
+        const pagedGuias = filtered.slice(start, start + limit);
+
+        pagedGuias.forEach(g => {
             const tr = document.createElement('tr');
 
             const tdDesc = document.createElement('td');
@@ -2359,6 +2445,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             tbody.appendChild(tr);
         });
+        renderPagination('paginationGuiaContainer', 'guia', filtered.length, limit, renderGuias);
     };
 
 
@@ -2423,7 +2510,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        filtered.forEach(log => {
+        const limit = 100;
+        const totalPages = Math.ceil(filtered.length / limit) || 1;
+        if (paginationState.logs > totalPages) paginationState.logs = totalPages;
+        const start = (paginationState.logs - 1) * limit;
+        const pagedFiltered = filtered.slice(start, start + limit);
+
+        pagedFiltered.forEach(log => {
             const tr = document.createElement('tr');
             const isChecked = selectedLogsIds.includes(log.id) ? 'checked' : '';
             tr.className = isChecked ? 'selected-row' : '';
@@ -2455,12 +2548,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     tr.classList.remove('selected-row');
                 }
                 updateLogsBulkVisibility();
-                updateLogsSelectAllCheckbox(filtered);
+                updateLogsSelectAllCheckbox(pagedFiltered);
             });
 
             tbody.appendChild(tr);
         });
-        updateLogsSelectAllCheckbox(filtered);
+        updateLogsSelectAllCheckbox(pagedFiltered);
+        renderPagination('paginationLogsContainer', 'logs', filtered.length, limit, renderLogs);
     };
 
     function updateLogsSelectAllCheckbox(filtered) {
@@ -2733,17 +2827,26 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        configuracoes.guiaTipos.forEach((tipo, index) => {
+        const limit = 15;
+        const totalPages = Math.ceil(configuracoes.guiaTipos.length / limit) || 1;
+        if (paginationState.tiposGuia > totalPages) paginationState.tiposGuia = totalPages;
+        const start = (paginationState.tiposGuia - 1) * limit;
+        const pagedTiposGuia = configuracoes.guiaTipos.slice(start, start + limit);
+
+        pagedTiposGuia.forEach((tipo, index) => {
             const tr = document.createElement('tr');
+            // The actionIndex needs to be the absolute index in the original array
+            const actionIndex = start + index;
             tr.innerHTML = `
                 <td><strong>${tipo}</strong></td>
                 <td style="display: flex; gap: 8px;">
-                    <button class="icon-btn btn-primary" onclick="window.editarTipoGuia(${index})" title="Editar" style="padding: 4px;"><i class="ph ph-pencil-simple"></i></button>
-                    <button class="icon-btn btn-delete" onclick="window.deletarTipoGuia(${index})" title="Excluir" style="padding: 4px;"><i class="ph ph-trash"></i></button>
+                    <button class="icon-btn btn-primary" onclick="window.editarTipoGuia(${actionIndex})" title="Editar" style="padding: 4px;"><i class="ph ph-pencil-simple"></i></button>
+                    <button class="icon-btn btn-delete" onclick="window.deletarTipoGuia(${actionIndex})" title="Excluir" style="padding: 4px;"><i class="ph ph-trash"></i></button>
                 </td>
             `;
             tiposGuiaTableBody.appendChild(tr);
         });
+        renderPagination('paginationTiposGuiaContainer', 'tiposGuia', configuracoes.guiaTipos.length, limit, renderTiposGuiaTable);
     };
 
     if (btnGerenciarTiposGuia) {

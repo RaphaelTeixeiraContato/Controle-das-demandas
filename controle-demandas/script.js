@@ -576,6 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (demandaDeletada) {
                     registrarLog('Excluiu Demanda', `Demanda "${demandaDeletada.demanda}" do cliente ${demandaDeletada.cliente} foi excluída.`);
+                    showToast("Demanda excluída com sucesso!", "success");
                 }
             } else if (deleteType === 'controle' && deleteControleParams.type) {
                 // Remove of configuracoes
@@ -601,6 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (usuarioRemovido) {
                     registrarLog('Excluiu Usuário', `O usuário ${usuarioRemovido.nome} (${usuarioRemovido.email}) foi excluído.`);
+                    showToast("Usuário excluído com sucesso!", "success");
                 }
             } else if (deleteType === 'guia' && actionId) {
                 const guiaRemovida = guias.find(g => g.id === actionId);
@@ -674,6 +676,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (_err4) throw _err4;
 
                         registrarLog('Transferiu Demanda (Histórico)', `Demanda "${demanda.demanda}" do cliente ${demanda.cliente} encerrada. Motivo: ${motivo || 'Nenhum'}`);
+                        showToast("Demanda transferida para o histórico com sucesso!", "success");
                     }
                 } else if (currentPage === 'historico') {
                     const demanda = historico.find(d => d.id === actionId);
@@ -691,6 +694,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (_err5) throw _err5;
 
                         registrarLog('Retornou Demanda (Abertas)', `Demanda "${demanda.demanda}" do cliente ${demanda.cliente} retornada para as demandas em aberto.`);
+                        showToast("Demanda retornada para as abertas com sucesso!", "success");
                     }
                 }
                 closeTransferModal();
@@ -1430,9 +1434,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const collectionName = currentPage === 'abertas' ? "demandas" : "historico";
                 await supabaseClient.from(collectionName).update(dadosFormulario).eq("id", String(editingId));
                 registrarLog('Editou Demanda', `Demanda "${dadosFormulario.demanda}" do cliente ${dadosFormulario.cliente} foi editada.`);
+                showToast("Demanda editada com sucesso!", "success");
             } else {
                 await supabaseClient.from("demandas").insert([dadosFormulario]);
                 registrarLog('Criou Demanda', `Nova demanda "${dadosFormulario.demanda}" criada para o cliente ${dadosFormulario.cliente}.`);
+                showToast("Demanda criada com sucesso!", "success");
             }
             closeModal();
         } catch (error) {
@@ -1524,14 +1530,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const confirmModal = document.getElementById('modalExcluirControle');
-            const deleteText = document.getElementById('modalDeleteText');
+            const confirmModal = document.getElementById('modalExcluirOpcaoControle');
+            const deleteText = document.getElementById('modalDeleteOpcaoControleText');
             if (!confirmModal || !deleteText) return;
 
             const categoria = document.getElementById('selectCategoriaControle').value;
             deleteText.textContent = `Tem certeza que deseja excluir os ${checkboxes.length} itens selecionados?`;
 
-            const btnConfirm = document.getElementById('btnConfirmDeleteControle');
+            const btnConfirm = document.getElementById('btnConfirmDeleteOpcaoControle');
             const clone = btnConfirm.cloneNode(true);
             btnConfirm.parentNode.replaceChild(clone, btnConfirm);
 
@@ -1919,6 +1925,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     try {
                         await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
                         registrarLog(isNew ? 'Adicionou Opção de Controle' : 'Editou Opção de Controle', `A opção "${val}" foi modificada em ${type}.`);
+                        showToast(isNew ? "Opção criada com sucesso!" : "Opção editada com sucesso!", "success");
                         window.renderControleTable();
                         renderSelectOptions();
                         renderTables(); // Apply changes to main demands table immediately
@@ -2013,9 +2020,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (editingUsuarioId) {
                 await supabaseClient.from("usuarios").update(userData).eq("id", String(editingUsuarioId));
                 registrarLog('Editou Usuário', `O usuário ${userData.nome} (${userData.email}) foi editado.`);
+                showToast("Usuário editado com sucesso!", "success");
             } else {
                 await supabaseClient.from("usuarios").insert([userData]);
                 registrarLog('Criou Usuário', `O usuário ${userData.nome} (${userData.email}) com nível ${userData.nivel} foi criado.`);
+                showToast("Usuário criado com sucesso!", "success");
             }
             closeUsuarioModal();
         } catch (error) {

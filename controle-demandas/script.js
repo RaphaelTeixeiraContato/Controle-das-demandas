@@ -761,10 +761,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const respObj = configuracoes.responsaveis.find(r => r.nome === d.responsavel);
                 const meioObj = configuracoes.meios.find(m => m.nome === d.meio);
+                const quemObj = configuracoes.comQuem ? configuracoes.comQuem.find(q => (q.nome || q) === d.comQuem) : null;
 
                 const respStyle = respObj && respObj.cor ? `style="background-color: ${respObj.cor}; color: #fff; border: none;"` : 'class="pill pill-red"';
                 const meioStyle = meioObj && meioObj.cor ? `style="background-color: ${meioObj.cor}; color: #fff; border: none;"` : 'class="pill pill-blue"';
-                let quemClass = 'pill-black';
+                const quemStyle = quemObj && quemObj.cor ? `style="background-color: ${quemObj.cor}; color: #fff; border: none;"` : 'class="pill pill-black"';
 
                 tr.innerHTML = `
                     <td style="text-align: center;">
@@ -777,7 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td><span class="pill" ${meioStyle}>${d.meio}</span></td>
                     <td>${d.protocolo || '-'}</td>
                     <td>${d.comentarios || '-'}</td>
-                    <td><span class="pill ${quemClass}">${d.comQuem}</span></td>
+                    <td><span class="pill" ${quemStyle}>${d.comQuem}</span></td>
                     <td><i class="ph ph-calendar-blank"></i> ${formatDate(d.data)}</td>
                     <td>
                         <div class="action-icons">
@@ -1651,7 +1652,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (index !== null) {
             const item = configuracoes[type][index];
             inputEditarOpcao.value = item.nome || item;
-            if (titleEditarOpcao) titleEditarOpcao.textContent = `Editar ${titleName}`;
+            if (titleEditarOpcao) titleEditarOpcao.textContent = `Editar "${titleName}"`;
             if (btnConfirmEditarOpcao) btnConfirmEditarOpcao.textContent = 'Salvar';
             
             if (type === 'assessores' || type === 'guiaTipos') {
@@ -1667,7 +1668,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // New Item
             inputEditarOpcao.value = '';
-            if (titleEditarOpcao) titleEditarOpcao.textContent = `Novo ${titleName}`;
+            if (titleEditarOpcao) titleEditarOpcao.textContent = `Novo "${titleName}"`;
             if (btnConfirmEditarOpcao) btnConfirmEditarOpcao.textContent = 'Criar';
             if (type === 'assessores' || type === 'guiaTipos') {
                 if (pickrContainer) document.getElementById('containerCorEditarOpcao').style.display = 'none';

@@ -18,21 +18,21 @@
 }
 
 :root.light-mode {
-    --bg-primary: #d1c5e6; /* Topo roxo médio claro */
-    --bg-sidebar: #c0b3d6; /* Menu lateral */
-    --text-sidebar: #3f2f5c;
-    --text-sidebar-active: #181026;
-    --bg-main: #e2d9f2; /* Fundo principal da página mais escuro */
-    --text-main: #181026; 
-    --border-color: #bfaed6;
-    --table-header-bg: #d1c5e6; /* Cabeçalhos e cards num tom um pouco mais fechado */
-    --table-header-text: #2a2040;
-    --btn-primary: #583f87; /* Botão roxo mais escuro */
-    --btn-primary-text: #ffffff;
-    --pill-red: #ffcdd2;
-    --pill-blue: #bbdefb;
-    --pill-black: #b0b0b0;
-    --active-purple: #583f87; 
+    --bg-primary: #f8f6fc; /* Topo claro */
+    --bg-sidebar: #f0eaf7; /* Menu lateral */
+    --text-sidebar: #4c1d95;
+    --text-sidebar-active: #ffffff;
+    --bg-main: #ffffff; /* Fundo principal da página branco */
+    --text-main: #1e1b4b; 
+    --border-color: #e2d9f2;
+    --table-header-bg: #f8f6fc; /* Cabeçalhos e cards claros */
+    --table-header-text: #312e81;
+    --btn-primary: #ffffff; 
+    --btn-primary-text: #4c1d95;
+    --pill-red: #fee2e2;
+    --pill-blue: #dbeafe;
+    --pill-black: #f3f4f6;
+    --active-purple: #6d28d9; 
 }
 
 * {
@@ -254,22 +254,22 @@ input[type="checkbox"]:checked::before {
 }
 
 .search-box input {
-    background-color: #231F34;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 8px 12px;
-    color: #fff;
+    color: var(--text-main);
     outline: none;
 }
 
 .search-box input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-muted);
 }
 
 .icon-btn {
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
     width: 32px;
     height: 32px;
     border-radius: 4px;
@@ -281,9 +281,9 @@ input[type="checkbox"]:checked::before {
 }
 
 .filter-select {
-    background-color: #231F34;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
     padding: 8px 12px;
     border-radius: 4px;
     outline: none;
@@ -296,24 +296,24 @@ input[type="checkbox"]:checked::before {
 .custom-date-filter {
     display: flex;
     align-items: center;
-    background-color: #231F34;
+    background-color: var(--bg-primary);
     padding: 8px 15px;
     border-radius: 4px;
     cursor: pointer;
     gap: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
     transition: background 0.2s;
     height: 38px;
     box-sizing: border-box;
 }
 
 .custom-date-filter:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: var(--table-header-bg);
 }
 
 .custom-date-filter i {
     font-size: 20px;
-    color: #fff;
+    color: var(--text-main);
 }
 
 .date-filter-text {

@@ -21,11 +21,11 @@
 }
 
 :root.light-mode {
-    --bg-primary: #f8f6fc; /* Topo claro */
-    --bg-sidebar: #f0eaf7; /* Menu lateral */
+    --bg-primary: #f4f0f9; /* Topo claro */
+    --bg-sidebar: #e5dfef; /* Menu lateral um pouco mais escuro */
     --text-sidebar: #4c1d95;
     --text-sidebar-active: #ffffff;
-    --bg-main: #fcfbfe; /* Fundo principal da página levemente off-white */
+    --bg-main: #f0edf5; /* Fundo principal da página um pouco mais escuro */
     --text-main: #1e1b4b;
     --text-muted: #6b7280; 
     --text-sidebar-header: #4c1d95;

@@ -1,3 +1,8 @@
+// Load theme immediately to prevent flash
+if (localStorage.getItem('theme') === 'light') {
+    document.documentElement.classList.add('light-mode');
+}
+
 // Inicializar Supabase
 const supabaseUrl = 'https://jjclbgfcyilelaonlinz.supabase.co';
 const supabaseKey = 'sb_publishable_gZil1XA4TyqvEu4HGEIYow_NIFWqhPC';
@@ -2484,6 +2489,89 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
+    // Modal Excluir Log Event Listeners
+    // ==========================================
+    const modalExcluirLog = document.getElementById('modalExcluirLog');
+    const btnCancelDeleteLog = document.getElementById('btnCancelDeleteLog');
+    const btnConfirmDeleteLog = document.getElementById('btnConfirmDeleteLog');
+
+    if (btnCancelDeleteLog) {
+        btnCancelDeleteLog.addEventListener('click', () => {
+            if (modalExcluirLog) modalExcluirLog.classList.remove('active');
+            currentLogDeleteAction = null;
+            currentLogDeleteId = null;
+        });
+    }
+
+    if (btnConfirmDeleteLog) {
+        btnConfirmDeleteLog.addEventListener('click', async () => {
+            if (!currentLogDeleteAction) return;
+
+            if (currentLogDeleteAction === 'single' && currentLogDeleteId) {
+                try {
+                    const { error } = await supabaseClient.from('logs').delete().eq('id', currentLogDeleteId);
+                    if (error) throw error;
+                    showToast('Registro excluído', 'success');
+                    if (modalExcluirLog) modalExcluirLog.classList.remove('active');
+                } catch (e) {
+                    showToast('Erro ao excluir registro', 'error');
+                }
+            } else if (currentLogDeleteAction === 'bulk' && selectedLogsIds.length > 0) {
+                try {
+                    const { error } = await supabaseClient.from('logs').delete().in('id', selectedLogsIds);
+                    if (error) throw error;
+                    showToast(`${selectedLogsIds.length} registros excluídos`, 'success');
+                    selectedLogsIds = [];
+                    if (modalExcluirLog) modalExcluirLog.classList.remove('active');
+                    // Need to trigger a custom event or let realtime handle it
+                } catch (e) {
+                    showToast('Erro ao excluir registros', 'error');
+                }
+            } else if (currentLogDeleteAction === 'clear') {
+                try {
+                    const { error: _err9 } = await supabaseClient.from("logs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+                    if (_err9) throw _err9;
+                    showToast("Histórico limpo com sucesso!", "success");
+                    selectedLogsIds = [];
+                    if (modalExcluirLog) modalExcluirLog.classList.remove('active');
+                } catch (err) {
+                    showToast('Erro ao limpar histórico', 'error');
+                }
+            }
+
+            currentLogDeleteAction = null;
+            currentLogDeleteId = null;
+        });
+    }
+
+    // ==========================================
+    // Theme Toggle
+    // ==========================================
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+
+    const updateThemeUI = () => {
+        const isLight = document.documentElement.classList.contains('light-mode');
+        if (themeIcon && themeText) {
+            themeIcon.className = isLight ? 'ph ph-sun' : 'ph ph-moon';
+            themeText.textContent = isLight ? 'Modo Claro' : 'Modo Escuro';
+        }
+    };
+    
+    // Initial check (if theme was loaded at top)
+    updateThemeUI();
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('light-mode');
+            const isLight = document.documentElement.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            updateThemeUI();
+        });
+    }
+
+    // ==========================================
     // Render inicial
     // ==========================================
     updateFilterOptions();
@@ -2608,61 +2696,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// Modal Excluir Log Event Listeners
-document.addEventListener('DOMContentLoaded', () => {
-    const modalExcluirLog = document.getElementById('modalExcluirLog');
-    const btnCancelDeleteLog = document.getElementById('btnCancelDeleteLog');
-    const btnConfirmDeleteLog = document.getElementById('btnConfirmDeleteLog');
 
-    if (btnCancelDeleteLog) {
-        btnCancelDeleteLog.addEventListener('click', () => {
-            if (modalExcluirLog) modalExcluirLog.classList.remove('active');
-            currentLogDeleteAction = null;
-            currentLogDeleteId = null;
-        });
-    }
-
-    if (btnConfirmDeleteLog) {
-        btnConfirmDeleteLog.addEventListener('click', async () => {
-            if (!currentLogDeleteAction) return;
-
-            if (currentLogDeleteAction === 'single' && currentLogDeleteId) {
-                try {
-                    const { error } = await supabaseClient.from('logs').delete().eq('id', currentLogDeleteId);
-                    if (error) throw error;
-                    showToast('Registro excluído', 'success');
-                    if (modalExcluirLog) modalExcluirLog.classList.remove('active');
-                } catch (e) {
-                    showToast('Erro ao excluir registro', 'error');
-                }
-            } else if (currentLogDeleteAction === 'bulk' && selectedLogsIds.length > 0) {
-                try {
-                    const { error } = await supabaseClient.from('logs').delete().in('id', selectedLogsIds);
-                    if (error) throw error;
-                    showToast(`${selectedLogsIds.length} registros excluídos`, 'success');
-                    selectedLogsIds = [];
-                    if (modalExcluirLog) modalExcluirLog.classList.remove('active');
-                    // Need to trigger a custom event or let realtime handle it
-                } catch (e) {
-                    showToast('Erro ao excluir registros', 'error');
-                }
-            } else if (currentLogDeleteAction === 'clear') {
-                try {
-                    const { error: _err9 } = await supabaseClient.from("logs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-                    if (_err9) throw _err9;
-                    showToast("Histórico limpo com sucesso!", "success");
-                    selectedLogsIds = [];
-                    if (modalExcluirLog) modalExcluirLog.classList.remove('active');
-                } catch (err) {
-                    showToast('Erro ao limpar histórico', 'error');
-                }
-            }
-
-            currentLogDeleteAction = null;
-            currentLogDeleteId = null;
-        });
-    }
-});
 
 
 // Lógica para Gerenciar Tipos Guia

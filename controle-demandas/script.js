@@ -423,6 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (topHeader) topHeader.style.display = 'flex';
                 document.getElementById('viewLog').style.display = 'none';
                 document.getElementById('viewAjuda').style.display = 'block';
+                if (document.getElementById('viewConfiguracoes')) document.getElementById('viewConfiguracoes').style.display = 'none';
                 headerActionsDemandas.style.display = 'none';
                 headerActionsAcessos.style.display = 'none';
                 if (headerActionsGuias) headerActionsGuias.style.display = 'flex';
@@ -431,6 +432,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (headerTitleContainer) headerTitleContainer.style.display = 'none';
                 btnNova.style.display = 'none';
                 renderGuias();
+            } else if (page === 'configuracoes') {
+                viewAbertas.style.display = 'none';
+                viewHistorico.style.display = 'none';
+                document.getElementById('viewControle').style.display = 'none';
+                document.getElementById('viewAcessos').style.display = 'none';
+                if (topHeader) topHeader.style.display = 'flex';
+                document.getElementById('viewLog').style.display = 'none';
+                document.getElementById('viewAjuda').style.display = 'none';
+                if (document.getElementById('viewConfiguracoes')) document.getElementById('viewConfiguracoes').style.display = 'block';
+                headerActionsDemandas.style.display = 'none';
+                headerActionsAcessos.style.display = 'none';
+                if (headerActionsGuias) headerActionsGuias.style.display = 'none';
+                pageTitle.textContent = 'Configurações';
+                countBadge.style.display = 'none';
+                if (headerTitleContainer) headerTitleContainer.style.display = 'none';
+                btnNova.style.display = 'none';
             }
 
             // Reset filters and selection on page change
@@ -2204,10 +2221,10 @@ document.addEventListener('DOMContentLoaded', () => {
             btnCopy.parentNode.replaceChild(newBtnCopy, btnCopy);
             
             newBtnCopy.addEventListener('click', () => {
-                let texto = `*Título:* ${g.titulo || g.tipo || 'Sem Título'}\n`;
-                if (g.tipo) texto += `*Tipo:* ${g.tipo}\n\n`;
+                let texto = '';
                 if (g.conteudo) texto += `${g.conteudo}\n`;
                 if (g.anexo) texto += `\n*Anexos:*\n${g.anexo}`;
+                texto = texto.trim();
 
                 navigator.clipboard.writeText(texto).then(() => {
                     showToast('Conteúdo copiado para a área de transferência!', 'success');

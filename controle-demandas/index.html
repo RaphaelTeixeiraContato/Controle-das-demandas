@@ -19,7 +19,7 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script.js?v=20" defer></script>
+    <script src="script.js?v=21" defer></script>
 
     <!-- Pickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css"/>
@@ -108,8 +108,12 @@
                     Acessos
                 </a>
                 <a href="#" class="nav-item" data-page="ajuda">
-                    <i class="ph ph-star"></i>
-                    Guia
+                    <i class="ph ph-question"></i>
+                    <span>Guia</span>
+                </a>
+                <a href="#" class="nav-item" data-page="configuracoes">
+                    <i class="ph ph-gear"></i>
+                    <span>Configurações</span>
                 </a>
             </nav>
         </aside>
@@ -371,6 +375,16 @@
                         <!-- Linhas geradas via JS -->
                     </tbody>
                 </table>
+            </div>
+
+            <!-- View Configurações -->
+            <div id="viewConfiguracoes" style="display: none; height: 100%;">
+                <div class="table-container" style="padding: 20px;">
+                    <h2 style="font-size: 20px; font-weight: 500; margin-bottom: 20px;">Configurações Gerais</h2>
+                    <div style="color: var(--text-muted); font-style: italic;">
+                        Em construção. Aqui você poderá definir opções gerais do sistema.
+                    </div>
+                </div>
             </div>
 
         </main>

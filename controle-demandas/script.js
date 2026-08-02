@@ -1656,9 +1656,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btnConfirmEditarOpcao) btnConfirmEditarOpcao.textContent = 'Salvar';
             
             if (type === 'assessores' || type === 'guiaTipos') {
-                if (pickrContainer) document.getElementById('containerCorEditarOpcao').style.display = 'none';
+                document.getElementById('containerCorEditarOpcao').style.display = 'none';
             } else {
-                if (pickrContainer) document.getElementById('containerCorEditarOpcao').style.display = 'flex';
+                document.getElementById('containerCorEditarOpcao').style.display = 'flex';
                 const colorToSet = item.cor || '#8b5cf6';
                 colorInput.value = colorToSet;
                 if (window.pickrEditarOpcao) {
@@ -1671,9 +1671,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (titleEditarOpcao) titleEditarOpcao.textContent = `Novo "${titleName}"`;
             if (btnConfirmEditarOpcao) btnConfirmEditarOpcao.textContent = 'Criar';
             if (type === 'assessores' || type === 'guiaTipos') {
-                if (pickrContainer) document.getElementById('containerCorEditarOpcao').style.display = 'none';
+                document.getElementById('containerCorEditarOpcao').style.display = 'none';
             } else {
-                if (pickrContainer) document.getElementById('containerCorEditarOpcao').style.display = 'flex';
+                document.getElementById('containerCorEditarOpcao').style.display = 'flex';
                 const colorToSet = '#8b5cf6';
                 colorInput.value = colorToSet;
                 if (window.pickrEditarOpcao) {

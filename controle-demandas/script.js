@@ -2034,7 +2034,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputGuiaTipoForm = document.getElementById('inputGuiaTipoForm');
 
     const sectionCaminho = document.getElementById('formSectionCaminho');
-    const sectionCaminho = document.getElementById('formSectionCaminho');
     const inputGuiaTipoSelect = document.getElementById('inputGuiaTipoSelect');
 
     const openGuiaModal = (editId = null) => {

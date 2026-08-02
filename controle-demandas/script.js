@@ -517,6 +517,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnNova.style.display = 'none';
             }
 
+            // Reset pagination state
+            paginationState = {
+                abertas: 1,
+                historico: 1,
+                logs: 1,
+                controle: 1,
+                acessos: 1,
+                guias: 1,
+                tiposGuia: 1
+            };
+
             // Reset filters and selection on page change
             searchQuery = '';
             inputBuscar.value = '';
@@ -525,6 +536,35 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedDateInicio = null;
             selectedDateFim = null;
             selectedIds = [];
+
+            if (document.getElementById('filterResponsavel')) document.getElementById('filterResponsavel').value = '';
+            if (document.getElementById('filterMeio')) document.getElementById('filterMeio').value = '';
+            if (document.getElementById('filterAssessor')) document.getElementById('filterAssessor').value = '';
+            if (document.getElementById('filterComQuem')) document.getElementById('filterComQuem').value = '';
+            
+            // Controle filters
+            const inpBuscarControle = document.getElementById('inputBuscarControle');
+            if (inpBuscarControle) inpBuscarControle.value = '';
+            const selCatControle = document.getElementById('selectCategoriaControle');
+            if (selCatControle) selCatControle.value = 'responsaveis';
+
+            // Logs filters
+            searchLogsQuery = '';
+            const inpBuscarLogs = document.getElementById('inputBuscarLogs');
+            if (inpBuscarLogs) inpBuscarLogs.value = '';
+            selectedLogsDateInicio = null;
+            selectedLogsDateFim = null;
+            if (window.datePickerLogsInstance) {
+                window.datePickerLogsInstance.clear();
+                const logDateValue = document.getElementById('dateFilterValueLogs');
+                if (logDateValue) logDateValue.textContent = 'Período...';
+            }
+
+            // Guia filters
+            const inpBuscarGuia = document.getElementById('inputBuscarGuia');
+            if (inpBuscarGuia) inpBuscarGuia.value = '';
+            const filterGuia = document.getElementById('filterGuiaTipo');
+            if (filterGuia) filterGuia.value = '';
             
             if (typeof updateBulkActionsControle === 'function') {
                 const sAll = document.getElementById('selectAllControle');
@@ -543,13 +583,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (window.datePickerInstance) {
                 window.datePickerInstance.clear();
-                document.getElementById('dateFilterValue').textContent = 'Período...';
+                const mainDateValue = document.getElementById('dateFilterValue');
+                if (mainDateValue) mainDateValue.textContent = 'Período...';
             }
             sortConfig = { column: 'data', direction: 'desc' };
 
             updateFilterOptions();
             renderTables();
             if (typeof renderLogs === 'function') renderLogs();
+            if (typeof window.renderControleTable === 'function') window.renderControleTable();
+            if (typeof renderGuias === 'function' && page === 'ajuda') renderGuias();
         });
     });
 

@@ -4,8 +4,11 @@
     --bg-sidebar: #13101e; /* Fundo do menu lateral mantém bem escuro */
     --text-sidebar: #a0aec0;
     --text-sidebar-active: #ffffff;
+    --bg-main: #2a243a; /* Fundo principal da página, roxo mais fraco/claro */
     --text-main: #e2e8f0;
     --text-muted: #a0aec0; 
+    --text-sidebar-header: #ffffff;
+    --nav-hover-bg: rgba(255, 255, 255, 0.05);
     --border-color: #3b3251; /* Borda mais suave acompanhando o roxo */
     --table-header-bg: #2d2640; /* Fundo de cabeçalhos e cards */
     --table-header-text: #ffffff;
@@ -22,9 +25,11 @@
     --bg-sidebar: #f0eaf7; /* Menu lateral */
     --text-sidebar: #4c1d95;
     --text-sidebar-active: #ffffff;
-    --bg-main: #ffffff; /* Fundo principal da página branco */
+    --bg-main: #fcfbfe; /* Fundo principal da página levemente off-white */
     --text-main: #1e1b4b;
     --text-muted: #6b7280; 
+    --text-sidebar-header: #4c1d95;
+    --nav-hover-bg: rgba(109, 40, 217, 0.1);
     --border-color: #e2d9f2;
     --table-header-bg: #f8f6fc; /* Cabeçalhos e cards claros */
     --table-header-text: #312e81;
@@ -103,7 +108,7 @@ body {
 .icon-btn-transparent {
     background: transparent;
     border: none;
-    color: var(--text-sidebar-active);
+    color: var(--text-sidebar-header);
     font-size: 20px;
     cursor: pointer;
     display: flex;
@@ -114,7 +119,7 @@ body {
 .sidebar-header h2 {
     font-size: 16px;
     font-weight: 500;
-    color: var(--text-sidebar-active);
+    color: var(--text-sidebar-header);
 }
 
 .sidebar-header i {
@@ -139,7 +144,7 @@ body {
 }
 
 .nav-item:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--nav-hover-bg);
     color: var(--text-sidebar-active);
 }
 
@@ -476,7 +481,7 @@ input[type="checkbox"]:checked::before {
 .modal-header h2 {
     font-size: 18px;
     font-weight: 600;
-    color: #fff;
+    color: var(--text-main);
 }
 
 .close-modal {
@@ -764,6 +769,30 @@ input[type="checkbox"]:checked::before {
     background-color: rgba(21, 101, 192, 0.2);
     color: #bbdefb;
     border: 1px solid rgba(21, 101, 192, 0.5);
+}
+
+:root.light-mode .badge-master {
+    background-color: rgba(106, 27, 154, 0.15);
+    color: #6a1b9a;
+    border: 1px solid rgba(106, 27, 154, 0.3);
+}
+
+:root.light-mode .badge-admin {
+    background-color: rgba(198, 40, 40, 0.15);
+    color: #c62828;
+    border: 1px solid rgba(198, 40, 40, 0.3);
+}
+
+:root.light-mode .badge-editor {
+    background-color: rgba(46, 125, 50, 0.15);
+    color: #2e7d32;
+    border: 1px solid rgba(46, 125, 50, 0.3);
+}
+
+:root.light-mode .badge-viewer {
+    background-color: rgba(21, 101, 192, 0.15);
+    color: #1565c0;
+    border: 1px solid rgba(21, 101, 192, 0.3);
 }
 
 /* User Action Buttons */

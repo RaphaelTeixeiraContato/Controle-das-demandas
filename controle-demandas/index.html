@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Demandas</title>
-    <link rel="stylesheet" href="style.css?v=11">
+    <link rel="stylesheet" href="style.css?v=12">
     <!-- Google Fonts & Phosphor Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -189,8 +189,7 @@
                     style="display: none; justify-content: space-between;">
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <div class="search-box">
-                            <i class="ph ph-magnifying-glass"></i>
-                            <input type="text" id="inputBuscarGuia" placeholder="Pesquisar...">
+                            <input type="text" id="inputBuscarGuia" placeholder="Buscar...">
                         </div>
                         <select id="filterGuiaTipo" class="filter-select" style="width: 200px;">
                             <option value="">Tipo (Todos)</option>
@@ -268,7 +267,7 @@
                     style="margin-top: 24px; margin-bottom: 20px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <div class="search-box">
-                            <input type="text" id="inputBuscarControle" placeholder="Pesquisar...">
+                            <input type="text" id="inputBuscarControle" placeholder="Buscar...">
                         </div>
                         <button class="icon-btn" id="btnResetControle" title="Reiniciar pesquisa"
                             style="height: 38px;"><i class="ph ph-arrows-clockwise"></i></button>
@@ -340,12 +339,8 @@
                     style="margin-top: 24px; margin-bottom: 20px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
 
                     <div class="left-actions" style="display: flex; gap: 15px; align-items: center;">
-                        <div class="search-box"
-                            style="display: flex; align-items: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 0 12px; height: 38px;">
-                            <i class="ph ph-magnifying-glass"
-                                style="color: var(--text-secondary); margin-right: 8px;"></i>
-                            <input type="text" id="inputBuscarLogs" placeholder="Buscar..."
-                                style="background: transparent; border: none; color: var(--text-main); outline: none; width: 150px; font-size: 14px;">
+                        <div class="search-box">
+                            <input type="text" id="inputBuscarLogs" placeholder="Buscar...">
                         </div>
                         <div class="custom-date-filter" id="btnDateFilterLogs">
                             <i class="ph ph-calendar-blank"></i>
@@ -360,19 +355,19 @@
                     </div>
 
                     <div class="right-actions" style="display: flex; gap: 15px; align-items: center;">
-                        <div class="bulk-actions" id="bulkActionsLogs"
-                            style="display: none; align-items: center; gap: 15px; background: rgba(239, 68, 68, 0.1); padding: 5px 15px; border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.2);">
-                            <span style="font-size: 14px; font-weight: 500; color: #ef4444;"><span
-                                    id="bulkSelectedCountLogs">0</span> selecionados</span>
-                            <button class="btn-cancel" id="btnCancelBulkLogs"
-                                style="padding: 6px 12px; font-size: 13px;">Cancelar</button>
-                            <button class="btn-danger" id="btnBulkExcluirLogs"
-                                style="padding: 6px 12px; font-size: 13px;">
-                                <i class="ph ph-trash"></i> Excluir Selecionados
-                            </button>
-                        </div>
-
+                        <!-- Right actions (empty for now) -->
                     </div>
+                </div>
+                
+                <div class="bulk-actions" id="bulkActionsLogs"
+                    style="display: none; align-items: center; gap: 10px;">
+                    <span style="font-size: 14px; font-weight: 500;"><span id="bulkSelectedCountLogs">0</span>
+                        selecionados</span>
+                    <button class="btn-cancel" id="btnCancelBulkLogs"
+                        style="padding: 6px 12px; font-size: 13px;">Cancelar</button>
+                    <button class="btn-danger" id="btnBulkExcluirLogs">
+                        <i class="ph ph-trash"></i> Excluir Selecionados
+                    </button>
                 </div>
                 <table class="demand-table">
                     <thead>

@@ -19,7 +19,7 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script.js?v=18" defer></script>
+    <script src="script.js?v=19" defer></script>
 
     <!-- Pickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css"/>
@@ -250,7 +250,6 @@
                         <button class="icon-btn" id="btnResetControle" title="Reiniciar pesquisa" style="height: 38px;"><i class="ph ph-arrows-clockwise"></i></button>
                         <button class="btn-submit" id="btnNovaOpcaoControle" style="height: 38px; padding: 0 15px;"><i class="ph ph-plus"></i></button>
                         <button class="btn-secondary" id="btnLoteAssessoresControle" title="Adicionar em lote" style="display: none; height: 38px; padding: 0 15px;"><i class="ph ph-users"></i> Lote</button>
-                        <button class="btn-danger" id="btnDeleteSelectedControle" title="Excluir selecionados" style="display: none; height: 38px; padding: 0 15px; background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2);"><i class="ph ph-trash"></i></button>
                     </div>
                     <div>
                         <select class="filter-select" id="selectCategoriaControle" style="min-width: 200px;">
@@ -260,6 +259,14 @@
                             <option value="comQuem">Com quem</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="bulk-actions" id="bulkActionsContainerControle" style="display: none; align-items: center; gap: 10px; margin-bottom: 20px;">
+                    <span style="font-size: 14px; font-weight: 500;"><span id="bulkSelectedCountControle">0</span> selecionados</span>
+                    <button class="btn-cancel" id="btnCancelBulkControle" style="padding: 6px 12px; font-size: 13px;">Cancelar</button>
+                    <button class="btn-danger" id="btnBulkExcluirControle">
+                        <i class="ph ph-trash"></i> Excluir Selecionados
+                    </button>
                 </div>
 
                 <table class="demand-table">
@@ -710,19 +717,11 @@
                             <input type="text" id="inputGuiaAnexo" placeholder="Cole aqui os links ou referências dos anexos...">
                         </div>
                     </div>
-                </div>
-
-                <div id="formSectionTipo" style="display: none;">
-                    <div class="form-row">
-                        <div class="form-group full-width">
-                            <label>Título / Nome</label>
-                            <input type="text" id="inputGuiaNomeTipo" placeholder="">
-                        </div>
                     </div>
-                </div>
-            </form>      <div class="modal-footer" style="justify-content: space-between; margin-top: 30px;">
-                    <button type="button" class="btn-secondary" id="btnCancelGuia" style="width: 45%;">Cancelar</button>
-                    <button type="submit" class="btn-submit" style="width: 45%;">Criar</button>
+                    <div class="modal-footer" style="justify-content: space-between; margin-top: 30px;">
+                        <button type="button" class="btn-secondary" id="btnCancelGuia" style="width: 45%;">Cancelar</button>
+                        <button type="submit" class="btn-submit" style="width: 45%;">Criar</button>
+                    </div>
                 </div>
             </form>
         </div>

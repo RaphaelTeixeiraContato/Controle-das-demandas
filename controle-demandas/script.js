@@ -1448,18 +1448,41 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const selectAllControle = document.getElementById('selectAllControle');
+    const btnBulkExcluirControle = document.getElementById('btnBulkExcluirControle');
+    const bulkActionsContainerControle = document.getElementById('bulkActionsContainerControle');
+    const bulkSelectedCountControle = document.getElementById('bulkSelectedCountControle');
+    const btnCancelBulkControle = document.getElementById('btnCancelBulkControle');
+
+    const updateBulkActionsControle = () => {
+        const checkboxes = document.querySelectorAll('.row-checkbox-controle:checked');
+        if (checkboxes.length > 0) {
+            bulkActionsContainerControle.style.display = 'flex';
+            bulkSelectedCountControle.textContent = checkboxes.length;
+        } else {
+            bulkActionsContainerControle.style.display = 'none';
+        }
+    };
+
     if (selectAllControle) {
         selectAllControle.addEventListener('change', (e) => {
             const isChecked = e.target.checked;
             document.querySelectorAll('.row-checkbox-controle').forEach(cb => {
                 cb.checked = isChecked;
             });
+            updateBulkActionsControle();
         });
     }
 
-    const btnDeleteSelectedControle = document.getElementById('btnDeleteSelectedControle');
-    if (btnDeleteSelectedControle) {
-        btnDeleteSelectedControle.addEventListener('click', async () => {
+    if (btnCancelBulkControle) {
+        btnCancelBulkControle.addEventListener('click', () => {
+            if (selectAllControle) selectAllControle.checked = false;
+            document.querySelectorAll('.row-checkbox-controle').forEach(cb => cb.checked = false);
+            updateBulkActionsControle();
+        });
+    }
+
+    if (btnBulkExcluirControle) {
+        btnBulkExcluirControle.addEventListener('click', async () => {
             const checkboxes = document.querySelectorAll('.row-checkbox-controle:checked');
             if (checkboxes.length === 0) {
                 showToast('Selecione pelo menos um item para excluir', 'warning');
@@ -1508,6 +1531,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const bindCheckboxEventsControle = () => {
+        document.querySelectorAll('.row-checkbox-controle').forEach(cb => {
+            cb.addEventListener('change', updateBulkActionsControle);
+        });
+    };
+
     window.renderControleTable = () => {
         try {
             const tbody = document.getElementById('controleTableBody');
@@ -1531,13 +1560,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (btnLote) btnLote.style.display = 'block';
                 if (thCor) thCor.style.display = 'none';
                 if (thCheckbox) thCheckbox.style.display = 'table-cell';
-                if (btnDeleteSelectedControle) btnDeleteSelectedControle.style.display = 'block';
             } else {
                 if (btnLote) btnLote.style.display = 'none';
                 if (thCor) thCor.style.display = 'table-cell';
                 if (thCheckbox) thCheckbox.style.display = 'none';
-                if (btnDeleteSelectedControle) btnDeleteSelectedControle.style.display = 'none';
             }
+            if (bulkActionsContainerControle) bulkActionsContainerControle.style.display = 'none';
+            if (selectAllControle) selectAllControle.checked = false;
 
             const query = (searchInput.value || '').toLowerCase();
             if (query) {
@@ -1577,6 +1606,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (categoria === 'assessores') {
                     tr.innerHTML = `
+                        <td style="text-align: center;"><input type="checkbox" class="row-checkbox-controle" value="${actionIndex}"></td>
                         <td>${nome}</td>
                         <td>${criadoEm}</td>
                         <td>${atualizadoEm}</td>
@@ -1603,6 +1633,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 tbody.appendChild(tr);
             });
+            bindCheckboxEventsControle();
         } catch (e) {
             console.error("Erro no renderControleTable: ", e);
             const tbody = document.getElementById('controleTableBody');

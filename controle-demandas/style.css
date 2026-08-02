@@ -259,6 +259,34 @@ input[type="checkbox"]:checked::before {
     color: var(--text-main);
 }
 
+.bulk-actions button {
+    padding: 6px 12px !important;
+    font-size: 13px !important;
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.bulk-actions button.btn-cancel:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.bulk-actions button.btn-danger:hover {
+    background-color: #ef4444;
+    color: #fff;
+    border-color: #ef4444;
+}
+
+.bulk-actions button.btn-primary:hover {
+    background-color: var(--active-purple);
+    color: #fff;
+    border-color: var(--active-purple);
+}
+
 .search-box input {
     background-color: var(--bg-primary);
     border: 1px solid var(--border-color);

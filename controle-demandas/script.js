@@ -38,6 +38,13 @@ const renderPagination = (containerId, moduleKey, totalItems, itemsPerPage, rend
         currentPage = totalPages;
     }
 
+    if (totalPages <= 1) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+        return;
+    }
+
+    container.style.display = 'flex';
     container.innerHTML = `
         <span class="pagination-info">Página ${currentPage} de ${totalPages} (${totalItems} itens)</span>
         <button class="pagination-btn" id="btnPrev_${moduleKey}" ${currentPage === 1 ? 'disabled' : ''}><i class="ph ph-caret-left"></i> Anterior</button>
@@ -1687,6 +1694,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.innerHTML = '';
             if (items.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="padding: 20px;">Nenhum item encontrado.</td></tr>';
+                renderPagination('paginationControleContainer', 'controle', 0, 100, window.renderControleTable);
                 return;
             }
 
@@ -2124,6 +2132,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (usuarios.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" class="text-center" style="padding: 30px;">Nenhum usuário cadastrado.</td></tr>';
+            renderPagination('paginationAcessosContainer', 'acessos', 0, 10, renderUsuarios);
             return;
         }
 
@@ -2390,13 +2399,14 @@ document.addEventListener('DOMContentLoaded', () => {
         tbody.innerHTML = '';
         if (filtered.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Nenhuma guia encontrada.</td></tr>`;
+            renderPagination('paginationGuiaContainer', 'guias', 0, 15, renderGuias);
             return;
         }
 
         const limit = 15;
         const totalPages = Math.ceil(filtered.length / limit) || 1;
-        if (paginationState.guia > totalPages) paginationState.guia = totalPages;
-        const start = (paginationState.guia - 1) * limit;
+        if (paginationState.guias > totalPages) paginationState.guias = totalPages;
+        const start = (paginationState.guias - 1) * limit;
         const pagedGuias = filtered.slice(start, start + limit);
 
         pagedGuias.forEach(g => {
@@ -2445,7 +2455,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             tbody.appendChild(tr);
         });
-        renderPagination('paginationGuiaContainer', 'guia', filtered.length, limit, renderGuias);
+        renderPagination('paginationGuiaContainer', 'guias', filtered.length, limit, renderGuias);
     };
 
 
@@ -2507,6 +2517,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding: 30px;">Nenhum registro encontrado.</td></tr>';
             updateLogsBulkVisibility();
             updateLogsSelectAllCheckbox(filtered);
+            renderPagination('paginationLogsContainer', 'logs', 0, 100, renderLogs);
             return;
         }
 
@@ -2824,6 +2835,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tiposGuiaTableBody.innerHTML = '';
         if (!configuracoes.guiaTipos || configuracoes.guiaTipos.length === 0) {
             tiposGuiaTableBody.innerHTML = '<tr><td colspan="2" class="text-center" style="padding: 20px;">Nenhum tipo cadastrado.</td></tr>';
+            renderPagination('paginationTiposGuiaContainer', 'tiposGuia', 0, 15, renderTiposGuiaTable);
             return;
         }
 

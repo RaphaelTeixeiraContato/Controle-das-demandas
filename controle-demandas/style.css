@@ -4,8 +4,8 @@
     --bg-sidebar: #13101e; /* Fundo do menu lateral mantém bem escuro */
     --text-sidebar: #a0aec0;
     --text-sidebar-active: #ffffff;
-    --bg-main: #2a243a; /* Fundo principal da página, roxo mais fraco/claro */
-    --text-main: #e2e8f0; 
+    --text-main: #e2e8f0;
+    --text-muted: #a0aec0; 
     --border-color: #3b3251; /* Borda mais suave acompanhando o roxo */
     --table-header-bg: #2d2640; /* Fundo de cabeçalhos e cards */
     --table-header-text: #ffffff;
@@ -23,15 +23,16 @@
     --text-sidebar: #4c1d95;
     --text-sidebar-active: #ffffff;
     --bg-main: #ffffff; /* Fundo principal da página branco */
-    --text-main: #1e1b4b; 
+    --text-main: #1e1b4b;
+    --text-muted: #6b7280; 
     --border-color: #e2d9f2;
     --table-header-bg: #f8f6fc; /* Cabeçalhos e cards claros */
     --table-header-text: #312e81;
     --btn-primary: #ffffff; 
     --btn-primary-text: #4c1d95;
-    --pill-red: #fee2e2;
-    --pill-blue: #dbeafe;
-    --pill-black: #f3f4f6;
+    --pill-red: #ef4444;
+    --pill-blue: #3b82f6;
+    --pill-black: #4b5563;
     --active-purple: #6d28d9; 
 }
 
@@ -164,7 +165,7 @@ body {
 /* Top Header */
 .top-header {
     background-color: var(--bg-primary);
-    color: #fff;
+    color: var(--text-main);
     padding: 15px 20px;
     display: flex;
     justify-content: space-between;
@@ -182,7 +183,7 @@ body {
 }
 
 .count-badge {
-    color: #c9bade; /* Tom roxo clarinho */
+    color: var(--text-muted);
     font-size: 14px;
 }
 
@@ -247,10 +248,10 @@ input[type="checkbox"]:checked::before {
     border-radius: 50px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
     display: flex;
-    align-items: center;
     gap: 15px;
     z-index: 1000;
     border: 1px solid var(--border-color);
+    color: var(--text-main);
 }
 
 .search-box input {
@@ -323,7 +324,7 @@ input[type="checkbox"]:checked::before {
 
 .date-filter-label {
     font-size: 10px;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-muted);
     margin-bottom: 2px;
     font-weight: 500;
 }
@@ -331,7 +332,7 @@ input[type="checkbox"]:checked::before {
 .date-filter-value {
     font-size: 12px;
     font-weight: 500;
-    color: #fff;
+    color: var(--text-main);
 }
 
 .btn-primary {
@@ -376,12 +377,12 @@ input[type="checkbox"]:checked::before {
 }
 
 .demand-table th:hover {
-    background-color: #2d2844; /* Hover do cabeçalho da tabela */
+    background-color: var(--bg-primary); /* Hover do cabeçalho da tabela */
 }
 
 .demand-table th i {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-muted);
     margin-left: 6px;
     vertical-align: middle;
 }

@@ -1821,7 +1821,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openDeleteControleModal = (type, index) => {
         const modalDelete = document.getElementById('modalExcluirOpcaoControle');
         const btnCancel = document.getElementById('btnCancelDeleteOpcaoControle');
-        const btnConfirm = document.getElementById('btnConfirmDeleteControle');
+        const btnConfirm = document.getElementById('btnConfirmDeleteOpcaoControle');
 
         if (!modalDelete) {
             // Fallback se não encontrar o modal
@@ -2409,6 +2409,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (filtered.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding: 30px;">Nenhum registro encontrado.</td></tr>';
+            updateLogsBulkVisibility();
+            updateLogsSelectAllCheckbox(filtered);
             return;
         }
 
@@ -2528,6 +2530,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast(`${selectedLogsIds.length} registros excluídos`, 'success');
                     selectedLogsIds = [];
                     if (modalExcluirLog) modalExcluirLog.classList.remove('active');
+                    updateLogsBulkVisibility();
                     // Need to trigger a custom event or let realtime handle it
                 } catch (e) {
                     showToast('Erro ao excluir registros', 'error');

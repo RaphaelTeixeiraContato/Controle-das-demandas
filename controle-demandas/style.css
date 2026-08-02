@@ -459,7 +459,8 @@ input[type="checkbox"]:checked::before {
 
 .action-icons i {
     cursor: pointer;
-    font-size: 18px;
+    font-size: 22px;
+    color: #a0aec0;
     transition: color 0.2s, transform 0.1s;
 }
 

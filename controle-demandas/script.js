@@ -2085,8 +2085,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     dataAtualizacao: Date.now()
                 };
 
-                    if (currentEditGuiaId) {
-                        await supabaseClient.from("guias").update(dataObj).eq("id", currentEditGuiaId);
                 if (currentEditGuiaId) {
                     await supabaseClient.from("guias").update(dataObj).eq("id", currentEditGuiaId);
                     showToast("Guia atualizada com sucesso!", "success");

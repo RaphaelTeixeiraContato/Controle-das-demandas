@@ -1456,12 +1456,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateBulkActionsControle = () => {
         const checkboxes = document.querySelectorAll('.row-checkbox-controle:checked');
         if (checkboxes.length > 0) {
-            bulkActionsContainerControle.style.display = 'flex';
-            bulkSelectedCountControle.textContent = checkboxes.length;
+            if (bulkActionsContainerControle) bulkActionsContainerControle.style.display = 'flex';
+            if (bulkSelectedCountControle) bulkSelectedCountControle.textContent = checkboxes.length;
         } else {
-            bulkActionsContainerControle.style.display = 'none';
+            if (bulkActionsContainerControle) bulkActionsContainerControle.style.display = 'none';
         }
     };
+    window.updateBulkActionsControle = updateBulkActionsControle;
 
     if (selectAllControle) {
         selectAllControle.addEventListener('change', (e) => {
@@ -1786,7 +1787,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openDeleteControleModal = (type, index) => {
         const modalDelete = document.getElementById('modalExcluirOpcaoControle');
         const btnCancel = document.getElementById('btnCancelDeleteOpcaoControle');
-        const btnConfirm = document.getElementById('btnConfirmDeleteOpcaoControle');
+        const btnConfirm = document.getElementById('btnConfirmDeleteControle');
 
         if (!modalDelete) {
             // Fallback se não encontrar o modal
@@ -2196,6 +2197,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             anexoEl.innerHTML = '<span style="color: var(--text-muted); font-style: italic;">Nenhum anexo.</span>';
+        }
+        const btnCopy = document.getElementById('btnCopyViewGuia');
+        if (btnCopy) {
+            const newBtnCopy = btnCopy.cloneNode(true);
+            btnCopy.parentNode.replaceChild(newBtnCopy, btnCopy);
+            
+            newBtnCopy.addEventListener('click', () => {
+                let texto = `*Título:* ${g.titulo || g.tipo || 'Sem Título'}\n`;
+                if (g.tipo) texto += `*Tipo:* ${g.tipo}\n\n`;
+                if (g.conteudo) texto += `${g.conteudo}\n`;
+                if (g.anexo) texto += `\n*Anexos:*\n${g.anexo}`;
+
+                navigator.clipboard.writeText(texto).then(() => {
+                    showToast('Conteúdo copiado para a área de transferência!', 'success');
+                    newBtnCopy.innerHTML = '<i class="ph ph-check"></i> Copiado';
+                    setTimeout(() => {
+                        newBtnCopy.innerHTML = '<i class="ph ph-copy"></i> Copiar';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Erro ao copiar', err);
+                    showToast('Erro ao copiar texto', 'error');
+                });
+            });
         }
 
         modalViewGuia.classList.add('active');

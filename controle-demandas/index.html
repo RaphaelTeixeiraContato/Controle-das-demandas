@@ -19,7 +19,7 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script.js?v=15" defer></script>
+    <script src="script.js?v=16" defer></script>
 
     <!-- Pickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css"/>
@@ -168,23 +168,27 @@
                         Novo Usuário
                     </button>
                 </div>
-                <div class="header-actions" id="headerActionsGuias" style="display: none;">
-                    <div class="search-box">
-                        <i class="ph ph-magnifying-glass"></i>
-                        <input type="text" id="inputBuscarGuia" placeholder="Pesquisar...">
+                <div class="header-actions" id="headerActionsGuias" style="display: none; justify-content: space-between;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div class="search-box">
+                            <i class="ph ph-magnifying-glass"></i>
+                            <input type="text" id="inputBuscarGuia" placeholder="Pesquisar...">
+                        </div>
+                        <select id="filterGuiaTipo" class="filter-select" style="width: 200px;">
+                            <option value="">Tipo (Todos)</option>
+                        </select>
+                        <button class="icon-btn" id="btnResetGuia" title="Reiniciar filtros" style="height: 38px;">
+                            <i class="ph ph-arrows-clockwise"></i>
+                        </button>
                     </div>
-                    <select id="filterGuiaTipo" class="filter-select" style="width: 200px;">
-                        <option value="">Tipo (Todos)</option>
-                    </select>
-                    <button class="icon-btn" id="btnResetGuia" title="Reiniciar filtros">
-                        <i class="ph ph-arrows-clockwise"></i>
-                    </button>
-                    <button class="btn-secondary" style="background-color: var(--bg-hover); border: 1px solid rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 6px; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 8px;" id="btnGerenciarTiposGuia">
-                        <i class="ph ph-gear"></i> Gerenciar Tipos
-                    </button>
-                    <button class="btn-primary" id="btnNovoGuia">
-                        <i class="ph ph-plus"></i> Nova Guia/Tipo
-                    </button>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button class="btn-secondary" style="background-color: var(--bg-hover); border: 1px solid rgba(255,255,255,0.1); padding: 0 15px; border-radius: 6px; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 8px; height: 38px;" id="btnGerenciarTiposGuia">
+                            <i class="ph ph-gear"></i> Gerenciar Tipos
+                        </button>
+                        <button class="btn-primary" id="btnNovoGuia" style="height: 38px;">
+                            <i class="ph ph-plus"></i> Nova Guia
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -238,31 +242,35 @@
             
             <!-- Container Controle -->
             <div class="controle-container table-container" id="viewControle" style="display: none;">
-                <div class="header-actions" style="margin-top: 24px; margin-bottom: 20px; padding: 0 20px; display: flex; justify-content: flex-end; align-items: center; width: 100%;">
+                <div class="header-actions" style="margin-top: 24px; margin-bottom: 20px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <select class="filter-select" id="selectCategoriaControle" style="min-width: 200px;">
-                            <option value="responsaveis">Responsáveis</option>
-                            <option value="assessores">Assessores</option>
-                            <option value="meios">Meio</option>
-                            <option value="comQuem">Com quem</option>
-                        </select>
                         <div class="search-box">
                             <input type="text" id="inputBuscarControle" placeholder="Pesquisar...">
                         </div>
                         <button class="icon-btn" id="btnResetControle" title="Reiniciar pesquisa" style="height: 38px;"><i class="ph ph-arrows-clockwise"></i></button>
                         <button class="btn-submit" id="btnNovaOpcaoControle" style="height: 38px; padding: 0 15px;"><i class="ph ph-plus"></i></button>
                         <button class="btn-secondary" id="btnLoteAssessoresControle" title="Adicionar em lote" style="display: none; height: 38px; padding: 0 15px;"><i class="ph ph-users"></i> Lote</button>
+                        <button class="btn-danger" id="btnDeleteSelectedControle" title="Excluir selecionados" style="display: none; height: 38px; padding: 0 15px; background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2);"><i class="ph ph-trash"></i></button>
+                    </div>
+                    <div>
+                        <select class="filter-select" id="selectCategoriaControle" style="min-width: 200px;">
+                            <option value="responsaveis">Responsáveis</option>
+                            <option value="assessores">Assessores</option>
+                            <option value="meios">Meio</option>
+                            <option value="comQuem">Com quem</option>
+                        </select>
                     </div>
                 </div>
 
                 <table class="demand-table">
                     <thead>
                         <tr>
+                            <th id="thCheckboxControle" style="width: 40px; text-align: center; display: none;"><input type="checkbox" id="selectAllControle"></th>
                             <th>NOME</th>
                             <th id="thCorControle">COR</th>
                             <th>DATA CRIADO</th>
                             <th>DATA ATUALIZADO</th>
-                            <th>AÇÕES</th>
+                            <th width="100">AÇÕES</th>
                         </tr>
                     </thead>
                     <tbody id="controleTableBody">
@@ -600,8 +608,8 @@
             <div style="margin-bottom: 20px;">
                 <p style="color: var(--text-sidebar); font-size: 14px; margin-bottom: 10px;">Abaixo estão os tipos disponíveis para as guias. Você pode editá-los ou excluí-los.</p>
                 <div style="display: flex; gap: 10px;">
-                    <input type="text" id="inputNovoTipoGuia" placeholder="Novo tipo..." style="flex: 1;">
-                    <button class="btn-primary" id="btnAdicionarTipoGuia"><i class="ph ph-plus"></i> Adicionar</button>
+                    <input type="text" id="inputNovoTipoGuia" class="form-control" placeholder="Novo tipo..." style="flex: 1; padding: 8px 12px; height: 38px;">
+                    <button class="btn-primary" id="btnAdicionarTipoGuia" style="height: 38px; padding: 0 15px;"><i class="ph ph-plus"></i> Adicionar</button>
                 </div>
             </div>
             
@@ -625,6 +633,47 @@
         </div>
     </div>
 
+    <!-- Modal Editar Tipo de Guia -->
+    <div class="modal-overlay" id="modalEditarTipoGuia">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Editar "Tipo de Guia"</h2>
+                <button class="close-modal" id="btnCloseEditarTipoGuia"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <div class="form-row" style="margin-top: 15px;">
+                <div class="form-group full-width">
+                    <label style="text-align: center;">Nome</label>
+                    <input type="text" id="inputEditarNomeTipoGuia" class="form-control" style="text-align: center; width: 100%;">
+                </div>
+            </div>
+
+            <div class="modal-footer" style="margin-top: 25px;">
+                <button type="button" class="btn-secondary" id="btnCancelEditarTipoGuia">Cancelar</button>
+                <button type="button" class="btn-submit" id="btnSaveEditarTipoGuia">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Excluir Tipo de Guia -->
+    <div class="modal-overlay" id="modalExcluirTipoGuia">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Excluir Tipo</h2>
+                <button class="close-modal" id="btnCloseExcluirTipoGuia"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0; color: var(--text-sidebar);">
+                <p id="textExcluirTipoGuia">Tem certeza que deseja excluir este tipo?</p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="btnCancelExcluirTipoGuia">Cancelar</button>
+                <button type="button" class="btn-danger" id="btnConfirmExcluirTipoGuia" style="background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2);">Excluir</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Nova Guia -->
     <div class="modal-overlay" id="modalNovaGuia">
         <div class="modal-content" style="max-width: 500px;">
@@ -634,14 +683,6 @@
             </div>
             
             <form id="formNovaGuia">
-                <div class="form-row" id="guiaModalToggleRow" style="margin-top: 15px; margin-bottom: 25px;">
-                    <div style="display: flex; gap: 15px; width: 100%; justify-content: center; padding: 0 40px;">
-                        <button type="button" class="btn-toggle active" id="btnToggleCaminho">Caminho</button>
-                        <button type="button" class="btn-toggle" id="btnToggleTipo">Tipo</button>
-                        <input type="hidden" id="inputGuiaTipoForm" value="caminho">
-                    </div>
-                </div>
-
                 <div id="formSectionCaminho">
                     <div class="form-row">
                         <div class="form-group full-width">
@@ -679,8 +720,7 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="modal-footer" style="justify-content: space-between; margin-top: 30px;">
+            </form>      <div class="modal-footer" style="justify-content: space-between; margin-top: 30px;">
                     <button type="button" class="btn-secondary" id="btnCancelGuia" style="width: 45%;">Cancelar</button>
                     <button type="submit" class="btn-submit" style="width: 45%;">Criar</button>
                 </div>

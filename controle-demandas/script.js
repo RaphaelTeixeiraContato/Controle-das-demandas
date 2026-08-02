@@ -1447,6 +1447,67 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const selectAllControle = document.getElementById('selectAllControle');
+    if (selectAllControle) {
+        selectAllControle.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            document.querySelectorAll('.row-checkbox-controle').forEach(cb => {
+                cb.checked = isChecked;
+            });
+        });
+    }
+
+    const btnDeleteSelectedControle = document.getElementById('btnDeleteSelectedControle');
+    if (btnDeleteSelectedControle) {
+        btnDeleteSelectedControle.addEventListener('click', async () => {
+            const checkboxes = document.querySelectorAll('.row-checkbox-controle:checked');
+            if (checkboxes.length === 0) {
+                showToast('Selecione pelo menos um item para excluir', 'warning');
+                return;
+            }
+
+            const confirmModal = document.getElementById('modalExcluirControle');
+            const deleteText = document.getElementById('modalDeleteText');
+            if (!confirmModal || !deleteText) return;
+            
+            const categoria = document.getElementById('selectCategoriaControle').value;
+            deleteText.textContent = `Tem certeza que deseja excluir os ${checkboxes.length} itens selecionados?`;
+            
+            const btnConfirm = document.getElementById('btnConfirmDeleteControle');
+            const clone = btnConfirm.cloneNode(true);
+            btnConfirm.parentNode.replaceChild(clone, btnConfirm);
+
+            clone.addEventListener('click', async () => {
+                clone.disabled = true;
+                clone.innerHTML = '<i class="ph ph-spinner ph-spin"></i>';
+                
+                try {
+                    const indicesToRemove = Array.from(checkboxes).map(cb => parseInt(cb.value)).sort((a,b) => b-a);
+                    
+                    indicesToRemove.forEach(index => {
+                        configuracoes[categoria].splice(index, 1);
+                    });
+
+                    const { error } = await supabaseClient.from('configuracoes').upsert([{ id: 'geral', dados: configuracoes }]);
+                    if (error) throw error;
+                    
+                    showToast(`${indicesToRemove.length} itens excluídos com sucesso!`, 'success');
+                    window.renderControleTable();
+                    renderSelectOptions();
+                    confirmModal.classList.remove('active');
+                } catch (error) {
+                    console.error("Erro ao excluir itens em lote:", error);
+                    showToast('Erro ao excluir itens. Tente novamente.', 'error');
+                } finally {
+                    clone.disabled = false;
+                    clone.textContent = 'Excluir';
+                }
+            });
+
+            confirmModal.classList.add('active');
+        });
+    }
+
     window.renderControleTable = () => {
         try {
             const tbody = document.getElementById('controleTableBody');
@@ -1463,13 +1524,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 items = [...configuracoes[categoria]];
             }
             
+            const thCheckbox = document.getElementById('thCheckboxControle');
+            
             // Hide Lote and Cor if it's assessores
             if (categoria === 'assessores') {
                 if (btnLote) btnLote.style.display = 'block';
                 if (thCor) thCor.style.display = 'none';
+                if (thCheckbox) thCheckbox.style.display = 'table-cell';
+                if (btnDeleteSelectedControle) btnDeleteSelectedControle.style.display = 'block';
             } else {
                 if (btnLote) btnLote.style.display = 'none';
                 if (thCor) thCor.style.display = 'table-cell';
+                if (thCheckbox) thCheckbox.style.display = 'none';
+                if (btnDeleteSelectedControle) btnDeleteSelectedControle.style.display = 'none';
             }
 
             const query = (searchInput.value || '').toLowerCase();
@@ -1967,38 +2034,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputGuiaTipoForm = document.getElementById('inputGuiaTipoForm');
 
     const sectionCaminho = document.getElementById('formSectionCaminho');
-    const sectionTipo = document.getElementById('formSectionTipo');
+    const sectionCaminho = document.getElementById('formSectionCaminho');
     const inputGuiaTipoSelect = document.getElementById('inputGuiaTipoSelect');
-
-    // Switch between Caminho and Tipo
-    const switchGuiaModalMode = (mode) => {
-        if (mode === 'caminho') {
-            btnToggleCaminho.classList.add('active');
-            btnToggleTipo.classList.remove('active');
-            inputGuiaTipoForm.value = 'caminho';
-
-            sectionCaminho.style.display = 'block';
-            sectionTipo.style.display = 'none';
-            document.getElementById('inputGuiaTitulo').required = true;
-            document.getElementById('inputGuiaTipoSelect').required = true;
-            document.getElementById('inputGuiaNomeTipo').required = false;
-            document.getElementById('modalNovaGuiaTitle').textContent = currentEditGuiaId ? "Editar guia" : "Criar nova guia";
-        } else {
-            btnToggleTipo.classList.add('active');
-            btnToggleCaminho.classList.remove('active');
-            inputGuiaTipoForm.value = 'tipo';
-
-            sectionCaminho.style.display = 'none';
-            sectionTipo.style.display = 'block';
-            document.getElementById('inputGuiaTitulo').required = false;
-            document.getElementById('inputGuiaTipoSelect').required = false;
-            document.getElementById('inputGuiaNomeTipo').required = true;
-            document.getElementById('modalNovaGuiaTitle').textContent = "Criar novo tipo";
-        }
-    };
-
-    if (btnToggleCaminho) btnToggleCaminho.addEventListener('click', () => switchGuiaModalMode('caminho'));
-    if (btnToggleTipo) btnToggleTipo.addEventListener('click', () => switchGuiaModalMode('tipo'));
 
     const openGuiaModal = (editId = null) => {
         currentEditGuiaId = editId;
@@ -2018,14 +2055,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('inputGuiaConteudo').value = g.conteudo;
             document.getElementById('inputGuiaAnexo').value = g.anexo || '';
 
-            switchGuiaModalMode('caminho');
-            document.getElementById('guiaModalToggleRow').style.display = 'none';
             document.querySelector('#modalNovaGuiaTitle').textContent = "Editar guia";
             document.querySelector('#formNovaGuia .btn-submit').textContent = "Salvar";
         } else {
             formNovaGuia.reset();
-            switchGuiaModalMode('caminho');
-            document.getElementById('guiaModalToggleRow').style.display = 'flex';
             document.querySelector('#modalNovaGuiaTitle').textContent = "Criar nova guia";
             document.querySelector('#formNovaGuia .btn-submit').textContent = "Criar";
         }
@@ -2043,46 +2076,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const btnSubmit = formNovaGuia.querySelector('.btn-submit');
             btnSubmit.disabled = true;
 
-            const isCaminho = inputGuiaTipoForm.value === 'caminho';
-
             try {
-                if (!isCaminho) {
-                    // Creating new Tipo
-                    const novoTipo = document.getElementById('inputGuiaNomeTipo').value.trim();
-                    if (configuracoes.guiaTipos && configuracoes.guiaTipos.includes(novoTipo)) {
-                        showToast("Este tipo já existe!", "warning");
-                    } else {
-                        if (!configuracoes.guiaTipos) configuracoes.guiaTipos = [];
-                        configuracoes.guiaTipos.push(novoTipo);
-                        configuracoes.guiaTipos.sort();
-                        await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
-                        showToast(`Tipo "${novoTipo}" criado com sucesso!`, "success");
-                        registrarLog('Criou Tipo de Guia', `O tipo ${novoTipo} foi adicionado.`);
-                    }
-                } else {
-                    // Creating/Editing Caminho
-                    const dataObj = {
-                        titulo: document.getElementById('inputGuiaTitulo').value.trim(),
-                        tipo: inputGuiaTipoSelect.value,
-                        conteudo: document.getElementById('inputGuiaConteudo').value.trim(),
-                        anexo: document.getElementById('inputGuiaAnexo').value.trim(),
-                        dataAtualizacao: Date.now()
-                    };
+                // Creating/Editing Caminho
+                const dataObj = {
+                    titulo: document.getElementById('inputGuiaTitulo').value.trim(),
+                    tipo: inputGuiaTipoSelect.value,
+                    conteudo: document.getElementById('inputGuiaConteudo').value.trim(),
+                    anexo: document.getElementById('inputGuiaAnexo').value.trim(),
+                    dataAtualizacao: Date.now()
+                };
 
                     if (currentEditGuiaId) {
                         await supabaseClient.from("guias").update(dataObj).eq("id", currentEditGuiaId);
-                        showToast("Guia atualizada com sucesso!", "success");
-                        registrarLog('Editou Guia', `Guia: ${dataObj.titulo}`);
-                    } else {
-                        const currentUser = usuarios.find(u => u.email === loggedUser.email);
-                        dataObj.autor = currentUser ? currentUser.nome : loggedUser.email;
-                        dataObj.dataCriacao = Date.now();
-                        await supabaseClient.from("guias").insert([dataObj]);
-                        showToast("Nova guia criada com sucesso!", "success");
-                        registrarLog('Criou Guia', `Guia: ${dataObj.titulo}`);
-                    }
+                if (currentEditGuiaId) {
+                    await supabaseClient.from("guias").update(dataObj).eq("id", currentEditGuiaId);
+                    showToast("Guia atualizada com sucesso!", "success");
+                    registrarLog('Editou Guia', `Guia: ${dataObj.titulo}`);
+                } else {
+                    const currentUser = usuarios.find(u => u.email === loggedUser.email);
+                    dataObj.autor = currentUser ? currentUser.nome : loggedUser.email;
+                    dataObj.dataCriacao = Date.now();
+                    await supabaseClient.from("guias").insert([dataObj]);
+                    showToast("Guia criada com sucesso!", "success");
+                    registrarLog('Criou Guia', `Guia: ${dataObj.titulo}`);
                 }
+
                 modalNovaGuia.classList.remove('active');
+                renderGuias();
+                renderTiposGuiaTable();
             } catch (err) {
                 console.error("Erro ao salvar guia:", err);
                 showToast(`Erro ao salvar guia.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, "error");
@@ -2393,7 +2414,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateFilterOptions();
     renderTables();
     renderSelectOptions();
-    renderControleLists();
+    if (typeof window.renderControleTable === 'function') window.renderControleTable();
     renderUsuarios();
     renderLogs();
 });
@@ -2625,10 +2646,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 btnAdicionarTipoGuia.disabled = true;
-                const { error } = await supabaseClient
-                    .from('configuracoes')
-                    .update({ guiaTipos: configuracoes.guiaTipos })
-                    .eq('id', 1);
+                const { error } = await supabaseClient.from('configuracoes').upsert([{ id: 'geral', dados: configuracoes }]);
 
                 if (error) throw error;
 
@@ -2646,63 +2664,97 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.deletarTipoGuia = async (index) => {
+    // Modal de Edição/Exclusão do Tipo Guia
+    const closeEd = () => document.getElementById('modalEditarTipoGuia').classList.remove('active');
+    const closeEx = () => document.getElementById('modalExcluirTipoGuia').classList.remove('active');
+    document.getElementById('btnCloseEditarTipoGuia')?.addEventListener('click', closeEd);
+    document.getElementById('btnCancelEditarTipoGuia')?.addEventListener('click', closeEd);
+    document.getElementById('btnCloseExcluirTipoGuia')?.addEventListener('click', closeEx);
+    document.getElementById('btnCancelExcluirTipoGuia')?.addEventListener('click', closeEx);
+
+    window.deletarTipoGuia = (index) => {
         const tipo = configuracoes.guiaTipos[index];
-        if (confirm(`Tem certeza que deseja excluir o tipo "${tipo}"?`)) {
+        const modal = document.getElementById('modalExcluirTipoGuia');
+        const textExcluir = document.getElementById('textExcluirTipoGuia');
+        const btnConfirm = document.getElementById('btnConfirmExcluirTipoGuia');
+        
+        if (!modal || !textExcluir || !btnConfirm) return;
+        
+        textExcluir.textContent = `Tem certeza que deseja excluir o tipo "${tipo}"?`;
+        
+        const newBtnConfirm = btnConfirm.cloneNode(true);
+        btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
+        
+        newBtnConfirm.addEventListener('click', async () => {
             const oldValue = configuracoes.guiaTipos[index];
             configuracoes.guiaTipos.splice(index, 1);
-
+            
             try {
-                const { error } = await supabaseClient
-                    .from('configuracoes')
-                    .update({ guiaTipos: configuracoes.guiaTipos })
-                    .eq('id', 1);
-
+                newBtnConfirm.disabled = true;
+                newBtnConfirm.innerHTML = '<i class="ph ph-spinner ph-spin"></i>';
+                const { error } = await supabaseClient.from('configuracoes').upsert([{ id: 'geral', dados: configuracoes }]);
                 if (error) throw error;
-
                 renderTiposGuiaTable();
                 showToast('Tipo excluído', 'success');
+                modal.classList.remove('active');
             } catch (err) {
                 console.error(err);
                 showToast('Erro ao excluir tipo', 'error');
-                // revert
                 configuracoes.guiaTipos.splice(index, 0, oldValue);
+            } finally {
+                newBtnConfirm.disabled = false;
+                newBtnConfirm.textContent = 'Excluir';
             }
-        }
+        });
+        
+        modal.classList.add('active');
     };
 
-    window.editarTipoGuia = async (index) => {
+    window.editarTipoGuia = (index) => {
         const tipo = configuracoes.guiaTipos[index];
-        const novoNome = prompt(`Editar nome do tipo "${tipo}":`, tipo);
-        if (novoNome && novoNome.trim() !== '' && novoNome !== tipo) {
-
+        const modal = document.getElementById('modalEditarTipoGuia');
+        const inputNome = document.getElementById('inputEditarNomeTipoGuia');
+        const btnSave = document.getElementById('btnSaveEditarTipoGuia');
+        
+        if (!modal || !inputNome || !btnSave) return;
+        
+        inputNome.value = tipo;
+        
+        const newBtnSave = btnSave.cloneNode(true);
+        btnSave.parentNode.replaceChild(newBtnSave, btnSave);
+        
+        newBtnSave.addEventListener('click', async () => {
+            const novoNome = inputNome.value.trim();
+            if (!novoNome || novoNome === tipo) {
+                modal.classList.remove('active');
+                return;
+            }
             if (configuracoes.guiaTipos.includes(novoNome)) {
                 showToast('Este tipo já existe', 'error');
                 return;
             }
-
+            
             const oldValue = configuracoes.guiaTipos[index];
             configuracoes.guiaTipos[index] = novoNome;
-
+            
             try {
-                const { error } = await supabaseClient
-                    .from('configuracoes')
-                    .update({ guiaTipos: configuracoes.guiaTipos })
-                    .eq('id', 1);
-
+                newBtnSave.disabled = true;
+                newBtnSave.innerHTML = '<i class="ph ph-spinner ph-spin"></i>';
+                const { error } = await supabaseClient.from('configuracoes').upsert([{ id: 'geral', dados: configuracoes }]);
                 if (error) throw error;
-
                 renderTiposGuiaTable();
                 showToast('Tipo atualizado', 'success');
-
-                // Optional: Update existing guias with this type?
-                // Depending on the business logic, we could do it here
+                modal.classList.remove('active');
             } catch (err) {
                 console.error(err);
-                showToast('Erro ao editar tipo', 'error');
-                // revert
+                showToast('Erro ao atualizar tipo', 'error');
                 configuracoes.guiaTipos[index] = oldValue;
+            } finally {
+                newBtnSave.disabled = false;
+                newBtnSave.textContent = 'Salvar';
             }
-        }
+        });
+        
+        modal.classList.add('active');
     };
 });

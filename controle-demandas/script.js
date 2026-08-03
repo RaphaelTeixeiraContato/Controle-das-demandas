@@ -798,8 +798,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 closeTransferModal();
-                await fetchDemandas();
-                await fetchHistorico();
+                const { data: dData } = await supabaseClient.from('demandas').select('*');
+                if (dData) demandas = dData;
+                const { data: hData } = await supabaseClient.from('historico').select('*');
+                if (hData) historico = hData;
                 renderTables();
             } catch (e) {
                 console.error("Erro ao transferir demanda", e);

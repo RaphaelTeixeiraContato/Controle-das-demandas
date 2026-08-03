@@ -760,7 +760,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnConfirmTransfer.disabled = true;
 
             try {
-                if (currentPage === 'abertas' && inputDataEncerramento.value) {
+                if (currentPage === 'abertas') {
                     const demanda = demandas.find(d => d.id === actionId);
                     if (demanda) {
                         const motivo = document.getElementById('inputMotivoEncerramento').value.trim();
@@ -1151,15 +1151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dataEncerramento = document.getElementById('inputBulkDataEncerramento').value;
         const motivoEncerramento = document.getElementById('inputBulkMotivoEncerramento').value;
 
-        if (!dataEncerramento) {
-            showToast('Por favor, preencha a data de encerramento.', 'info');
-            return;
-        }
-
-        if (currentPage === 'abertas' && !motivoEncerramento) {
-            showToast('Por favor, preencha o motivo do encerramento.', 'info');
-            return;
-        }
+        // Removido texto obrigatório ao transferir em lote
 
         btn.textContent = 'Aguarde...';
         btn.disabled = true;
@@ -1227,9 +1219,12 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedIds = [];
             updateBulkActionsVisibility();
             modalBulkTransferir.classList.remove('active');
-            await fetchDemandas();
-            await fetchHistorico();
+            const { data: dData } = await supabaseClient.from('demandas').select('*');
+            if (dData) demandas = dData;
+            const { data: hData } = await supabaseClient.from('historico').select('*');
+            if (hData) historico = hData;
             renderTables();
+
             showToast('Transferência em lote concluída', 'success');
         } catch (error) {
             console.error("Erro na transferência em lote:", error);

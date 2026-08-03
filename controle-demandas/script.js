@@ -798,6 +798,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 closeTransferModal();
+                await fetchDemandas();
+                await fetchHistorico();
+                renderTables();
             } catch (e) {
                 console.error("Erro ao transferir demanda", e);
             }
@@ -1166,26 +1169,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 selectedIds.forEach(id => {
                     const demanda = demandas.find(d => d.id === id);
                     if (demanda) {
-                        historicoItems.push({
-                            responsavel: demanda.responsavel,
-                            assessor: demanda.assessor,
-                            cliente: demanda.cliente,
-                            demanda: demanda.demanda,
-                            meio: demanda.meio,
-                            protocolo: demanda.protocolo,
-                            comentarios: demanda.comentarios,
-                            comQuem: demanda.comQuem,
-                            data: demanda.data,
-                            dataEncerramento: dataEncerramento,
-                            motivoEncerramento: motivoEncerramento,
-                            timestampEncerramento: Date.now(),
-                            originalId: id
-                        });
+                        const demandaTransferida = { ...demanda, dataEncerramento: dataEncerramento };
+                        delete demandaTransferida.id;
+                        delete demandaTransferida.created_at;
+                        if (motivoEncerramento && motivoEncerramento.trim() !== "") {
+                            demandaTransferida.comentarios = motivoEncerramento;
+                        }
+                        historicoItems.push(demandaTransferida);
                         idsToDelete.push(id);
                     }
                 });
                 if (historicoItems.length > 0) {
-                    await supabaseClient.from("historico").insert(historicoItems);
+                    const { error: _errBulkInsert1 } = await supabaseClient.from("historico").insert(historicoItems);
+                    if (_errBulkInsert1) throw _errBulkInsert1;
 
                     const chunkSize = 10;
                     for (let i = 0; i < idsToDelete.length; i += chunkSize) {
@@ -1201,23 +1197,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 selectedIds.forEach(id => {
                     const historicoItem = historico.find(d => d.id === id);
                     if (historicoItem) {
-                        demandaItems.push({
-                            responsavel: historicoItem.responsavel,
-                            assessor: historicoItem.assessor,
-                            cliente: historicoItem.cliente,
-                            demanda: historicoItem.demanda,
-                            meio: historicoItem.meio,
-                            protocolo: historicoItem.protocolo,
-                            comentarios: historicoItem.comentarios,
-                            comQuem: historicoItem.comQuem,
-                            data: historicoItem.data,
-                            timestamp: Date.now()
-                        });
+                        const demandaRetornada = { ...historicoItem };
+                        delete demandaRetornada.id;
+                        delete demandaRetornada.created_at;
+                        delete demandaRetornada.dataEncerramento;
+                        delete demandaRetornada.motivoEncerramento;
+                        delete demandaRetornada.timestampEncerramento;
+                        delete demandaRetornada.originalId;
+
+                        demandaItems.push(demandaRetornada);
                         idsToDelete.push(id);
                     }
                 });
                 if (demandaItems.length > 0) {
-                    await supabaseClient.from("demandas").insert(demandaItems);
+                    const { error: _errBulkInsert2 } = await supabaseClient.from("demandas").insert(demandaItems);
+                    if (_errBulkInsert2) throw _errBulkInsert2;
 
                     const chunkSize = 10;
                     for (let i = 0; i < idsToDelete.length; i += chunkSize) {
@@ -1231,6 +1225,10 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedIds = [];
             updateBulkActionsVisibility();
             modalBulkTransferir.classList.remove('active');
+            await fetchDemandas();
+            await fetchHistorico();
+            renderTables();
+            showToast('Transferência em lote concluída', 'success');
         } catch (error) {
             console.error("Erro na transferência em lote:", error);
             showToast(`Erro ao transferir demandas. Tente novamente.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, 'info');

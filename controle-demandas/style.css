@@ -1145,7 +1145,8 @@ html body .ts-wrapper.single .ts-control,
 
 html body .ts-wrapper .ts-control > input,
 html body .ts-wrapper.single .ts-control > input,
-.ts-control > input {
+.ts-control > input,
+.ts-control input::placeholder {
     color: var(--text-main) !important;
 }
 

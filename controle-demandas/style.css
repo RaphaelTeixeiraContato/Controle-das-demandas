@@ -1,44 +1,53 @@
 /* Variáveis de Cor */
 :root {
-    --bg-primary: #231d33; /* Topo um roxo levemente mais claro */
-    --bg-sidebar: #13101e; /* Fundo do menu lateral mantém bem escuro */
+    --bg-primary: #231d33;
+    /* Topo um roxo levemente mais claro */
+    --bg-sidebar: #13101e;
+    /* Fundo do menu lateral mantém bem escuro */
     --text-sidebar: #a0aec0;
     --text-sidebar-active: #ffffff;
-    --bg-main: #2a243a; /* Fundo principal da página, roxo mais fraco/claro */
+    --bg-main: #2a243a;
+    /* Fundo principal da página, roxo mais fraco/claro */
     --text-main: #e2e8f0;
-    --text-muted: #a0aec0; 
+    --text-muted: #a0aec0;
     --text-sidebar-header: #ffffff;
     --nav-hover-bg: rgba(255, 255, 255, 0.05);
-    --border-color: #3b3251; /* Borda mais suave acompanhando o roxo */
-    --table-header-bg: #2d2640; /* Fundo de cabeçalhos e cards */
+    --border-color: #3b3251;
+    /* Borda mais suave acompanhando o roxo */
+    --table-header-bg: #2d2640;
+    /* Fundo de cabeçalhos e cards */
     --table-header-text: #ffffff;
     --btn-primary: #ffffff;
-    --btn-primary-text: #4c1d95; 
+    --btn-primary-text: #4c1d95;
     --pill-red: #8b0000;
     --pill-blue: #1b263b;
     --pill-black: #111111;
-    --active-purple: #4c1d95; 
+    --active-purple: #4c1d95;
 }
 
 :root.light-mode {
-    --bg-primary: #f4f0f9; /* Topo claro */
-    --bg-sidebar: #e5dfef; /* Menu lateral um pouco mais escuro */
+    --bg-primary: #f4f0f9;
+    /* Topo claro */
+    --bg-sidebar: #e5dfef;
+    /* Menu lateral um pouco mais escuro */
     --text-sidebar: #4c1d95;
     --text-sidebar-active: #ffffff;
-    --bg-main: #f0edf5; /* Fundo principal da página um pouco mais escuro */
+    --bg-main: #f0edf5;
+    /* Fundo principal da página um pouco mais escuro */
     --text-main: #1e1b4b;
-    --text-muted: #6b7280; 
+    --text-muted: #6b7280;
     --text-sidebar-header: #4c1d95;
     --nav-hover-bg: rgba(109, 40, 217, 0.1);
     --border-color: #e2d9f2;
-    --table-header-bg: #f8f6fc; /* Cabeçalhos e cards claros */
+    --table-header-bg: #f8f6fc;
+    /* Cabeçalhos e cards claros */
     --table-header-text: #312e81;
-    --btn-primary: #ffffff; 
+    --btn-primary: #ffffff;
     --btn-primary-text: #4c1d95;
     --pill-red: #ef4444;
     --pill-blue: #3b82f6;
     --pill-black: #4b5563;
-    --active-purple: #6d28d9; 
+    --active-purple: #6d28d9;
 }
 
 * {
@@ -161,8 +170,13 @@ body {
 
 /* Estilos Especiais Responsivos */
 @media (max-width: 768px) {
-    .container { padding: 10px; }
-    .filters-bar { flex-direction: column; }
+    .container {
+        padding: 10px;
+    }
+
+    .filters-bar {
+        flex-direction: column;
+    }
 }
 
 /* Pagination Styles */
@@ -175,6 +189,7 @@ body {
     padding: 10px;
     color: var(--text-muted);
 }
+
 .pagination-btn {
     padding: 6px 12px;
     border: 1px solid var(--border-color);
@@ -185,13 +200,16 @@ body {
     transition: background-color 0.2s;
     font-size: 14px;
 }
+
 .pagination-btn:hover:not(:disabled) {
     background: var(--border-color);
 }
+
 .pagination-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
 .pagination-info {
     font-size: 14px;
     color: var(--text-muted);
@@ -448,7 +466,8 @@ input[type="checkbox"]:checked::before {
 }
 
 .demand-table th:hover {
-    background-color: var(--bg-primary); /* Hover do cabeçalho da tabela */
+    background-color: var(--bg-primary);
+    /* Hover do cabeçalho da tabela */
 }
 
 .demand-table th i {
@@ -483,10 +502,21 @@ input[type="checkbox"]:checked::before {
     white-space: nowrap;
 }
 
-.pill-red { background-color: var(--pill-red); }
-.pill-blue { background-color: var(--pill-blue); }
-.pill-black { background-color: var(--pill-black); }
-.pill-default { background-color: #666; }
+.pill-red {
+    background-color: var(--pill-red);
+}
+
+.pill-blue {
+    background-color: var(--pill-blue);
+}
+
+.pill-black {
+    background-color: var(--pill-black);
+}
+
+.pill-default {
+    background-color: #666;
+}
 
 /* Table Actions */
 .action-icons {
@@ -514,7 +544,10 @@ input[type="checkbox"]:checked::before {
 /* Modal Overlay */
 .modal-overlay {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
@@ -536,7 +569,7 @@ input[type="checkbox"]:checked::before {
     border-radius: 8px;
     width: 90%;
     max-width: 600px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     color: var(--text-main);
 }
 
@@ -608,8 +641,8 @@ input[type="checkbox"]:checked::before {
     font-family: inherit;
 }
 
-.form-group input:focus, 
-.form-group select:focus, 
+.form-group input:focus,
+.form-group select:focus,
 .form-group textarea:focus {
     border-color: var(--active-purple);
 }
@@ -724,7 +757,7 @@ input[type="checkbox"]:checked::before {
 .controle-card {
     background-color: var(--table-header-bg);
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -872,7 +905,8 @@ input[type="checkbox"]:checked::before {
 .action-btn {
     background: transparent;
     border: none;
-    font-size: 22px; /* Aumentado */
+    font-size: 22px;
+    /* Aumentado */
     color: #a0aec0;
     cursor: pointer;
     margin-right: 12px;
@@ -917,16 +951,41 @@ input[type="checkbox"]:checked::before {
     overflow: hidden;
 }
 
-.toast.success { border-left-color: #10b981; }
-.toast.error { border-left-color: #ef4444; }
-.toast.warning { border-left-color: #f59e0b; }
-.toast.info { border-left-color: #3b82f6; }
+.toast.success {
+    border-left-color: #10b981;
+}
 
-.toast i { font-size: 20px; }
-.toast.success i { color: #10b981; }
-.toast.error i { color: #ef4444; }
-.toast.warning i { color: #f59e0b; }
-.toast.info i { color: #3b82f6; }
+.toast.error {
+    border-left-color: #ef4444;
+}
+
+.toast.warning {
+    border-left-color: #f59e0b;
+}
+
+.toast.info {
+    border-left-color: #3b82f6;
+}
+
+.toast i {
+    font-size: 20px;
+}
+
+.toast.success i {
+    color: #10b981;
+}
+
+.toast.error i {
+    color: #ef4444;
+}
+
+.toast.warning i {
+    color: #f59e0b;
+}
+
+.toast.info i {
+    color: #3b82f6;
+}
 
 .toast-message {
     flex: 1;
@@ -943,16 +1002,30 @@ input[type="checkbox"]:checked::before {
     padding: 4px;
 }
 
-.toast-close:hover { color: var(--text-main); }
+.toast-close:hover {
+    color: var(--text-main);
+}
 
 @keyframes slideDown {
-    from { transform: translateY(-100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 @keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
 }
 
 .toast.hiding {
@@ -981,14 +1054,17 @@ input[type="checkbox"]:checked::before {
 .controle-list::-webkit-scrollbar {
     width: 6px;
 }
+
 .controle-list::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.02);
     border-radius: 4px;
 }
+
 .controle-list::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.15);
     border-radius: 4px;
 }
+
 .controle-list::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.25);
 }
@@ -1057,7 +1133,7 @@ input[type="checkbox"]:checked::before {
 
 /* TomSelect Custom Dark Theme styling */
 .form-group .ts-wrapper .ts-control,
-.ts-wrapper.single .ts-control, 
+.ts-wrapper.single .ts-control,
 .ts-control {
     background-color: var(--bg-main) !important;
     border: 1px solid var(--border-color) !important;
@@ -1066,11 +1142,13 @@ input[type="checkbox"]:checked::before {
     padding: 10px 12px !important;
     box-shadow: none !important;
 }
-.form-group .ts-wrapper .ts-control > input,
-.ts-wrapper.single .ts-control > input, 
-.ts-control > input {
+
+.form-group .ts-wrapper .ts-control>input,
+.ts-wrapper.single .ts-control>input,
+.ts-control>input {
     color: var(--text-main) !important;
 }
+
 .form-group .ts-wrapper .ts-dropdown,
 .ts-dropdown {
     background-color: var(--table-header-bg) !important;
@@ -1080,19 +1158,20 @@ input[type="checkbox"]:checked::before {
     margin-top: 4px !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
 }
+
 .ts-dropdown .ts-dropdown-content {
-    max-height: 400px !important; /* Allow 10+ items to show */
+    max-height: 400px !important; /* Shows approx 10 items */
 }
+
 .ts-dropdown .option {
     color: var(--text-main);
     background-color: transparent;
     padding: 8px 12px !important;
 }
-.ts-dropdown .option:hover, 
-.ts-dropdown .option.active, 
+
+.ts-dropdown .option:hover,
+.ts-dropdown .option.active,
 .ts-dropdown .option.selected {
     background-color: var(--active-purple) !important;
     color: #fff !important;
 }
-
-

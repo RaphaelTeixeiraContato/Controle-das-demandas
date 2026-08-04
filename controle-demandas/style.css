@@ -286,23 +286,23 @@ input[type="checkbox"]:checked::before {
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: var(--table-header-bg);
+    background-color: var(--active-purple);
     padding: 12px 24px;
     border-radius: 50px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
     display: flex;
     gap: 15px;
     z-index: 1000;
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
 }
 
 .bulk-actions button {
     padding: 6px 12px !important;
     font-size: 13px !important;
     background-color: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
     border-radius: 4px;
     font-weight: 600;
     cursor: pointer;
@@ -310,7 +310,7 @@ input[type="checkbox"]:checked::before {
 }
 
 .bulk-actions button.btn-cancel:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.15);
 }
 
 .bulk-actions button.btn-danger:hover {
@@ -320,9 +320,9 @@ input[type="checkbox"]:checked::before {
 }
 
 .bulk-actions button.btn-primary:hover {
-    background-color: var(--active-purple);
+    background-color: rgba(255, 255, 255, 0.2);
     color: #fff;
-    border-color: var(--active-purple);
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
 .search-box input {
@@ -901,11 +901,12 @@ input[type="checkbox"]:checked::before {
 }
 
 .toast {
-    background-color: var(--surface-light);
+    background-color: var(--table-header-bg);
     color: var(--text-main);
     padding: 12px 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -1052,6 +1053,31 @@ input[type="checkbox"]:checked::before {
     background-color: #fff;
     color: #000;
     border-color: #fff;
+}
+
+/* TomSelect Custom Dark Theme styling */
+.ts-control {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: none;
+}
+.ts-control > input {
+    color: var(--text-main);
+}
+.ts-dropdown {
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-top: 4px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+.ts-dropdown .option:hover, .ts-dropdown .option.active {
+    background-color: var(--active-purple);
+    color: #fff;
 }
 
 

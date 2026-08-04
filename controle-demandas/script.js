@@ -194,7 +194,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Fetch usuarios and subscribe
             const fetchUsuarios = async () => {
-                const { data } = await supabaseClient.from('usuarios').select('*');
+                const { data, error } = await supabaseClient.from('usuarios').select('*');
+                
+                if (error) {
+                    console.error("Erro ao buscar usuários:", error);
+                    loginErrorMsg.textContent = "Sessão expirada ou erro de autenticação. Por favor, faça login novamente.";
+                    loginErrorMsg.style.display = 'block';
+                    await supabaseClient.auth.signOut();
+                    return;
+                }
+
                 if (data) usuarios = data;
 
                 if (usuarios.length === 0) {
@@ -610,6 +619,8 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.add('active');
         if (!editingId) {
             form.reset();
+            if (tsResponsavel) tsResponsavel.clear();
+            if (tsAssessor) tsAssessor.clear();
             document.querySelector('#modalNovaDemanda h2').textContent = 'Nova Demanda';
             document.querySelector('#formNovaDemanda .btn-submit').textContent = 'Adicionar';
             document.getElementById('inputData').valueAsDate = new Date();
@@ -1244,8 +1255,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const demanda = sourceList.find(d => d.id === id);
         if (demanda) {
             editingId = id;
-            document.getElementById('inputResponsavel').value = demanda.responsavel;
-            document.getElementById('inputAssessor').value = demanda.assessor;
+            if (tsResponsavel) tsResponsavel.setValue(demanda.responsavel || '');
+            else document.getElementById('inputResponsavel').value = demanda.responsavel;
+            
+            if (tsAssessor) tsAssessor.setValue(demanda.assessor || '');
+            else document.getElementById('inputAssessor').value = demanda.assessor;
+            
             document.getElementById('inputCliente').value = demanda.cliente;
             document.getElementById('inputDemanda').value = demanda.demanda;
             document.getElementById('inputMeio').value = demanda.meio === '-' ? '' : demanda.meio;
@@ -1564,6 +1579,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // Funções de Controle de Opções
     // ==========================================
+    let tsResponsavel = null;
+    let tsAssessor = null;
+
     const renderSelectOptions = () => {
         const selResp = document.getElementById('inputResponsavel');
         const selAssessor = document.getElementById('inputAssessor');
@@ -1571,16 +1589,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const selComQuem = document.getElementById('inputComQuem');
 
         if (selResp) {
+            if (tsResponsavel) { tsResponsavel.destroy(); tsResponsavel = null; }
             const val = selResp.value;
             selResp.innerHTML = '<option value="">Selecione</option>';
             configuracoes.responsaveis.forEach(o => selResp.innerHTML += `<option value="${o.nome}">${o.nome}</option>`);
             selResp.value = val;
+            tsResponsavel = new TomSelect('#inputResponsavel', { create: false, sortField: { field: "text", direction: "asc" }, maxOptions: null });
         }
         if (selAssessor) {
+            if (tsAssessor) { tsAssessor.destroy(); tsAssessor = null; }
             const val = selAssessor.value;
             selAssessor.innerHTML = '<option value="">Selecione</option>';
             configuracoes.assessores.forEach(o => selAssessor.innerHTML += `<option value="${o.nome || o}">${o.nome || o}</option>`);
             selAssessor.value = val;
+            tsAssessor = new TomSelect('#inputAssessor', { create: false, sortField: { field: "text", direction: "asc" }, maxOptions: null });
         }
         if (selMeio) {
             const val = selMeio.value;

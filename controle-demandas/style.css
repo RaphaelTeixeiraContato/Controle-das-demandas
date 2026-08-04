@@ -1056,7 +1056,9 @@ input[type="checkbox"]:checked::before {
 }
 
 /* TomSelect Custom Dark Theme styling */
-.ts-wrapper.single .ts-control, .ts-control {
+.form-group .ts-wrapper .ts-control,
+.ts-wrapper.single .ts-control, 
+.ts-control {
     background-color: var(--bg-main) !important;
     border: 1px solid var(--border-color) !important;
     color: var(--text-main) !important;
@@ -1064,9 +1066,12 @@ input[type="checkbox"]:checked::before {
     padding: 10px 12px !important;
     box-shadow: none !important;
 }
-.ts-wrapper.single .ts-control > input, .ts-control > input {
+.form-group .ts-wrapper .ts-control > input,
+.ts-wrapper.single .ts-control > input, 
+.ts-control > input {
     color: var(--text-main) !important;
 }
+.form-group .ts-wrapper .ts-dropdown,
 .ts-dropdown {
     background-color: var(--table-header-bg) !important;
     color: var(--text-main) !important;
@@ -1075,11 +1080,17 @@ input[type="checkbox"]:checked::before {
     margin-top: 4px !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
 }
+.ts-dropdown .ts-dropdown-content {
+    max-height: 400px !important; /* Allow 10+ items to show */
+}
 .ts-dropdown .option {
     color: var(--text-main);
     background-color: transparent;
+    padding: 8px 12px !important;
 }
-.ts-dropdown .option:hover, .ts-dropdown .option.active, .ts-dropdown .option.selected {
+.ts-dropdown .option:hover, 
+.ts-dropdown .option.active, 
+.ts-dropdown .option.selected {
     background-color: var(--active-purple) !important;
     color: #fff !important;
 }

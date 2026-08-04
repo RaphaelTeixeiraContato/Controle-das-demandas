@@ -286,23 +286,23 @@ input[type="checkbox"]:checked::before {
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: var(--active-purple);
+    background-color: var(--table-header-bg);
     padding: 12px 24px;
     border-radius: 50px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
     display: flex;
     gap: 15px;
     z-index: 1000;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
+    border: 2px solid var(--active-purple);
+    color: var(--text-main);
 }
 
 .bulk-actions button {
     padding: 6px 12px !important;
     font-size: 13px !important;
     background-color: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #ffffff;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
     border-radius: 4px;
     font-weight: 600;
     cursor: pointer;
@@ -310,7 +310,7 @@ input[type="checkbox"]:checked::before {
 }
 
 .bulk-actions button.btn-cancel:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 .bulk-actions button.btn-danger:hover {
@@ -320,9 +320,9 @@ input[type="checkbox"]:checked::before {
 }
 
 .bulk-actions button.btn-primary:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: var(--active-purple);
     color: #fff;
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: var(--active-purple);
 }
 
 .search-box input {
@@ -1056,28 +1056,32 @@ input[type="checkbox"]:checked::before {
 }
 
 /* TomSelect Custom Dark Theme styling */
-.ts-control {
-    background-color: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    border-radius: 6px;
-    padding: 10px;
-    box-shadow: none;
+.ts-wrapper.single .ts-control, .ts-control {
+    background-color: var(--bg-main) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+    border-radius: 4px !important;
+    padding: 10px 12px !important;
+    box-shadow: none !important;
 }
-.ts-control > input {
-    color: var(--text-main);
+.ts-wrapper.single .ts-control > input, .ts-control > input {
+    color: var(--text-main) !important;
 }
 .ts-dropdown {
-    background-color: var(--bg-primary);
-    color: var(--text-main);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    margin-top: 4px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    background-color: var(--table-header-bg) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 4px !important;
+    margin-top: 4px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
 }
-.ts-dropdown .option:hover, .ts-dropdown .option.active {
-    background-color: var(--active-purple);
-    color: #fff;
+.ts-dropdown .option {
+    color: var(--text-main);
+    background-color: transparent;
+}
+.ts-dropdown .option:hover, .ts-dropdown .option.active, .ts-dropdown .option.selected {
+    background-color: var(--active-purple) !important;
+    color: #fff !important;
 }
 
 

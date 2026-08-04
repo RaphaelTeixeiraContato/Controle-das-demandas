@@ -31,6 +31,58 @@
 
     <!-- Custom Styles -->
     <link rel="stylesheet" href="style.css?v=16">
+    <style>
+        /* TomSelect Override Inline to bypass cache */
+        html body .ts-wrapper .ts-control,
+        html body .ts-wrapper.single .ts-control,
+        .ts-control {
+            background-color: var(--bg-main) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-main) !important;
+            border-radius: 4px !important;
+            padding: 10px 12px !important;
+            box-shadow: none !important;
+        }
+
+        html body .ts-wrapper .ts-control > input,
+        html body .ts-wrapper.single .ts-control > input,
+        .ts-control > input,
+        .ts-control input::placeholder {
+            color: var(--text-main) !important;
+        }
+
+        html body .ts-dropdown,
+        html body .ts-wrapper .ts-dropdown,
+        .ts-dropdown {
+            background-color: var(--table-header-bg) !important;
+            color: var(--text-main) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 4px !important;
+            margin-top: 4px !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        html body .ts-dropdown .ts-dropdown-content {
+            max-height: 400px !important;
+        }
+
+        html body .ts-dropdown .option,
+        .ts-dropdown .option {
+            color: var(--text-main) !important;
+            background-color: transparent !important;
+            padding: 8px 12px !important;
+        }
+
+        html body .ts-dropdown .option:hover,
+        html body .ts-dropdown .option.active,
+        html body .ts-dropdown .option.selected,
+        .ts-dropdown .option:hover,
+        .ts-dropdown .option.active,
+        .ts-dropdown .option.selected {
+            background-color: var(--active-purple) !important;
+            color: #fff !important;
+        }
+    </style>
 </head>
 
 <body>

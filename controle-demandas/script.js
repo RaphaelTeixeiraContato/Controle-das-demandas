@@ -194,16 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Fetch usuarios and subscribe
             const fetchUsuarios = async () => {
-                const { data, error } = await supabaseClient.from('usuarios').select('*');
-                
-                if (error) {
-                    console.error("Erro ao buscar usuários:", error);
-                    loginErrorMsg.textContent = "Sessão expirada ou erro de autenticação. Por favor, faça login novamente.";
-                    loginErrorMsg.style.display = 'block';
-                    await supabaseClient.auth.signOut();
-                    return;
-                }
-
+                const { data } = await supabaseClient.from('usuarios').select('*');
                 if (data) usuarios = data;
 
                 if (usuarios.length === 0) {
@@ -255,6 +246,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let syncInitialized = false;
+    const forceDataRefresh = async () => {
+        const { data: dData } = await supabaseClient.from('demandas').select('*');
+        if (dData) demandas = dData;
+        const { data: hData } = await supabaseClient.from('historico').select('*');
+        if (hData) historico = hData;
+        const { data: lData } = await supabaseClient.from('logs').select('*');
+        if (lData) { logsAcoes = lData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); renderLogs(); }
+        renderTables();
+    };
     const initDataSync = () => {
         if (syncInitialized) return;
         syncInitialized = true;
@@ -619,8 +619,6 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.add('active');
         if (!editingId) {
             form.reset();
-            if (tsResponsavel) tsResponsavel.clear();
-            if (tsAssessor) tsAssessor.clear();
             document.querySelector('#modalNovaDemanda h2').textContent = 'Nova Demanda';
             document.querySelector('#formNovaDemanda .btn-submit').textContent = 'Adicionar';
             document.getElementById('inputData').valueAsDate = new Date();
@@ -725,6 +723,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             closeDeleteModal();
+            await forceDataRefresh();
         } catch (error) {
             console.error("Erro ao excluir:", error);
         }
@@ -1129,6 +1128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedIds = [];
             updateBulkActionsVisibility();
             modalBulkExcluir.classList.remove('active');
+            await forceDataRefresh();
         } catch (error) {
             console.error("Erro ao excluir em lote:", error);
             showToast(`Erro ao excluir demandas. Tente novamente.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, 'info');
@@ -1255,12 +1255,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const demanda = sourceList.find(d => d.id === id);
         if (demanda) {
             editingId = id;
-            if (tsResponsavel) tsResponsavel.setValue(demanda.responsavel || '');
-            else document.getElementById('inputResponsavel').value = demanda.responsavel;
-            
-            if (tsAssessor) tsAssessor.setValue(demanda.assessor || '');
-            else document.getElementById('inputAssessor').value = demanda.assessor;
-            
+            document.getElementById('inputResponsavel').value = demanda.responsavel;
+            document.getElementById('inputAssessor').value = demanda.assessor;
             document.getElementById('inputCliente').value = demanda.cliente;
             document.getElementById('inputDemanda').value = demanda.demanda;
             document.getElementById('inputMeio').value = demanda.meio === '-' ? '' : demanda.meio;
@@ -1567,6 +1563,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast("Demanda criada com sucesso!", "success");
             }
             closeModal();
+            await forceDataRefresh();
         } catch (error) {
             console.error("Erro ao salvar demanda:", error);
             showToast(`Erro ao salvar demanda. Tente novamente.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, 'info');
@@ -1579,9 +1576,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // Funções de Controle de Opções
     // ==========================================
-    let tsResponsavel = null;
-    let tsAssessor = null;
-
     const renderSelectOptions = () => {
         const selResp = document.getElementById('inputResponsavel');
         const selAssessor = document.getElementById('inputAssessor');
@@ -1589,20 +1583,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const selComQuem = document.getElementById('inputComQuem');
 
         if (selResp) {
-            if (tsResponsavel) { tsResponsavel.destroy(); tsResponsavel = null; }
             const val = selResp.value;
             selResp.innerHTML = '<option value="">Selecione</option>';
             configuracoes.responsaveis.forEach(o => selResp.innerHTML += `<option value="${o.nome}">${o.nome}</option>`);
             selResp.value = val;
-            tsResponsavel = new TomSelect('#inputResponsavel', { create: false, sortField: { field: "text", direction: "asc" }, maxOptions: null });
         }
         if (selAssessor) {
-            if (tsAssessor) { tsAssessor.destroy(); tsAssessor = null; }
             const val = selAssessor.value;
             selAssessor.innerHTML = '<option value="">Selecione</option>';
             configuracoes.assessores.forEach(o => selAssessor.innerHTML += `<option value="${o.nome || o}">${o.nome || o}</option>`);
             selAssessor.value = val;
-            tsAssessor = new TomSelect('#inputAssessor', { create: false, sortField: { field: "text", direction: "asc" }, maxOptions: null });
         }
         if (selMeio) {
             const val = selMeio.value;

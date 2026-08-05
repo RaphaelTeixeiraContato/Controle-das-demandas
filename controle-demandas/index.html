@@ -19,7 +19,7 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script.js?v=19" defer></script>
+    <script src="script.js?v=20" defer></script>
 
     <!-- Pickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css" />
@@ -162,27 +162,26 @@
                     <i class="ph ph-clock-counter-clockwise"></i>
                     Demandas encerradas
                 </a>
-                <a href="#" class="nav-item" data-page="log">
-                    <i class="ph ph-arrows-left-right"></i>
-                    Histórico de movimentações
-                </a>
                 <a href="#" class="nav-item" data-page="controle">
                     <i class="ph ph-file-text"></i>
                     Controle
                 </a>
-                <a href="#" class="nav-item" data-page="acessos">
-                    <i class="ph ph-key"></i>
-                    Acessos
+                <a href="#" class="nav-item" data-page="diaadia">
+                    <i class="ph ph-calendar-check"></i>
+                    Dia a dia
                 </a>
                 <a href="#" class="nav-item" data-page="ajuda">
                     <i class="ph ph-question"></i>
                     <span>Guia</span>
                 </a>
-                <a href="#" class="nav-item" data-page="configuracoes">
-                    <i class="ph ph-gear"></i>
-                    <span>Configurações</span>
+                <a href="#" class="nav-item" data-page="acessos">
+                    <i class="ph ph-key"></i>
+                    Acessos
                 </a>
-            </nav>
+                <a href="#" class="nav-item" data-page="log">
+                    <i class="ph ph-arrows-left-right"></i>
+                    Histórico de movimentações
+                </a></nav>
         </aside>
 
         <!-- Main Content -->
@@ -332,7 +331,16 @@
                         <i class="ph ph-trash"></i> Excluir Selecionados
                     </button>
                 </div>
-            </header>
+            
+                <div class="header-actions" id="headerActionsDiaADia" style="display: none; justify-content: space-between;">
+                    <div class="search-box">
+                        <input type="text" id="inputBuscarDiaADia" placeholder="Buscar...">
+                    </div>
+                    <button class="btn-primary" id="btnNovoDiaADia" style="height: 38px; padding: 0 15px;">
+                        <i class="ph ph-plus"></i> Nova Anotação
+                    </button>
+                </div>
+</header>
 
             <!-- Table Container: Demandas Abertas -->
             <div class="table-container" id="viewAbertas">
@@ -428,7 +436,26 @@
             </div>
 
             <!-- Container Log de Ações -->
-            <div class="table-container" id="viewLog" style="display: none;">
+            
+            <!-- Container Dia a Dia -->
+            <div class="table-container" id="viewDiaADia" style="display: none;">
+                <table class="demand-table">
+                    <thead>
+                        <tr>
+                            <th>ANOTAÇÃO / TAREFA</th>
+                            <th style="width: 150px;">VISIBILIDADE</th>
+                            <th style="width: 150px;">STATUS</th>
+                            <th style="width: 150px;">CRIADO POR</th>
+                            <th style="width: 150px;">DATA</th>
+                            <th style="width: 100px; text-align: right;">AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBodyDiaADia">
+                        <!-- Dia a Dia rows will go here -->
+                    </tbody>
+                </table>
+            </div>
+<div class="table-container" id="viewLog" style="display: none;">
                 
                 <table class="demand-table">
                     <thead>
@@ -472,19 +499,7 @@
             </div>
 
             <!-- View Configurações -->
-            <div id="viewConfiguracoes" style="display: none; height: 100%;">
-                <div class="table-container" style="padding: 20px;">
-                    <h2 style="font-size: 20px; font-weight: 500; margin-bottom: 20px;">Configurações Gerais</h2>
-                    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                        <label for="themeToggle" style="font-size: 16px;">Modo Claro / Escuro:</label>
-                        <button id="themeToggleBtn" class="btn-submit"
-                            style="display: flex; align-items: center; gap: 8px;">
-                            <i class="ph ph-moon" id="themeIcon"></i>
-                            <span id="themeText">Modo Escuro</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+              </div>
 
         </main>
     </div>
@@ -902,6 +917,31 @@
 
     <!-- Scripts -->
 
+
+    <!-- Modal Dia a Dia -->
+    <div class="modal-overlay" id="modalNovaAnotacao">
+        <div class="modal-content modal-sm">
+            <h2 class="modal-title-center">Nova Anotação</h2>
+            
+            <div class="form-group">
+                <label>Anotação / Tarefa:</label>
+                <textarea id="inputDiaTexto" class="form-control" rows="4" placeholder="Escreva o lembrete ou tarefa..." required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Visibilidade:</label>
+                <select id="inputDiaVisibilidade" class="form-control">
+                    <option value="publico">Público (Compartilhado com a equipe)</option>
+                    <option value="privado">Privado (Visível apenas para mim)</option>
+                </select>
+            </div>
+
+            <div class="modal-footer-center" style="margin-top: 24px;">
+                <button class="btn-cancel" id="btnCancelAnotacao">Cancelar</button>
+                <button class="btn-submit" id="btnSalvarAnotacao">Salvar</button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

@@ -19,7 +19,7 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script.js?v=18" defer></script>
+    <script src="script.js?v=19" defer></script>
 
     <!-- Pickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css" />
@@ -268,6 +268,70 @@
                         </button>
                     </div>
                 </div>
+            
+                <div class="header-actions" id="headerActionsControle" style="display: none; justify-content: space-between;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div class="search-box">
+                            <input type="text" id="inputBuscarControle" placeholder="Buscar...">
+                        </div>
+                        <button class="icon-btn" id="btnResetControle" title="Reiniciar pesquisa"
+                            style="height: 38px;"><i class="ph ph-arrows-clockwise"></i></button>
+                        <button class="btn-submit" id="btnNovaOpcaoControle" style="height: 38px; padding: 0 15px;"><i
+                                class="ph ph-plus"></i></button>
+                        <button class="btn-secondary" id="btnLoteAssessoresControle" title="Adicionar em lote"
+                            style="display: none; height: 38px; padding: 0 15px;"><i class="ph ph-users"></i>
+                            Lote</button>
+                    </div>
+                    <div>
+                        <select class="filter-select" id="selectCategoriaControle" style="min-width: 200px;">
+                            <option value="responsaveis">Responsáveis</option>
+                            <option value="assessores">Assessores</option>
+                            <option value="meios">Meio</option>
+                            <option value="comQuem">Com quem</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="header-actions" id="headerActionsLogs" style="display: none; justify-content: space-between;">
+
+                    <div class="left-actions" style="display: flex; gap: 15px; align-items: center;">
+                        <div class="search-box">
+                            <input type="text" id="inputBuscarLogs" placeholder="Buscar...">
+                        </div>
+                        <div class="custom-date-filter" id="btnDateFilterLogs">
+                            <i class="ph ph-calendar-blank"></i>
+                            <div class="date-filter-text">
+                                <span class="date-filter-label">Data de solicitação</span>
+                                <span class="date-filter-value" id="dateFilterValueLogs">Período...</span>
+                            </div>
+                            <input type="text" id="filterDateRangeLogs" style="display: none;">
+                        </div>
+                        <button class="icon-btn" id="btnResetLogs" title="Reiniciar filtros"><i
+                                class="ph ph-arrows-clockwise"></i></button>
+                    </div>
+
+                    <div class="right-actions" style="display: flex; gap: 15px; align-items: center;">
+                        <!-- Right actions (empty for now) -->
+                    </div>
+                
+                <div class="bulk-actions" id="bulkActionsContainerControle"
+                    style="display: none; align-items: center; gap: 10px;">
+                    <span style="font-size: 14px; font-weight: 500;"><span id="bulkSelectedCountControle">0</span>
+                        selecionados</span>
+                    <button class="btn-cancel" id="btnCancelBulkControle"
+                        style="padding: 6px 12px; font-size: 13px;">Cancelar</button>
+                    <button class="btn-danger" id="btnBulkExcluirControle">
+                        <i class="ph ph-trash"></i> Excluir Selecionados
+                    </button>
+                </div>
+                <div class="bulk-actions" id="bulkActionsLogs" style="display: none; align-items: center; gap: 10px;">
+                    <span style="font-size: 14px; font-weight: 500;"><span id="bulkSelectedCountLogs">0</span>
+                        selecionados</span>
+                    <button class="btn-cancel" id="btnCancelBulkLogs"
+                        style="padding: 6px 12px; font-size: 13px;">Cancelar</button>
+                    <button class="btn-danger" id="btnBulkExcluirLogs">
+                        <i class="ph ph-trash"></i> Excluir Selecionados
+                    </button>
+                </div>
             </header>
 
             <!-- Table Container: Demandas Abertas -->
@@ -324,40 +388,7 @@
 
             <!-- Container Controle -->
             <div class="controle-container table-container" id="viewControle" style="display: none;">
-                <div class="header-actions"
-                    style="margin-top: 24px; margin-bottom: 20px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <div class="search-box">
-                            <input type="text" id="inputBuscarControle" placeholder="Buscar...">
-                        </div>
-                        <button class="icon-btn" id="btnResetControle" title="Reiniciar pesquisa"
-                            style="height: 38px;"><i class="ph ph-arrows-clockwise"></i></button>
-                        <button class="btn-submit" id="btnNovaOpcaoControle" style="height: 38px; padding: 0 15px;"><i
-                                class="ph ph-plus"></i></button>
-                        <button class="btn-secondary" id="btnLoteAssessoresControle" title="Adicionar em lote"
-                            style="display: none; height: 38px; padding: 0 15px;"><i class="ph ph-users"></i>
-                            Lote</button>
-                    </div>
-                    <div>
-                        <select class="filter-select" id="selectCategoriaControle" style="min-width: 200px;">
-                            <option value="responsaveis">Responsáveis</option>
-                            <option value="assessores">Assessores</option>
-                            <option value="meios">Meio</option>
-                            <option value="comQuem">Com quem</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="bulk-actions" id="bulkActionsContainerControle"
-                    style="display: none; align-items: center; gap: 10px; margin-bottom: 20px;">
-                    <span style="font-size: 14px; font-weight: 500;"><span id="bulkSelectedCountControle">0</span>
-                        selecionados</span>
-                    <button class="btn-cancel" id="btnCancelBulkControle"
-                        style="padding: 6px 12px; font-size: 13px;">Cancelar</button>
-                    <button class="btn-danger" id="btnBulkExcluirControle">
-                        <i class="ph ph-trash"></i> Excluir Selecionados
-                    </button>
-                </div>
+                
 
                 <table class="demand-table">
                     <thead>
@@ -398,39 +429,7 @@
 
             <!-- Container Log de Ações -->
             <div class="table-container" id="viewLog" style="display: none;">
-                <div class="header-actions"
-                    style="margin-top: 24px; margin-bottom: 20px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
-
-                    <div class="left-actions" style="display: flex; gap: 15px; align-items: center;">
-                        <div class="search-box">
-                            <input type="text" id="inputBuscarLogs" placeholder="Buscar...">
-                        </div>
-                        <div class="custom-date-filter" id="btnDateFilterLogs">
-                            <i class="ph ph-calendar-blank"></i>
-                            <div class="date-filter-text">
-                                <span class="date-filter-label">Data de solicitação</span>
-                                <span class="date-filter-value" id="dateFilterValueLogs">Período...</span>
-                            </div>
-                            <input type="text" id="filterDateRangeLogs" style="display: none;">
-                        </div>
-                        <button class="icon-btn" id="btnResetLogs" title="Reiniciar filtros"><i
-                                class="ph ph-arrows-clockwise"></i></button>
-                    </div>
-
-                    <div class="right-actions" style="display: flex; gap: 15px; align-items: center;">
-                        <!-- Right actions (empty for now) -->
-                    </div>
-                </div>
-
-                <div class="bulk-actions" id="bulkActionsLogs" style="display: none; align-items: center; gap: 10px;">
-                    <span style="font-size: 14px; font-weight: 500;"><span id="bulkSelectedCountLogs">0</span>
-                        selecionados</span>
-                    <button class="btn-cancel" id="btnCancelBulkLogs"
-                        style="padding: 6px 12px; font-size: 13px;">Cancelar</button>
-                    <button class="btn-danger" id="btnBulkExcluirLogs">
-                        <i class="ph ph-trash"></i> Excluir Selecionados
-                    </button>
-                </div>
+                
                 <table class="demand-table">
                     <thead>
                         <tr>

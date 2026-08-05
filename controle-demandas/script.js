@@ -255,6 +255,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let syncInitialized = false;
+    const forceDataRefresh = async () => {
+        const { data: dData } = await supabaseClient.from('demandas').select('*');
+        if (dData) demandas = dData;
+        const { data: hData } = await supabaseClient.from('historico').select('*');
+        if (hData) historico = hData;
+        const { data: lData } = await supabaseClient.from('logs').select('*');
+        if (lData) { logsAcoes = lData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); renderLogs(); }
+        renderTables();
+    };
     const initDataSync = () => {
         if (syncInitialized) return;
         syncInitialized = true;
@@ -725,6 +734,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             closeDeleteModal();
+            await forceDataRefresh();
         } catch (error) {
             console.error("Erro ao excluir:", error);
         }
@@ -1129,6 +1139,7 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedIds = [];
             updateBulkActionsVisibility();
             modalBulkExcluir.classList.remove('active');
+            await forceDataRefresh();
         } catch (error) {
             console.error("Erro ao excluir em lote:", error);
             showToast(`Erro ao excluir demandas. Tente novamente.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, 'info');
@@ -1567,6 +1578,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast("Demanda criada com sucesso!", "success");
             }
             closeModal();
+            await forceDataRefresh();
         } catch (error) {
             console.error("Erro ao salvar demanda:", error);
             showToast(`Erro ao salvar demanda. Tente novamente.. Detalhe: ${(typeof error !== "undefined" && error) ? error.message : "Desconhecido"}`, 'info');

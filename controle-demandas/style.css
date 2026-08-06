@@ -1181,3 +1181,89 @@ html body .ts-dropdown .option.selected,
     background-color: var(--active-purple) !important;
     color: #fff !important;
 }
+/* Post-it Grid Layout */
+.postit-grid-container {
+    height: 100%;
+    overflow-y: auto;
+}
+.postit-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+}
+.postit-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    width: 250px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.postit-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+.postit-card.concluido {
+    opacity: 0.6;
+}
+.postit-card.concluido .postit-text {
+    text-decoration: line-through;
+}
+.postit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.postit-author {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+.postit-text {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-main);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: 12px;
+}
+.postit-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+}
+.postit-footer button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    padding: 4px;
+    transition: background-color 0.2s;
+}
+.postit-footer button.btn-check {
+    color: var(--success-color);
+}
+.postit-footer button.btn-check:hover {
+    background-color: rgba(34, 197, 94, 0.1);
+}
+.postit-footer button.btn-delete {
+    color: var(--danger-color);
+}
+.postit-footer button.btn-delete:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+}

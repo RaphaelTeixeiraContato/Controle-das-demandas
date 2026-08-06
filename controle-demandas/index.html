@@ -19,7 +19,7 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script.js?v=20" defer></script>
+    <script src="script.js?v=21" defer></script>
 
     <!-- Pickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css" />
@@ -336,7 +336,11 @@
                     <div class="search-box">
                         <input type="text" id="inputBuscarDiaADia" placeholder="Buscar...">
                     </div>
-                    <button class="btn-primary" id="btnNovoDiaADia" style="height: 38px; padding: 0 15px;">
+                    <select class="filter-select" id="filterUserDiaADia" style="min-width: 200px;">
+                            <option value="">Filtro: Todos</option>
+                            <option value="minhas">Minhas anotações</option>
+                        </select>
+                        <button class="btn-primary" id="btnNovoDiaADia" style="height: 38px; padding: 0 15px;">
                         <i class="ph ph-plus"></i> Nova Anotação
                     </button>
                 </div>
@@ -438,22 +442,10 @@
             <!-- Container Log de Ações -->
             
             <!-- Container Dia a Dia -->
-            <div class="table-container" id="viewDiaADia" style="display: none;">
-                <table class="demand-table">
-                    <thead>
-                        <tr>
-                            <th>ANOTAÇÃO / TAREFA</th>
-                            <th style="width: 150px;">VISIBILIDADE</th>
-                            <th style="width: 150px;">STATUS</th>
-                            <th style="width: 150px;">CRIADO POR</th>
-                            <th style="width: 150px;">DATA</th>
-                            <th style="width: 100px; text-align: right;">AÇÕES</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBodyDiaADia">
-                        <!-- Dia a Dia rows will go here -->
-                    </tbody>
-                </table>
+            <div class="postit-grid-container" id="viewDiaADia" style="display: none; padding: 20px;">
+                <div class="postit-grid" id="postitGridDiaADia">
+                    <!-- Post-its will go here -->
+                </div>
             </div>
 <div class="table-container" id="viewLog" style="display: none;">
                 
@@ -928,13 +920,7 @@
                 <textarea id="inputDiaTexto" class="form-control" rows="4" placeholder="Escreva o lembrete ou tarefa..." required></textarea>
             </div>
             
-            <div class="form-group">
-                <label>Visibilidade:</label>
-                <select id="inputDiaVisibilidade" class="form-control">
-                    <option value="publico">Público (Compartilhado com a equipe)</option>
-                    <option value="privado">Privado (Visível apenas para mim)</option>
-                </select>
-            </div>
+            
 
             <div class="modal-footer-center" style="margin-top: 24px;">
                 <button class="btn-cancel" id="btnCancelAnotacao">Cancelar</button>

@@ -15,6 +15,7 @@ let historico = [];
 let logsAcoes = [];
 let configuracoes = { responsaveis: [], assessores: [], meios: [] };
 let usuarios = [];
+let guias = [];
 
 let paginationState = {
     abertas: 1,
@@ -478,12 +479,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 countBadge.style.display = 'none';
                 btnNova.style.display = 'none';
             } else if (page === 'ajuda') {
+                if (topHeader) topHeader.style.display = 'flex';
+                viewAbertas.style.display = 'none';
+                viewHistorico.style.display = 'none';
+                if (document.getElementById('viewControle')) document.getElementById('viewControle').style.display = 'none';
+                if (document.getElementById('viewAcessos')) document.getElementById('viewAcessos').style.display = 'none';
+                if (document.getElementById('viewLog')) document.getElementById('viewLog').style.display = 'none';
+                if (document.getElementById("viewAjuda")) document.getElementById("viewAjuda").style.display = "block";
+                
+                headerActionsDemandas.style.display = 'none';
+                if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
+                if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'none';
                 headerActionsAcessos.style.display = 'none';
                 const headerActionsGuias = document.getElementById('headerActionsGuias');
                 if (headerActionsGuias) headerActionsGuias.style.display = 'flex';
                 pageTitle.textContent = 'Guia';
                 countBadge.style.display = 'none';
-                if (headerTitleContainer) headerTitleContainer.style.display = 'none';
+                if (headerTitleContainer) headerTitleContainer.style.display = 'flex';
                 btnNova.style.display = 'none';
                 renderGuias();
             } else if (page === 'acessos') {

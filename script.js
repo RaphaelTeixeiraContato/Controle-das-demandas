@@ -428,14 +428,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 viewHistorico.style.display = 'none';
                 document.getElementById('viewControle').style.display = 'none';
                 if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
-                document.getElementById('viewAcessos').style.display = 'none';\n                if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
+                document.getElementById('viewAcessos').style.display = 'none';
+                if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
                 document.getElementById('viewLog').style.display = 'none';
                 document.getElementById('viewAjuda').style.display = 'none';
                 
                 headerActionsDemandas.style.display = 'flex';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
                 if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'none';
-                headerActionsAcessos.style.display = 'none';\n                if (document.getElementById('headerActionsDiaADia')) document.getElementById('headerActionsDiaADia').style.display = 'none';
+                headerActionsAcessos.style.display = 'none';
+                if (document.getElementById('headerActionsDiaADia')) document.getElementById('headerActionsDiaADia').style.display = 'none';
                 if (headerActionsGuias) headerActionsGuias.style.display = 'none';
                 pageTitle.textContent = 'Demandas em aberto';
                 countBadge.style.display = 'inline-block';
@@ -447,14 +449,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 viewHistorico.style.display = 'block';
                 document.getElementById('viewControle').style.display = 'none';
                 if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
-                document.getElementById('viewAcessos').style.display = 'none';\n                if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
+                document.getElementById('viewAcessos').style.display = 'none';
+                if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
                 document.getElementById('viewLog').style.display = 'none';
                 document.getElementById('viewAjuda').style.display = 'none';
                 
                 headerActionsDemandas.style.display = 'flex';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
                 if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'none';
-                headerActionsAcessos.style.display = 'none';\n                if (document.getElementById('headerActionsDiaADia')) document.getElementById('headerActionsDiaADia').style.display = 'none';
+                headerActionsAcessos.style.display = 'none';
+                if (document.getElementById('headerActionsDiaADia')) document.getElementById('headerActionsDiaADia').style.display = 'none';
                 if (headerActionsGuias) headerActionsGuias.style.display = 'none';
                 pageTitle.textContent = 'Histórico de demandas';
                 countBadge.style.display = 'inline-block';
@@ -465,14 +469,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 viewAbertas.style.display = 'none';
                 viewHistorico.style.display = 'none';
                 document.getElementById('viewControle').style.display = 'block';
-                document.getElementById('viewAcessos').style.display = 'none';\n                if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
+                document.getElementById('viewAcessos').style.display = 'none';
+                if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
                 document.getElementById('viewLog').style.display = 'none';
                 document.getElementById('viewAjuda').style.display = 'none';
                 
                 headerActionsDemandas.style.display = 'none';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
                 if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'none';
-                headerActionsAcessos.style.display = 'none';\n                if (document.getElementById('headerActionsDiaADia')) document.getElementById('headerActionsDiaADia').style.display = 'none';
+                headerActionsAcessos.style.display = 'none';
+                if (document.getElementById('headerActionsDiaADia')) document.getElementById('headerActionsDiaADia').style.display = 'none';
                 if (headerActionsGuias) headerActionsGuias.style.display = 'none';
                 if (headerTitleContainer) headerTitleContainer.style.display = 'flex';
                 pageTitle.textContent = 'Controle';
@@ -503,14 +509,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewControle').style.display = 'none';
                 if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
                 if (topHeader) topHeader.style.display = 'flex';
-                document.getElementById('viewAcessos').style.display = 'none';\n                if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
+                document.getElementById('viewAcessos').style.display = 'none';
+                if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
                 document.getElementById('viewLog').style.display = 'block';
                 document.getElementById('viewAjuda').style.display = 'none';
                 
                 headerActionsDemandas.style.display = 'none';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
                 if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'none';
-                headerActionsAcessos.style.display = 'none';\n                if (document.getElementById('headerActionsDiaADia')) document.getElementById('headerActionsDiaADia').style.display = 'none';
+                headerActionsAcessos.style.display = 'none';
+                if (document.getElementById('headerActionsDiaADia')) document.getElementById('headerActionsDiaADia').style.display = 'none';
                 if (headerActionsGuias) headerActionsGuias.style.display = 'none';
                 if (headerTitleContainer) headerTitleContainer.style.display = 'none';
                 pageTitle.textContent = 'Histórico de Movimentações';
@@ -522,7 +530,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 viewHistorico.style.display = 'none';
                 document.getElementById('viewControle').style.display = 'none';
                 if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
-                document.getElementById('viewAcessos').style.display = 'none';\n                if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
+                document.getElementById('viewAcessos').style.display = 'none';
+                if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
                 if (topHeader) topHeader.style.display = 'flex';
                 document.getElementById('viewLog').style.display = 'none';
                 document.getElementById('viewAjuda').style.display = 'block';
@@ -530,7 +539,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 headerActionsDemandas.style.display = 'none';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
                 if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'none';
-                headerActionsAcessos.style.display = 'none';\n                if (document.getElementById('headerActionsDiaADia')) document.getElementById('headerActionsDiaADia').style.display = 'none';
+                headerActionsAcessos.style.display = 'none';
+                if (document.getElementById('headerActionsDiaADia')) document.getElementById('headerActionsDiaADia').style.display = 'none';
                 if (headerActionsGuias) headerActionsGuias.style.display = 'flex';
                 pageTitle.textContent = 'Guia';
                 countBadge.style.display = 'none';
@@ -541,7 +551,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 viewAbertas.style.display = 'none';
                 viewHistorico.style.display = 'none';
                 document.getElementById('viewControle').style.display = 'none';
-                document.getElementById('viewAcessos').style.display = 'none';\n                if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
+                document.getElementById('viewAcessos').style.display = 'none';
+                if (document.getElementById('viewDiaADia')) document.getElementById('viewDiaADia').style.display = 'none';
                 if (topHeader) topHeader.style.display = 'flex';
                 document.getElementById('viewLog').style.display = 'none';
                 document.getElementById('viewAjuda').style.display = 'none';
@@ -551,7 +562,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 headerActionsDemandas.style.display = 'none';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
                 if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'none';
-                headerActionsAcessos.style.display = 'none';\n                if (document.getElementById('headerActionsDiaADia')) document.getElementById('headerActionsDiaADia').style.display = 'none';
+                headerActionsAcessos.style.display = 'none';
+                if (document.getElementById('headerActionsDiaADia')) document.getElementById('headerActionsDiaADia').style.display = 'none';
                 if (headerActionsGuias) headerActionsGuias.style.display = 'none';
                 if (document.getElementById('headerActionsDiaADia')) document.getElementById('headerActionsDiaADia').style.display = 'flex';
                 

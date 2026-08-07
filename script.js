@@ -477,6 +477,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'flex';
                 countBadge.style.display = 'none';
                 btnNova.style.display = 'none';
+            } else if (page === 'ajuda') {
+                headerActionsAcessos.style.display = 'none';
+                const headerActionsGuias = document.getElementById('headerActionsGuias');
+                if (headerActionsGuias) headerActionsGuias.style.display = 'flex';
+                pageTitle.textContent = 'Guia';
+                countBadge.style.display = 'none';
+                if (headerTitleContainer) headerTitleContainer.style.display = 'none';
+                btnNova.style.display = 'none';
+                renderGuias();
             } else if (page === 'acessos') {
                 viewAbertas.style.display = 'none';
                 viewHistorico.style.display = 'none';

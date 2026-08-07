@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // RUNTIME MIGRATION para adicionar datas e transformar strings em objetos
             ['responsaveis', 'meios', 'comQuem', 'assessores'].forEach(type => {
                 if (configuracoes[type]) {
-                    configuracoes[type] = configuracoes[type].map(item => {
+                    configuracoes[type] = configuracoes[type].filter(Boolean).map(item => {
                         if (typeof item === 'string') {
                             return { nome: item, cor: '#8b5cf6', criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString() };
                         } else {
@@ -1737,7 +1737,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const categoria = selectCat.value;
             let items = [];
             if (configuracoes && configuracoes[categoria]) {
-                items = [...configuracoes[categoria]];
+                items = [...configuracoes[categoria]].filter(Boolean);
             }
 
             const thCheckbox = document.getElementById('thCheckboxControle');
@@ -2058,6 +2058,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast('Esta opção já existe!', 'info');
                 } else {
                     const now = new Date().toISOString();
+                    let oldName = null;
+                    if (!isNew) {
+                        oldName = configuracoes[type][index].nome;
+                        if (!oldName && typeof configuracoes[type][index] === 'string') oldName = configuracoes[type][index];
+                    }
+
                     if (type === 'assessores') {
                         if (isNew) {
                             configuracoes[type].push({ nome: val, criadoEm: now, atualizadoEm: now });
@@ -2077,10 +2083,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     configuracoes[type].sort((a, b) => (a.nome || a).localeCompare(b.nome || b));
 
                     try {
+                        // Limpa array de possíveis valores vazios (sparse arrays)
+                        configuracoes[type] = configuracoes[type].filter(Boolean);
+                        
                         // Cascading update if editing an existing option
-                        if (!isNew) {
-                            let oldName = configuracoes[type][index].nome;
-                            if (!oldName && typeof configuracoes[type][index] === 'string') oldName = configuracoes[type][index];
+                        if (!isNew && oldName) {
 
                             let fieldToUpdate = null;
                             if (type === 'assessores') fieldToUpdate = 'assessor';

@@ -429,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewControle').style.display = 'none';
                 document.getElementById('viewAcessos').style.display = 'none';
                 document.getElementById('viewLog').style.display = 'none';
-                document.getElementById('viewAjuda').style.display = 'none';
+                if (document.getElementById(\'viewAjuda\')) document.getElementById(\'viewAjuda\').style.display = \'none\';
                 
                 headerActionsDemandas.style.display = 'flex';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewControle').style.display = 'none';
                 document.getElementById('viewAcessos').style.display = 'none';
                 document.getElementById('viewLog').style.display = 'none';
-                document.getElementById('viewAjuda').style.display = 'none';
+                if (document.getElementById(\'viewAjuda\')) document.getElementById(\'viewAjuda\').style.display = \'none\';
                 
                 headerActionsDemandas.style.display = 'flex';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
@@ -465,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewControle').style.display = 'block';
                 document.getElementById('viewAcessos').style.display = 'none';
                 document.getElementById('viewLog').style.display = 'none';
-                document.getElementById('viewAjuda').style.display = 'none';
+                if (document.getElementById(\'viewAjuda\')) document.getElementById(\'viewAjuda\').style.display = \'none\';
                 
                 headerActionsDemandas.style.display = 'none';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
@@ -493,7 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewControle').style.display = 'none';
                 document.getElementById('viewAcessos').style.display = 'block';
                 document.getElementById('viewLog').style.display = 'none';
-                document.getElementById('viewAjuda').style.display = 'none';
+                if (document.getElementById(\'viewAjuda\')) document.getElementById(\'viewAjuda\').style.display = \'none\';
                 
                 headerActionsDemandas.style.display = 'none';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
@@ -510,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (topHeader) topHeader.style.display = 'flex';
                 document.getElementById('viewAcessos').style.display = 'none';
                 document.getElementById('viewLog').style.display = 'block';
-                document.getElementById('viewAjuda').style.display = 'none';
+                if (document.getElementById(\'viewAjuda\')) document.getElementById(\'viewAjuda\').style.display = \'none\';
                 
                 headerActionsDemandas.style.display = 'none';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';

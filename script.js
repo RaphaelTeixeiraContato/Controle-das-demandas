@@ -513,25 +513,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'flex';
                 if (headerTitleContainer) headerTitleContainer.style.display = 'flex';
                 countBadge.style.display = 'none';
-            } else if (page === 'ajuda') {
-                viewAbertas.style.display = 'none';
-                viewHistorico.style.display = 'none';
-                document.getElementById('viewControle').style.display = 'none';
-                document.getElementById('viewAcessos').style.display = 'none';
-                if (topHeader) topHeader.style.display = 'flex';
-                document.getElementById('viewLog').style.display = 'none';
-                document.getElementById('viewAjuda').style.display = 'block';
-                
-                headerActionsDemandas.style.display = 'none';
-                if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
-                if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'none';
-                headerActionsAcessos.style.display = 'none';
-                if (headerActionsGuias) headerActionsGuias.style.display = 'flex';
-                pageTitle.textContent = 'Guia';
-                countBadge.style.display = 'none';
-                if (headerTitleContainer) headerTitleContainer.style.display = 'none';
-                btnNova.style.display = 'none';
-                renderGuias();
             }
 
             // Reset pagination state
@@ -2075,6 +2056,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     configuracoes[type].sort((a, b) => (a.nome || a).localeCompare(b.nome || b));
 
                     try {
+                        // Cascading update if editing an existing option
+                        if (!isNew) {
+                            let oldName = configuracoes[type][index].nome;
+                            if (!oldName && typeof configuracoes[type][index] === 'string') oldName = configuracoes[type][index];
+                            
+                            let fieldToUpdate = null;
+                            if (type === 'assessores') fieldToUpdate = 'assessor';
+                            else if (type === 'responsaveis') fieldToUpdate = 'responsavel';
+                            else if (type === 'meios') fieldToUpdate = 'meio';
+                            
+                            if (fieldToUpdate && oldName !== val) {
+                                // Update all demands where this field equals oldName
+                                const { error: cascadeErr } = await supabaseClient
+                                    .from('demandas')
+                                    .update({ [fieldToUpdate]: val })
+                                    .eq(fieldToUpdate, oldName);
+                                    
+                                if (cascadeErr) {
+                                    console.error('Erro na atualização em cascata das demandas:', cascadeErr);
+                                } else {
+                                    console.log(`Demandas com ${fieldToUpdate}="${oldName}" atualizadas para "${val}".`);
+                                }
+                            }
+                        }
+
                         await supabaseClient.from("configuracoes").upsert([{ "id": "geral", "dados": configuracoes }]);
                         registrarLog(isNew ? 'Adicionou Opção de Controle' : 'Editou Opção de Controle', `A opção "${val}" foi modificada em ${type}.`);
                         showToast(isNew ? "Opção criada com sucesso!" : "Opção editada com sucesso!", "success");

@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Fetch usuarios and subscribe
             const fetchUsuarios = async () => {
                 const { data, error } = await supabaseClient.from('usuarios').select('*');
-                
+
                 if (error) {
                     console.error("Erro ao buscar usuários:", error);
                     loginErrorMsg.textContent = "Sessão expirada ou erro de autenticação. Por favor, faça login novamente.";
@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewAcessos').style.display = 'none';
                 document.getElementById('viewLog').style.display = 'none';
                 if (document.getElementById("viewAjuda")) document.getElementById("viewAjuda").style.display = "none";
-                
+
                 headerActionsDemandas.style.display = 'flex';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
                 if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'none';
@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewAcessos').style.display = 'none';
                 document.getElementById('viewLog').style.display = 'none';
                 if (document.getElementById("viewAjuda")) document.getElementById("viewAjuda").style.display = "none";
-                
+
                 headerActionsDemandas.style.display = 'flex';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
                 if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'none';
@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewAcessos').style.display = 'none';
                 document.getElementById('viewLog').style.display = 'none';
                 if (document.getElementById("viewAjuda")) document.getElementById("viewAjuda").style.display = "none";
-                
+
                 headerActionsDemandas.style.display = 'none';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
                 if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'none';
@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (headerActionsGuias) headerActionsGuias.style.display = 'flex';
                 pageTitle.textContent = 'Guia';
                 countBadge.style.display = 'none';
-                if (headerTitleContainer) headerTitleContainer.style.display = 'flex';
+                if (headerTitleContainer) headerTitleContainer.style.display = 'none';
                 btnNova.style.display = 'none';
                 renderGuias();
             } else if (page === 'acessos') {
@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewAcessos').style.display = 'block';
                 document.getElementById('viewLog').style.display = 'none';
                 if (document.getElementById("viewAjuda")) document.getElementById("viewAjuda").style.display = "none";
-                
+
                 headerActionsDemandas.style.display = 'none';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
                 if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'none';
@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('viewAcessos').style.display = 'none';
                 document.getElementById('viewLog').style.display = 'block';
                 if (document.getElementById("viewAjuda")) document.getElementById("viewAjuda").style.display = "none";
-                
+
                 headerActionsDemandas.style.display = 'none';
                 if (document.getElementById('headerActionsControle')) document.getElementById('headerActionsControle').style.display = 'none';
                 if (document.getElementById('headerActionsLogs')) document.getElementById('headerActionsLogs').style.display = 'none';
@@ -560,7 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (document.getElementById('filterMeio')) document.getElementById('filterMeio').value = '';
             if (document.getElementById('filterAssessor')) document.getElementById('filterAssessor').value = '';
             if (document.getElementById('filterComQuem')) document.getElementById('filterComQuem').value = '';
-            
+
             // Controle filters
             const inpBuscarControle = document.getElementById('inputBuscarControle');
             if (inpBuscarControle) inpBuscarControle.value = '';
@@ -584,7 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (inpBuscarGuia) inpBuscarGuia.value = '';
             const filterGuia = document.getElementById('filterGuiaTipo');
             if (filterGuia) filterGuia.value = '';
-            
+
             if (typeof updateBulkActionsControle === 'function') {
                 const sAll = document.getElementById('selectAllControle');
                 if (sAll) sAll.checked = false;
@@ -918,10 +918,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const isAbertas = currentPage === 'abertas';
         const pageKey = isAbertas ? 'abertas' : 'historico';
         const limit = isAbertas ? 50 : 100;
-        
+
         const totalPages = Math.ceil(sourceData.length / limit) || 1;
         if (paginationState[pageKey] > totalPages) paginationState[pageKey] = totalPages;
-        
+
         const start = (paginationState[pageKey] - 1) * limit;
         const pagedData = sourceData.slice(start, start + limit);
 
@@ -1269,10 +1269,10 @@ document.addEventListener('DOMContentLoaded', () => {
             editingId = id;
             if (tsResponsavel) tsResponsavel.setValue(demanda.responsavel || '');
             else document.getElementById('inputResponsavel').value = demanda.responsavel;
-            
+
             if (tsAssessor) tsAssessor.setValue(demanda.assessor || '');
             else document.getElementById('inputAssessor').value = demanda.assessor;
-            
+
             document.getElementById('inputCliente').value = demanda.cliente;
             document.getElementById('inputDemanda').value = demanda.demanda;
             document.getElementById('inputMeio').value = demanda.meio === '-' ? '' : demanda.meio;
@@ -2081,19 +2081,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!isNew) {
                             let oldName = configuracoes[type][index].nome;
                             if (!oldName && typeof configuracoes[type][index] === 'string') oldName = configuracoes[type][index];
-                            
+
                             let fieldToUpdate = null;
                             if (type === 'assessores') fieldToUpdate = 'assessor';
                             else if (type === 'responsaveis') fieldToUpdate = 'responsavel';
                             else if (type === 'meios') fieldToUpdate = 'meio';
-                            
+
                             if (fieldToUpdate && oldName !== val) {
                                 // Update all demands where this field equals oldName
                                 const { error: cascadeErr } = await supabaseClient
                                     .from('demandas')
                                     .update({ [fieldToUpdate]: val })
                                     .eq(fieldToUpdate, oldName);
-                                    
+
                                 if (cascadeErr) {
                                     console.error('Erro na atualização em cascata das demandas:', cascadeErr);
                                 } else {
@@ -2778,7 +2778,7 @@ document.addEventListener('DOMContentLoaded', () => {
             themeText.textContent = isLight ? 'Modo Claro' : 'Modo Escuro';
         }
     };
-    
+
     // Initial check (if theme was loaded at top)
     updateThemeUI();
 

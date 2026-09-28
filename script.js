@@ -636,6 +636,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const rowId = payload?.new?.id;
             if (!rowId || rowId === 'geral') {
                 fetchConfiguracoes();
+            } else if (rowId === 'lembretes') {
+                if (payload.new && payload.new.dados && Array.isArray(payload.new.dados.lista)) {
+                    lembretes = payload.new.dados.lista;
+                    try { localStorage.setItem('cd_lembretes', JSON.stringify(lembretes)); } catch(e) {}
+                    renderLembretes();
+                }
+            } else if (rowId === 'notificacoes') {
+                if (payload.new && payload.new.dados && Array.isArray(payload.new.dados.lista)) {
+                    notificacoes = payload.new.dados.lista;
+                    try { localStorage.setItem('cd_notificacoes', JSON.stringify(notificacoes)); } catch(e) {}
+                    renderNotificacoes();
+                }
             } else if (loggedUser && rowId === 'user_' + loggedUser.email) {
                 syncPersonalConfigFromSupabase();
             }
@@ -4891,13 +4903,34 @@ window.editarTipoGuia = (index) => {
 let editingLembreteId = null;
 let deleteLembreteId = null;
 
+async function persistLembretes() {
+    try {
+        localStorage.setItem('cd_lembretes', JSON.stringify(lembretes || []));
+    } catch(e) {}
+    try {
+        await supabaseClient.from('configuracoes').upsert([{ id: 'lembretes', dados: { lista: lembretes || [] } }]);
+    } catch (e) {
+        console.warn('Erro ao sincronizar lembretes:', e);
+    }
+}
+window.persistLembretes = persistLembretes;
+
 function fetchLembretes() {
-    supabaseClient.from('lembretes').select('*').then(({ data, error }) => {
-        if (data && !error) {
-            lembretes = data;
+    try {
+        const local = localStorage.getItem('cd_lembretes');
+        if (local) lembretes = JSON.parse(local);
+    } catch(e) {}
+    renderLembretes();
+
+    supabaseClient.from('configuracoes').select('*').eq('id', 'lembretes').single().then(({ data, error }) => {
+        if (data && data.dados && Array.isArray(data.dados.lista)) {
+            lembretes = data.dados.lista;
+            try {
+                localStorage.setItem('cd_lembretes', JSON.stringify(lembretes));
+            } catch(e) {}
+            renderLembretes();
         }
-        renderLembretes();
-    });
+    }).catch(() => {});
 }
 window.fetchLembretes = fetchLembretes;
 
@@ -5032,7 +5065,7 @@ window.toggleStatusLembrete = async (id) => {
     renderLembretes();
 
     try {
-        await supabaseClient.from('lembretes').update({ status: novoStatus, concluidoEm: item.concluidoEm }).eq('id', String(id));
+        await persistLembretes();
         showToast(novoStatus === 'Concluído' ? 'Lembrete concluído!' : 'Lembrete reaberto!', 'success');
         if (typeof playSuccessSound === 'function') playSuccessSound();
     } catch (e) {
@@ -5174,7 +5207,7 @@ if (formLembreteEl) {
                     atualizadoEm: new Date().toISOString()
                 };
                 renderLembretes();
-                await supabaseClient.from('lembretes').update(lembretes[index]).eq('id', String(editingLembreteId));
+                await persistLembretes();
                 showToast('Lembrete atualizado com sucesso!', 'success');
                 if (typeof playSuccessSound === 'function') playSuccessSound();
             }
@@ -5191,7 +5224,7 @@ if (formLembreteEl) {
             };
             lembretes.unshift(novoLembrete);
             renderLembretes();
-            await supabaseClient.from('lembretes').insert([novoLembrete]);
+            await persistLembretes();
             showToast('Lembrete criado com sucesso!', 'success');
             if (typeof playSuccessSound === 'function') playSuccessSound();
             criarNotificacao(`Novo lembrete: "${titulo}"`, 'Lembretes');
@@ -5206,7 +5239,7 @@ document.getElementById('btnConfirmExcluirLembrete')?.addEventListener('click', 
     renderLembretes();
     document.getElementById('modalExcluirLembrete')?.classList.remove('active');
     try {
-        await supabaseClient.from('lembretes').delete().eq('id', String(deleteLembreteId));
+        lembretes = lembretes.filter(l => String(l.id) !== String(deleteLembreteId)); renderLembretes(); await persistLembretes();
         showToast('Lembrete excluído com sucesso!', 'success');
     } catch (e) {
         console.error(e);
@@ -5283,12 +5316,7 @@ window.adiarLembreteAtual = async (id, minAdiar = 5) => {
     item.status = 'Pendente';
 
     try {
-        await supabaseClient.from('lembretes').update({
-            data: item.data,
-            hora: item.hora,
-            dataHora: item.dataHora,
-            status: item.status
-        }).eq('id', String(item.id));
+        await persistLembretes();
     } catch (err) {
         console.error('Erro ao adiar lembrete:', err);
     }
@@ -5314,10 +5342,7 @@ window.concluirLembreteAtual = async (id) => {
     item.concluidoEm = Date.now();
 
     try {
-        await supabaseClient.from('lembretes').update({
-            status: 'Concluído',
-            concluidoEm: item.concluidoEm
-        }).eq('id', String(item.id));
+        await persistLembretes();
     } catch (err) {
         console.error('Erro ao concluir lembrete:', err);
     }
@@ -5381,7 +5406,7 @@ setInterval(async () => {
                 lembretes.splice(i, 1);
                 hasDeletions = true;
                 try {
-                    await supabaseClient.from('lembretes').delete().eq('id', String(deletedId));
+                    // persistência automática tratada após o loop
                 } catch (err) {
                     console.error("Erro ao auto-deletar lembrete concluído de 24h:", err);
                 }
@@ -5412,6 +5437,7 @@ setInterval(async () => {
 
     if (hasDeletions) {
         renderLembretes();
+        persistLembretes();
     }
 }, 3000);
 
@@ -6445,9 +6471,22 @@ window.playLembreteSound = playLembreteSound;
 // ==========================================
 // MÓDULO NOTIFICAÇÕES (LIMPEZA DIÁRIA ÀS 00:00)
 // ==========================================
+async function persistNotificacoes() {
+    try {
+        localStorage.setItem('cd_notificacoes', JSON.stringify(notificacoes || []));
+    } catch(e) {}
+    try {
+        await supabaseClient.from('configuracoes').upsert([{ id: 'notificacoes', dados: { lista: notificacoes || [] } }]);
+    } catch (e) {
+        console.warn('Erro ao sincronizar notificacoes:', e);
+    }
+}
+window.persistNotificacoes = persistNotificacoes;
+
 function autoPurgeOldNotificacoes() {
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const now = Date.now();
+    const dias = (configuracoes && configuracoes.tempoNotificacoesDias) ? Number(configuracoes.tempoNotificacoesDias) : 7;
+    const maxAgeMs = dias * 24 * 60 * 60 * 1000;
 
     if (!notificacoes || !Array.isArray(notificacoes)) return;
 
@@ -6457,28 +6496,34 @@ function autoPurgeOldNotificacoes() {
         if (!createdMs && n.data) {
             createdMs = new Date(n.data).getTime();
         }
-        return createdMs && !isNaN(createdMs) && createdMs >= startOfToday;
+        return createdMs && !isNaN(createdMs) && (now - createdMs) <= maxAgeMs;
     });
 
     if (notificacoes.length !== initialCount) {
         if (typeof renderNotificacoes === 'function') renderNotificacoes();
-        supabaseClient.from('notificacoes').delete().lt('timestamp', startOfToday).then(() => {});
+        persistNotificacoes();
     }
 }
 window.autoPurgeOldNotificacoes = autoPurgeOldNotificacoes;
 setInterval(autoPurgeOldNotificacoes, 60000);
 
 function fetchNotificacoes() {
-    supabaseClient.from('notificacoes').select('*').then(({ data, error }) => {
-        if (data && !error && data.length > 0) {
-            notificacoes = data;
-        } else if (!notificacoes || notificacoes.length === 0) {
-            notificacoes = [
-                { id: String(Date.now() - 10000), mensagem: 'Painel de notificações ativado e operacional.', pagina: 'Sistema', data: new Date().toISOString(), timestamp: Date.now() - 10000 },
-                { id: String(Date.now() - 5000), mensagem: 'Lembrete agendado: Conferir demandas pendentes', pagina: 'Lembretes', data: new Date().toISOString(), timestamp: Date.now() - 5000 }
-            ];
-            supabaseClient.from('notificacoes').insert(notificacoes).then(() => {});
+    try {
+        const local = localStorage.getItem('cd_notificacoes');
+        if (local) notificacoes = JSON.parse(local);
+    } catch(e) {}
+    renderNotificacoes();
+
+    supabaseClient.from('configuracoes').select('*').eq('id', 'notificacoes').single().then(({ data, error }) => {
+        if (data && data.dados && Array.isArray(data.dados.lista)) {
+            notificacoes = data.dados.lista;
+            try {
+                localStorage.setItem('cd_notificacoes', JSON.stringify(notificacoes));
+            } catch(e) {}
         }
+        autoPurgeOldNotificacoes();
+        renderNotificacoes();
+    }).catch(() => {
         autoPurgeOldNotificacoes();
         renderNotificacoes();
     });
@@ -6502,7 +6547,7 @@ function criarNotificacao(mensagem, pagina) {
     };
     notificacoes.unshift(nova);
     renderNotificacoes();
-    supabaseClient.from('notificacoes').insert([nova]).then(() => {});
+    persistNotificacoes();
 }
 window.criarNotificacao = criarNotificacao;
 
@@ -6595,7 +6640,7 @@ window.deletarNotificacao = async (id) => {
     notificacoes = notificacoes.filter(n => String(n.id) !== String(id));
     renderNotificacoes();
     try {
-        await supabaseClient.from('notificacoes').delete().eq('id', String(id));
+        await persistNotificacoes();
         showToast('Notificação dispensada', 'success', false);
     } catch (e) {
         console.error(e);
@@ -6607,7 +6652,7 @@ window.limparNotificacoes = async () => {
     renderNotificacoes();
     if (typeof playSuccessSound === 'function') playSuccessSound();
     try {
-        await supabaseClient.from('notificacoes').delete();
+        await persistNotificacoes();
         showToast('Todas as notificações foram limpas', 'success', false);
     } catch (e) {
         console.error(e);

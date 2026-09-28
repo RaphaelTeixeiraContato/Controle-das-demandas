@@ -5,7 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Demandas</title>
-    <link rel="icon" type="image/jpeg" href="Logo BE.jfif.jpeg">
+    <link rel="icon" type="image/png" href="favicon.png?v=3">
+    <link rel="icon" type="image/x-icon" href="favicon.ico?v=3">
+    <link rel="shortcut icon" href="favicon.ico?v=3">
+    <link rel="apple-touch-icon" href="favicon.png?v=3">
     <!-- Google Fonts & Phosphor Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +21,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="seed.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script.js?v=39" defer></script>
+    <script src="script.js?v=41" defer></script>
 
     <!-- Pickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css" />
@@ -367,10 +370,9 @@
         style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--bg-primary); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
         <div
             style="background-color: var(--bg-main); padding: 40px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center; max-width: 400px; width: 90%;">
-            <i class="ph ph-lock-key" style="font-size: 48px; color: var(--active-purple); margin-bottom: 20px;"></i>
-            <h2 style="margin-bottom: 10px; color: var(--text-main);">Controle de Demandas</h2>
-            <p style="color: var(--text-sidebar); margin-bottom: 30px; font-size: 14px;">Faça login para acessar o
-                sistema.</p>
+            <img src="Logo BE.jfif" onerror="this.onerror=null; this.src='logo.png';" alt="BE Invest" style="width: 64px; height: 64px; border-radius: 12px; object-fit: cover; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.4);">
+            <h2 style="margin-bottom: 4px; color: var(--text-main);">BE INVEST</h2>
+            <p style="color: #a78bfa; font-weight: 600; font-size: 13px; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 0.8px;">Back Office</p>
 
             <button id="btnLoginGoogle" class="btn-submit"
                 style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; padding: 12px;">
@@ -424,9 +426,12 @@
         <!-- Scripts -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="brand-title" style="display: flex; flex-direction: column; gap: 2px; overflow: hidden; min-width: 0;">
-                    <span style="font-size: 14px; font-weight: 800; letter-spacing: 0.6px; color: #ffffff; line-height: 1.1; white-space: nowrap;">BE INVEST</span>
-                    <span style="font-size: 11px; font-weight: 600; color: #a78bfa; letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap;">Back Office</span>
+                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                    <img src="Logo BE.jfif" onerror="this.onerror=null; this.src='logo.png';" alt="BE Invest" style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                    <div class="brand-title" style="display: flex; flex-direction: column; gap: 2px; overflow: hidden; min-width: 0;">
+                        <span style="font-size: 14px; font-weight: 800; letter-spacing: 0.6px; color: #ffffff; line-height: 1.1; white-space: nowrap;">BE INVEST</span>
+                        <span style="font-size: 11px; font-weight: 600; color: #a78bfa; letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap;">Back Office</span>
+                    </div>
                 </div>
                 <button class="icon-btn-transparent" id="btnToggleSidebar" style="flex-shrink: 0;">
                     <i class="ph ph-list"></i>

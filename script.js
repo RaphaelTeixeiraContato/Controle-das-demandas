@@ -90,7 +90,7 @@ async function syncPersonalConfigFromSupabase() {
             .from('configuracoes')
             .select('dados')
             .eq('id', userRowId)
-            .single();
+            .maybeSingle();
 
         if (data && data.dados) {
             const dbPersonal = data.dados;
@@ -4946,17 +4946,35 @@ function fetchLembretes() {
     const dbId = getCurrentUserSupabaseId('lembretes');
     try {
         const local = localStorage.getItem(sKey);
-        if (local) lembretes = JSON.parse(local);
+        if (local) {
+            lembretes = JSON.parse(local);
+        } else {
+            const oldLocal = localStorage.getItem('cd_lembretes');
+            if (oldLocal) {
+                lembretes = JSON.parse(oldLocal);
+                try { localStorage.setItem(sKey, oldLocal); } catch(e) {}
+            }
+        }
     } catch(e) {}
     renderLembretes();
 
-    supabaseClient.from('configuracoes').select('*').eq('id', dbId).single().then(({ data, error }) => {
+    supabaseClient.from('configuracoes').select('*').eq('id', dbId).maybeSingle().then(async ({ data, error }) => {
         if (data && data.dados && Array.isArray(data.dados.lista)) {
             lembretes = data.dados.lista;
             try {
                 localStorage.setItem(sKey, JSON.stringify(lembretes));
             } catch(e) {}
             renderLembretes();
+        } else if (!lembretes || lembretes.length === 0) {
+            try {
+                const { data: oldShared } = await supabaseClient.from('configuracoes').select('*').eq('id', 'lembretes').maybeSingle();
+                if (oldShared && oldShared.dados && Array.isArray(oldShared.dados.lista) && oldShared.dados.lista.length > 0) {
+                    lembretes = oldShared.dados.lista;
+                    try { localStorage.setItem(sKey, JSON.stringify(lembretes)); } catch(e) {}
+                    renderLembretes();
+                    persistLembretes();
+                }
+            } catch(e) {}
         }
     }).catch(() => {});
 }
@@ -5283,11 +5301,13 @@ document.getElementById('btnResetLembrete')?.addEventListener('click', () => {
 
 // Periodic alert loop, Pop-Up Modal trigger and 24-hour auto-deletion check for completed lembretes
 let activeAlertaLembreteId = null;
+let activeAlertaItem = null;
 
 function exibirPopUpAlertaLembrete(item) {
     if (!item) return;
     if (typeof stopNotificationSound === 'function') stopNotificationSound();
     activeAlertaLembreteId = item.id;
+    activeAlertaItem = item;
 
     const modal = document.getElementById('modalAlertaLembrete');
     const tituloEl = document.getElementById('modalAlertaLembreteTitulo');
@@ -5326,9 +5346,13 @@ window.exibirPopUpAlertaLembrete = exibirPopUpAlertaLembrete;
 
 window.adiarLembreteAtual = async (id, minAdiar = 5) => {
     const lembreteId = id || activeAlertaLembreteId;
-    if (!lembreteId) return;
+    if (!lembreteId && !activeAlertaItem) return;
 
-    const item = lembretes.find(l => String(l.id) === String(lembreteId));
+    let item = lembretes.find(l => String(l.id) === String(lembreteId));
+    if (!item && activeAlertaItem) {
+        item = activeAlertaItem;
+        lembretes.push(item);
+    }
     if (!item) return;
 
     const newDateObj = new Date(Date.now() + minAdiar * 60 * 1000);
@@ -5343,37 +5367,40 @@ window.adiarLembreteAtual = async (id, minAdiar = 5) => {
     item.dataHora = `${ano}-${mes}-${dia}T${hora}:${min}`;
     item.status = 'Pendente';
 
+    if (typeof stopLembreteSound === 'function') stopLembreteSound();
+
+    const modal = document.getElementById('modalAlertaLembrete');
+    if (modal) modal.classList.remove('active');
+    activeAlertaLembreteId = null;
+    activeAlertaItem = null;
+
+    renderLembretes();
     try {
         await persistLembretes();
     } catch (err) {
         console.error('Erro ao adiar lembrete:', err);
     }
 
-    if (typeof stopLembreteSound === 'function') stopLembreteSound();
-
-    const modal = document.getElementById('modalAlertaLembrete');
-    if (modal) modal.classList.remove('active');
-    if (activeAlertaLembreteId === item.id) activeAlertaLembreteId = null;
-
-    showToast(`⏰ Lembrete "${item.titulo}" adiado em +${minAdiar} min (para ${hora}:${min})`, 'info');
-    renderLembretes();
+    const notifMsg = `Lembrete "${item.titulo}" adiado em +${minAdiar} min (alerta reagendado para ${hora}:${min})`;
+    if (typeof criarNotificacao === 'function') {
+        criarNotificacao(notifMsg, 'Lembretes');
+    }
+    showToast(`⏰ ${notifMsg}`, 'info', false);
 };
 
 window.concluirLembreteAtual = async (id) => {
     const lembreteId = id || activeAlertaLembreteId;
-    if (!lembreteId) return;
+    if (!lembreteId && !activeAlertaItem) return;
 
-    const item = lembretes.find(l => String(l.id) === String(lembreteId));
+    let item = lembretes.find(l => String(l.id) === String(lembreteId));
+    if (!item && activeAlertaItem) {
+        item = activeAlertaItem;
+        lembretes.push(item);
+    }
     if (!item) return;
 
     item.status = 'Concluído';
     item.concluidoEm = Date.now();
-
-    try {
-        await persistLembretes();
-    } catch (err) {
-        console.error('Erro ao concluir lembrete:', err);
-    }
 
     if (typeof stopLembreteSound === 'function') stopLembreteSound();
 
@@ -5382,9 +5409,21 @@ window.concluirLembreteAtual = async (id) => {
         modalEl.classList.remove('active');
     });
 
-    if (activeAlertaLembreteId === item.id) activeAlertaLembreteId = null;
+    activeAlertaLembreteId = null;
+    activeAlertaItem = null;
 
-    showToast(`✅ Lembrete "${item.titulo}" marcado como concluído!`, 'success');
+    renderLembretes();
+    try {
+        await persistLembretes();
+    } catch (err) {
+        console.error('Erro ao concluir lembrete:', err);
+    }
+
+    const notifMsg = `Lembrete "${item.titulo}" marcado como concluído!`;
+    if (typeof criarNotificacao === 'function') {
+        criarNotificacao(notifMsg, 'Lembretes');
+    }
+    showToast(`✅ ${notifMsg}`, 'success', false);
     
     // Navegar diretamente para a página dos lembretes ao concluir
     const navItem = document.querySelector('.nav-item[data-page="lembretes"]');
@@ -6546,7 +6585,7 @@ function fetchNotificacoes() {
     } catch(e) {}
     renderNotificacoes();
 
-    supabaseClient.from('configuracoes').select('*').eq('id', dbId).single().then(({ data, error }) => {
+    supabaseClient.from('configuracoes').select('*').eq('id', dbId).maybeSingle().then(({ data, error }) => {
         if (data && data.dados && Array.isArray(data.dados.lista)) {
             notificacoes = data.dados.lista;
             try {

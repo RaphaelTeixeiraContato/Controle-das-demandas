@@ -107,10 +107,15 @@ body {
 
 .sidebar.collapsed .sidebar-header h2,
 .sidebar.collapsed .sidebar-header .brand-title,
+.sidebar.collapsed .sidebar-header img,
+.sidebar.collapsed .sidebar-header .sidebar-brand-wrapper,
+.sidebar.collapsed .sidebar-header > div:first-child,
 .sidebar.collapsed .theme-text,
 .sidebar.collapsed .nav-item span {
     display: none !important;
     opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 .sidebar.collapsed .icon-btn-transparent {

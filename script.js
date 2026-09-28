@@ -66,6 +66,22 @@ function loadPersonalConfig() {
 window.loadPersonalConfig = loadPersonalConfig;
 loadPersonalConfig();
 
+function getCurrentUserStorageKey(prefix) {
+    const email = (typeof loggedUser !== 'undefined' && loggedUser && loggedUser.email)
+        ? loggedUser.email.toLowerCase().trim().replace(/[^a-z0-9_.-]/g, '_')
+        : 'local_default';
+    return `${prefix}_${email}`;
+}
+window.getCurrentUserStorageKey = getCurrentUserStorageKey;
+
+function getCurrentUserSupabaseId(prefix) {
+    const email = (typeof loggedUser !== 'undefined' && loggedUser && loggedUser.email)
+        ? loggedUser.email.toLowerCase().trim()
+        : 'local_default';
+    return `${prefix}_${email}`;
+}
+window.getCurrentUserSupabaseId = getCurrentUserSupabaseId;
+
 async function syncPersonalConfigFromSupabase() {
     if (!loggedUser || !loggedUser.email || typeof supabaseClient === 'undefined') return;
     try {
@@ -501,6 +517,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     userAccessLevel = currentUserDoc.nivel;
                     loadPersonalConfig();
                     syncPersonalConfigFromSupabase();
+                    if (typeof fetchLembretes === 'function') fetchLembretes();
+                    if (typeof fetchNotificacoes === 'function') fetchNotificacoes();
 
                     await fetchConfiguracoes();
                     applyRBAC();
@@ -532,6 +550,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             loggedUser = null;
             userAccessLevel = null;
+            lembretes = [];
+            notificacoes = [];
             loginOverlay.style.display = 'flex';
             appContainer.style.display = 'none';
         }
@@ -636,20 +656,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const rowId = payload?.new?.id;
             if (!rowId || rowId === 'geral') {
                 fetchConfiguracoes();
-            } else if (rowId === 'lembretes') {
-                if (payload.new && payload.new.dados && Array.isArray(payload.new.dados.lista)) {
-                    lembretes = payload.new.dados.lista;
-                    try { localStorage.setItem('cd_lembretes', JSON.stringify(lembretes)); } catch(e) {}
-                    renderLembretes();
+            } else if (loggedUser && loggedUser.email) {
+                const userEmail = loggedUser.email.toLowerCase().trim();
+                if (rowId === 'lembretes_' + userEmail) {
+                    if (payload.new && payload.new.dados && Array.isArray(payload.new.dados.lista)) {
+                        lembretes = payload.new.dados.lista;
+                        try { localStorage.setItem(getCurrentUserStorageKey('cd_lembretes'), JSON.stringify(lembretes)); } catch(e) {}
+                        renderLembretes();
+                    }
+                } else if (rowId === 'notificacoes_' + userEmail) {
+                    if (payload.new && payload.new.dados && Array.isArray(payload.new.dados.lista)) {
+                        notificacoes = payload.new.dados.lista;
+                        try { localStorage.setItem(getCurrentUserStorageKey('cd_notificacoes'), JSON.stringify(notificacoes)); } catch(e) {}
+                        autoPurgeOldNotificacoes();
+                        renderNotificacoes();
+                    }
+                } else if (rowId === 'user_' + loggedUser.email) {
+                    syncPersonalConfigFromSupabase();
                 }
-            } else if (rowId === 'notificacoes') {
-                if (payload.new && payload.new.dados && Array.isArray(payload.new.dados.lista)) {
-                    notificacoes = payload.new.dados.lista;
-                    try { localStorage.setItem('cd_notificacoes', JSON.stringify(notificacoes)); } catch(e) {}
-                    renderNotificacoes();
-                }
-            } else if (loggedUser && rowId === 'user_' + loggedUser.email) {
-                syncPersonalConfigFromSupabase();
             }
         }).subscribe();
     };
@@ -4904,29 +4928,33 @@ let editingLembreteId = null;
 let deleteLembreteId = null;
 
 async function persistLembretes() {
+    const sKey = getCurrentUserStorageKey('cd_lembretes');
+    const dbId = getCurrentUserSupabaseId('lembretes');
     try {
-        localStorage.setItem('cd_lembretes', JSON.stringify(lembretes || []));
+        localStorage.setItem(sKey, JSON.stringify(lembretes || []));
     } catch(e) {}
     try {
-        await supabaseClient.from('configuracoes').upsert([{ id: 'lembretes', dados: { lista: lembretes || [] } }]);
+        await supabaseClient.from('configuracoes').upsert([{ id: dbId, dados: { lista: lembretes || [] } }]);
     } catch (e) {
-        console.warn('Erro ao sincronizar lembretes:', e);
+        console.warn('Erro ao sincronizar lembretes pessoais:', e);
     }
 }
 window.persistLembretes = persistLembretes;
 
 function fetchLembretes() {
+    const sKey = getCurrentUserStorageKey('cd_lembretes');
+    const dbId = getCurrentUserSupabaseId('lembretes');
     try {
-        const local = localStorage.getItem('cd_lembretes');
+        const local = localStorage.getItem(sKey);
         if (local) lembretes = JSON.parse(local);
     } catch(e) {}
     renderLembretes();
 
-    supabaseClient.from('configuracoes').select('*').eq('id', 'lembretes').single().then(({ data, error }) => {
+    supabaseClient.from('configuracoes').select('*').eq('id', dbId).single().then(({ data, error }) => {
         if (data && data.dados && Array.isArray(data.dados.lista)) {
             lembretes = data.dados.lista;
             try {
-                localStorage.setItem('cd_lembretes', JSON.stringify(lembretes));
+                localStorage.setItem(sKey, JSON.stringify(lembretes));
             } catch(e) {}
             renderLembretes();
         }
@@ -5044,9 +5072,9 @@ function renderLembretes() {
                 <strong style="${item.status === 'Concluído' ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${item.titulo}</strong>
                 ${item.descricao ? `<br><small style="color: var(--text-sidebar); font-weight: normal;">${item.descricao}</small>` : ''}
             </td>
-            <td>${dataHoraBadge}</td>
+            <td style="text-align: center;">${dataHoraBadge}</td>
             <td style="text-align: center;">${statusBadge}</td>
-            <td>${criadoEmFormatted}</td>
+            <td style="text-align: center;"><span style="font-size: 13px; color: var(--text-sidebar); font-weight: 500;">${criadoEmFormatted}</span></td>
             ${actionsCol}
         `;
         tbody.appendChild(tr);
@@ -6472,13 +6500,15 @@ window.playLembreteSound = playLembreteSound;
 // MÓDULO NOTIFICAÇÕES (LIMPEZA DIÁRIA ÀS 00:00)
 // ==========================================
 async function persistNotificacoes() {
+    const sKey = getCurrentUserStorageKey('cd_notificacoes');
+    const dbId = getCurrentUserSupabaseId('notificacoes');
     try {
-        localStorage.setItem('cd_notificacoes', JSON.stringify(notificacoes || []));
+        localStorage.setItem(sKey, JSON.stringify(notificacoes || []));
     } catch(e) {}
     try {
-        await supabaseClient.from('configuracoes').upsert([{ id: 'notificacoes', dados: { lista: notificacoes || [] } }]);
+        await supabaseClient.from('configuracoes').upsert([{ id: dbId, dados: { lista: notificacoes || [] } }]);
     } catch (e) {
-        console.warn('Erro ao sincronizar notificacoes:', e);
+        console.warn('Erro ao sincronizar notificacoes pessoais:', e);
     }
 }
 window.persistNotificacoes = persistNotificacoes;
@@ -6508,17 +6538,19 @@ window.autoPurgeOldNotificacoes = autoPurgeOldNotificacoes;
 setInterval(autoPurgeOldNotificacoes, 60000);
 
 function fetchNotificacoes() {
+    const sKey = getCurrentUserStorageKey('cd_notificacoes');
+    const dbId = getCurrentUserSupabaseId('notificacoes');
     try {
-        const local = localStorage.getItem('cd_notificacoes');
+        const local = localStorage.getItem(sKey);
         if (local) notificacoes = JSON.parse(local);
     } catch(e) {}
     renderNotificacoes();
 
-    supabaseClient.from('configuracoes').select('*').eq('id', 'notificacoes').single().then(({ data, error }) => {
+    supabaseClient.from('configuracoes').select('*').eq('id', dbId).single().then(({ data, error }) => {
         if (data && data.dados && Array.isArray(data.dados.lista)) {
             notificacoes = data.dados.lista;
             try {
-                localStorage.setItem('cd_notificacoes', JSON.stringify(notificacoes));
+                localStorage.setItem(sKey, JSON.stringify(notificacoes));
             } catch(e) {}
         }
         autoPurgeOldNotificacoes();
@@ -6620,9 +6652,9 @@ function renderNotificacoes() {
         }
 
         tr.innerHTML = `
-            <td><span style="font-size: 13px; color: var(--text-sidebar);">${dataStr}</span></td>
-            <td><strong style="color: var(--text-main);">${n.mensagem}</strong></td>
-            <td style="text-align: center;"><span class="badge badge-editor">${n.pagina || 'Geral'}</span></td>
+            <td style="text-align: center;"><span style="font-size: 13px; color: var(--text-sidebar); font-weight: 500;">${dataStr}</span></td>
+            <td style="text-align: center;"><strong style="color: var(--text-main); font-weight: 500;">${n.mensagem}</strong></td>
+            <td style="text-align: center;"><span class="badge badge-editor" style="padding: 6px 14px; font-size: 12px; display: inline-block;">${n.pagina || 'Geral'}</span></td>
             <td style="text-align: center;">
                 <button class="action-btn delete" onclick="window.deletarNotificacao('${n.id}')" title="Dispensar">
                     <i class="ph ph-x"></i>

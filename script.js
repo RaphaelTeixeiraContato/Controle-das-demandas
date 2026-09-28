@@ -18,6 +18,182 @@ let guias = [];
 let lembretes = [];
 let notificacoes = [];
 
+// ==========================================
+// CONFIGURAÇÕES PESSOAIS (POR USUÁRIO)
+// ==========================================
+let personalConfig = {
+    theme: localStorage.getItem('theme') || 'dark',
+    soundVolume: 100,
+    soundTone: 'padrao',
+    lembreteSoundVolume: 100,
+    lembreteSoundTone: 'alarme_despertador',
+    limiteLinhas: {
+        abertas: 50,
+        historico: 50,
+        guias: 10,
+        controle: 25,
+        lembretes: 10,
+        notificacoes: 50,
+        acessos: 10
+    }
+};
+
+function getPersonalConfigKey() {
+    const email = (typeof loggedUser !== 'undefined' && loggedUser && loggedUser.email) ? loggedUser.email : 'local_default';
+    return 'user_config_' + email;
+}
+
+function loadPersonalConfig() {
+    const key = getPersonalConfigKey();
+    try {
+        const saved = localStorage.getItem(key);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            personalConfig = {
+                ...personalConfig,
+                ...parsed,
+                limiteLinhas: {
+                    ...personalConfig.limiteLinhas,
+                    ...(parsed.limiteLinhas || {})
+                }
+            };
+        }
+    } catch (e) {
+        console.warn('Erro ao carregar configuracoes locais:', e);
+    }
+    return personalConfig;
+}
+window.loadPersonalConfig = loadPersonalConfig;
+loadPersonalConfig();
+
+async function syncPersonalConfigFromSupabase() {
+    if (!loggedUser || !loggedUser.email || typeof supabaseClient === 'undefined') return;
+    try {
+        const userRowId = 'user_' + loggedUser.email;
+        const { data, error } = await supabaseClient
+            .from('configuracoes')
+            .select('dados')
+            .eq('id', userRowId)
+            .single();
+
+        if (data && data.dados) {
+            const dbPersonal = data.dados;
+            personalConfig = {
+                ...personalConfig,
+                ...dbPersonal,
+                limiteLinhas: {
+                    ...personalConfig.limiteLinhas,
+                    ...(dbPersonal.limiteLinhas || {})
+                }
+            };
+            try {
+                localStorage.setItem(getPersonalConfigKey(), JSON.stringify(personalConfig));
+            } catch(e) {}
+
+            if (personalConfig.theme === 'light') {
+                document.documentElement.classList.add('light-mode');
+                localStorage.setItem('theme', 'light');
+            } else if (personalConfig.theme === 'dark') {
+                document.documentElement.classList.remove('light-mode');
+                localStorage.setItem('theme', 'dark');
+            }
+
+            if (typeof renderConfiguracoes === 'function') renderConfiguracoes();
+            if (typeof renderTables === 'function') renderTables();
+            if (typeof renderControleTable === 'function') renderControleTable();
+            if (typeof renderGuias === 'function') renderGuias();
+            if (typeof renderLembretes === 'function') renderLembretes();
+            if (typeof renderNotificacoes === 'function') renderNotificacoes();
+        }
+    } catch (err) {}
+}
+window.syncPersonalConfigFromSupabase = syncPersonalConfigFromSupabase;
+
+async function savePersonalConfig() {
+    const key = getPersonalConfigKey();
+    try {
+        localStorage.setItem(key, JSON.stringify(personalConfig));
+    } catch (e) {}
+
+    if (typeof loggedUser !== 'undefined' && loggedUser && loggedUser.email && typeof supabaseClient !== 'undefined') {
+        try {
+            const userRowId = 'user_' + loggedUser.email;
+            await supabaseClient.from('configuracoes').upsert([{
+                id: userRowId,
+                dados: personalConfig
+            }]);
+        } catch (err) {
+            console.error('Erro ao salvar configuracoes pessoais no Supabase:', err);
+        }
+    }
+}
+window.savePersonalConfig = savePersonalConfig;
+
+const appPagesList = [
+    { key: 'demandas_abertas', label: 'Demandas em aberto', defaultChecked: true },
+    { key: 'demandas_encerradas', label: 'Demandas encerradas', defaultChecked: true },
+    { key: 'controle', label: 'Controle', defaultChecked: false },
+    { key: 'tutoriais', label: 'Tutoriais', defaultChecked: true },
+    { key: 'lembretes', label: 'Lembretes', defaultChecked: false },
+    { key: 'notificacoes', label: 'Notificações', defaultChecked: false },
+    { key: 'configuracoes', label: 'Configurações', defaultChecked: true },
+    { key: 'acessos', label: 'Acessos', defaultChecked: false }
+];
+window.appPagesList = appPagesList;
+
+function getPermissoesForNivel(nivel) {
+    if (!configuracoes) configuracoes = {};
+    if (!configuracoes.permissoes) configuracoes.permissoes = {};
+    const defaultCheckedKeys = ['demandas_abertas', 'demandas_encerradas', 'tutoriais', 'configuracoes'];
+
+    if (nivel === 'Master') {
+        const perms = {};
+        appPagesList.forEach(p => {
+            perms[p.key] = { acesso: true, apenasVisualizar: false };
+        });
+        configuracoes.permissoes['Master'] = perms;
+        return perms;
+    }
+
+    if (!configuracoes.permissoes[nivel]) {
+        const perms = {};
+        appPagesList.forEach(p => {
+            const isDefault = defaultCheckedKeys.includes(p.key);
+            perms[p.key] = {
+                acesso: isDefault,
+                apenasVisualizar: nivel === 'Visualizador'
+            };
+        });
+        configuracoes.permissoes[nivel] = perms;
+    } else {
+        const perms = configuracoes.permissoes[nivel];
+        appPagesList.forEach(p => {
+            const val = perms[p.key];
+            if (typeof val === 'boolean') {
+                perms[p.key] = {
+                    acesso: val,
+                    apenasVisualizar: false
+                };
+            } else if (!val || typeof val !== 'object') {
+                const isDefault = defaultCheckedKeys.includes(p.key);
+                perms[p.key] = {
+                    acesso: isDefault,
+                    apenasVisualizar: false
+                };
+            } else {
+                perms[p.key] = {
+                    acesso: val.acesso !== undefined ? !!val.acesso : true,
+                    apenasVisualizar: val.apenasVisualizar !== undefined ? !!val.apenasVisualizar : false
+                };
+            }
+        });
+        configuracoes.permissoes[nivel] = perms;
+    }
+    return configuracoes.permissoes[nivel];
+}
+window.getPermissoesForNivel = getPermissoesForNivel;
+
+
 function ensureGuiaTipos() {
     if (typeof configuracoes === 'undefined' || !configuracoes) configuracoes = {};
     if (!configuracoes.guiaTipos || !Array.isArray(configuracoes.guiaTipos)) {
@@ -323,6 +499,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentUserDoc) {
                     loggedUser = user;
                     userAccessLevel = currentUserDoc.nivel;
+                    loadPersonalConfig();
+                    syncPersonalConfigFromSupabase();
+
+                    await fetchConfiguracoes();
                     applyRBAC();
                     renderTables(); // Re-render to hide/show action buttons
                     initDataSync();
@@ -365,80 +545,84 @@ document.addEventListener('DOMContentLoaded', () => {
         if (hData) historico = hData;
         renderTables();
     };
+
+    const fetchDemandas = async () => {
+        const { data } = await supabaseClient.from('demandas').select('*');
+        if (data) {
+            demandas = data;
+            renderTables();
+        }
+    };
+
+    const fetchHistorico = async () => {
+        const { data } = await supabaseClient.from('historico').select('*');
+        if (data) {
+            historico = data;
+            renderTables();
+        }
+    };
+
+    const fetchConfiguracoes = async () => {
+        const { data } = await supabaseClient.from('configuracoes').select('*').eq('id', 'geral').single();
+        if (data && data.dados) {
+            configuracoes = data.dados;
+            if (!configuracoes.comQuem) {
+                const now = new Date().toISOString();
+                configuracoes.comQuem = [
+                    { nome: "XP", cor: "#8b5cf6", criadoEm: now, atualizadoEm: now },
+                    { nome: "Cliente", cor: "#10b981", criadoEm: now, atualizadoEm: now },
+                    { nome: "Interno", cor: "#f59e0b", criadoEm: now, atualizadoEm: now }
+                ];
+            }
+            ensureGuiaTipos();
+            ensureNiveisAcesso();
+        } else {
+            configuracoes = {
+                responsaveis: [],
+                assessores: [],
+                meios: [],
+                guiaTipos: [],
+                comQuem: [],
+                niveisAcesso: ['Master', 'Editor', 'Visualizador'],
+                limiteLinhas: { abertas: 50, historico: 50, guias: 10, controle: 25, lembretes: 10, notificacoes: 50, acessos: 10 },
+                tempoNotificacoesDias: 7
+            };
+            await supabaseClient.from('configuracoes').upsert([{ id: 'geral', dados: configuracoes }]);
+        }
+
+        if (!configuracoes.limiteLinhas) {
+            configuracoes.limiteLinhas = { abertas: 50, historico: 50, guias: 10, controle: 25, lembretes: 10, notificacoes: 50, acessos: 10 };
+        }
+        if (!configuracoes.tempoNotificacoesDias) {
+            configuracoes.tempoNotificacoesDias = 7;
+        }
+
+        // RUNTIME MIGRATION para adicionar datas e transformar strings em objetos
+        ['responsaveis', 'meios', 'comQuem', 'assessores'].forEach(type => {
+            if (configuracoes[type]) {
+                configuracoes[type] = configuracoes[type].map(item => {
+                    if (typeof item === 'string') {
+                        return { nome: item, cor: '#8b5cf6', criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString() };
+                    } else {
+                        if (!item.criadoEm) item.criadoEm = new Date().toISOString();
+                        if (!item.atualizadoEm) item.atualizadoEm = new Date().toISOString();
+                        return item;
+                    }
+                });
+            }
+        });
+
+        if (typeof applyRBAC === 'function') applyRBAC();
+        if (typeof window.renderControleTable === 'function') window.renderControleTable();
+        if (typeof renderConfiguracoes === 'function') renderConfiguracoes();
+        renderSelectOptions();
+        updateFilterOptions();
+        renderTables();
+    };
+
     const initDataSync = () => {
         if (syncInitialized) return;
         syncInitialized = true;
-
-        const fetchDemandas = async () => {
-            const { data } = await supabaseClient.from('demandas').select('*');
-            if (data) {
-                demandas = data;
-                renderTables();
-            }
-        };
-        const fetchHistorico = async () => {
-            const { data } = await supabaseClient.from('historico').select('*');
-            if (data) {
-                historico = data;
-                renderTables();
-            }
-        };
-        const fetchConfiguracoes = async () => {
-            const { data } = await supabaseClient.from('configuracoes').select('*').eq('id', 'geral').single();
-            if (data && data.dados) {
-                configuracoes = data.dados;
-                if (!configuracoes.comQuem) {
-                    const now = new Date().toISOString();
-                    configuracoes.comQuem = [
-                        { nome: "XP", cor: "#8b5cf6", criadoEm: now, atualizadoEm: now },
-                        { nome: "Cliente", cor: "#10b981", criadoEm: now, atualizadoEm: now },
-                        { nome: "Interno", cor: "#f59e0b", criadoEm: now, atualizadoEm: now }
-                    ];
-                }
-                ensureGuiaTipos();
-                ensureNiveisAcesso();
-            } else {
-                configuracoes = {
-                    responsaveis: [],
-                    assessores: [],
-                    meios: [],
-                    guiaTipos: [],
-                    comQuem: [],
-                    niveisAcesso: ['Master', 'Editor', 'Visualizador'],
-                    limiteLinhas: { abertas: 50, historico: 50, guias: 10, controle: 25, lembretes: 10, notificacoes: 50, acessos: 10 },
-                    tempoNotificacoesDias: 7
-                };
-                await supabaseClient.from('configuracoes').upsert([{ id: 'geral', dados: configuracoes }]);
-            }
-
-            if (!configuracoes.limiteLinhas) {
-                configuracoes.limiteLinhas = { abertas: 15, historico: 100, guias: 15, controle: 15, lembretes: 15, notificacoes: 15, acessos: 15 };
-            }
-            if (!configuracoes.tempoNotificacoesDias) {
-                configuracoes.tempoNotificacoesDias = 7;
-            }
-
-            // RUNTIME MIGRATION para adicionar datas e transformar strings em objetos
-            ['responsaveis', 'meios', 'comQuem', 'assessores'].forEach(type => {
-                if (configuracoes[type]) {
-                    configuracoes[type] = configuracoes[type].map(item => {
-                        if (typeof item === 'string') {
-                            return { nome: item, cor: '#8b5cf6', criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString() };
-                        } else {
-                            if (!item.criadoEm) item.criadoEm = new Date().toISOString();
-                            if (!item.atualizadoEm) item.atualizadoEm = new Date().toISOString();
-                            return item;
-                        }
-                    });
-                }
-            });
-
-            if (typeof window.renderControleTable === 'function') window.renderControleTable();
-            if (typeof renderConfiguracoes === 'function') renderConfiguracoes();
-            renderSelectOptions();
-            updateFilterOptions();
-            renderTables();
-        };
 
         fetchDemandas();
         fetchHistorico();
@@ -448,7 +632,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         supabaseClient.channel('demandas_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'demandas' }, fetchDemandas).subscribe();
         supabaseClient.channel('historico_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'historico' }, fetchHistorico).subscribe();
-        supabaseClient.channel('configuracoes_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'configuracoes' }, fetchConfiguracoes).subscribe();
+        supabaseClient.channel('configuracoes_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'configuracoes' }, (payload) => {
+            const rowId = payload?.new?.id;
+            if (!rowId || rowId === 'geral') {
+                fetchConfiguracoes();
+            } else if (loggedUser && rowId === 'user_' + loggedUser.email) {
+                syncPersonalConfigFromSupabase();
+            }
+        }).subscribe();
     };
 
     // Função helper para obter data e hora atual formatada
@@ -554,6 +745,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnAddAssessores) btnAddAssessores.style.display = readOnlyControle ? 'none' : 'flex';
         if (btnAddMeios) btnAddMeios.style.display = readOnlyControle ? 'none' : 'flex';
         if (btnAddComQuem) btnAddComQuem.style.display = readOnlyControle ? 'none' : 'flex';
+
+        const readOnlyLembretes = isPageReadOnly('lembretes');
+        const btnNovoLembrete = document.getElementById('btnNovoLembrete');
+        if (btnNovoLembrete) btnNovoLembrete.style.display = readOnlyLembretes ? 'none' : 'flex';
+
+        // Redirecionar suavemente se a página ativa atual não for permitida para este nível
+        const activeNavKey = navMap[currentPage] || currentPage;
+        if (!hasPageAccess(activeNavKey)) {
+            const firstAllowed = Array.from(navItems).find(navEl => {
+                const pk = navMap[navEl.dataset.page] || navEl.dataset.page;
+                return hasPageAccess(pk);
+            });
+            if (firstAllowed) {
+                firstAllowed.click();
+            }
+        }
     }
 
 
@@ -1216,7 +1423,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const sourceData = currentPage === 'abertas' ? applyFiltersAndSort([...demandas]) : applyFiltersAndSort([...historico]);
         const isAbertas = currentPage === 'abertas';
         const pageKey = isAbertas ? 'abertas' : 'historico';
-        const limit = (configuracoes && configuracoes.limiteLinhas && configuracoes.limiteLinhas[pageKey]) ? parseInt(configuracoes.limiteLinhas[pageKey], 10) : (isAbertas ? 15 : 100);
+        const limit = (personalConfig && personalConfig.limiteLinhas && personalConfig.limiteLinhas[pageKey])
+            ? parseInt(personalConfig.limiteLinhas[pageKey], 10)
+            : ((configuracoes && configuracoes.limiteLinhas && configuracoes.limiteLinhas[pageKey]) ? parseInt(configuracoes.limiteLinhas[pageKey], 10) : (isAbertas ? 50 : 50));
 
         const totalPages = Math.ceil(sourceData.length / limit) || 1;
         if (paginationState[pageKey] > totalPages) paginationState[pageKey] = totalPages;
@@ -2491,7 +2700,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `${dateObj.toLocaleDateString('pt-BR')} às ${dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
             };
 
-            const limit = (configuracoes && configuracoes.limiteLinhas && configuracoes.limiteLinhas.controle) ? parseInt(configuracoes.limiteLinhas.controle, 10) : 15;
+            const limit = (personalConfig && personalConfig.limiteLinhas && personalConfig.limiteLinhas.controle)
+            ? parseInt(personalConfig.limiteLinhas.controle, 10)
+            : ((configuracoes && configuracoes.limiteLinhas && configuracoes.limiteLinhas.controle) ? parseInt(configuracoes.limiteLinhas.controle, 10) : 25);
             const totalPages = Math.ceil(items.length / limit) || 1;
             if (paginationState.controle > totalPages) paginationState.controle = totalPages;
             const start = (paginationState.controle - 1) * limit;
@@ -3083,7 +3294,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const limit = (configuracoes && configuracoes.limiteLinhas && configuracoes.limiteLinhas.acessos) ? parseInt(configuracoes.limiteLinhas.acessos, 10) : 15;
+        const limit = (personalConfig && personalConfig.limiteLinhas && personalConfig.limiteLinhas.acessos)
+            ? parseInt(personalConfig.limiteLinhas.acessos, 10)
+            : ((configuracoes && configuracoes.limiteLinhas && configuracoes.limiteLinhas.acessos) ? parseInt(configuracoes.limiteLinhas.acessos, 10) : 10);
         const totalPages = Math.ceil(filtered.length / limit) || 1;
         if (paginationState.acessos > totalPages) paginationState.acessos = totalPages;
         const start = (paginationState.acessos - 1) * limit;
@@ -3182,67 +3395,6 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModalGerenciarNiveisAcesso.addEventListener('click', () => {
             modalGerenciarNiveisAcesso.classList.remove('active');
         });
-    }
-
-    const appPagesList = [
-        { key: 'demandas_abertas', label: 'Demandas em aberto', defaultChecked: true },
-        { key: 'demandas_encerradas', label: 'Demandas encerradas', defaultChecked: true },
-        { key: 'controle', label: 'Controle', defaultChecked: false },
-        { key: 'tutoriais', label: 'Tutoriais', defaultChecked: true },
-        { key: 'lembretes', label: 'Lembretes', defaultChecked: false },
-        { key: 'notificacoes', label: 'Notificações', defaultChecked: false },
-        { key: 'configuracoes', label: 'Configurações', defaultChecked: true },
-        { key: 'acessos', label: 'Acessos', defaultChecked: false }
-    ];
-
-    function getPermissoesForNivel(nivel) {
-        if (!configuracoes.permissoes) configuracoes.permissoes = {};
-        const defaultCheckedKeys = ['demandas_abertas', 'demandas_encerradas', 'tutoriais', 'configuracoes'];
-
-        if (nivel === 'Master') {
-            const perms = {};
-            appPagesList.forEach(p => {
-                perms[p.key] = { acesso: true, apenasVisualizar: false };
-            });
-            configuracoes.permissoes['Master'] = perms;
-            return perms;
-        }
-
-        if (!configuracoes.permissoes[nivel]) {
-            const perms = {};
-            appPagesList.forEach(p => {
-                const isDefault = defaultCheckedKeys.includes(p.key);
-                perms[p.key] = {
-                    acesso: isDefault,
-                    apenasVisualizar: nivel === 'Visualizador'
-                };
-            });
-            configuracoes.permissoes[nivel] = perms;
-        } else {
-            const perms = configuracoes.permissoes[nivel];
-            appPagesList.forEach(p => {
-                const val = perms[p.key];
-                if (typeof val === 'boolean') {
-                    perms[p.key] = {
-                        acesso: val,
-                        apenasVisualizar: false
-                    };
-                } else if (!val || typeof val !== 'object') {
-                    const isDefault = defaultCheckedKeys.includes(p.key);
-                    perms[p.key] = {
-                        acesso: isDefault,
-                        apenasVisualizar: false
-                    };
-                } else {
-                    perms[p.key] = {
-                        acesso: val.acesso !== undefined ? !!val.acesso : true,
-                        apenasVisualizar: val.apenasVisualizar !== undefined ? !!val.apenasVisualizar : false
-                    };
-                }
-            });
-            configuracoes.permissoes[nivel] = perms;
-        }
-        return configuracoes.permissoes[nivel];
     }
 
     function renderPermissoesTable(nivel) {
@@ -4282,7 +4434,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const limit = (configuracoes && configuracoes.limiteLinhas && configuracoes.limiteLinhas.guias) ? parseInt(configuracoes.limiteLinhas.guias, 10) : 15;
+        const limit = (personalConfig && personalConfig.limiteLinhas && personalConfig.limiteLinhas.guias)
+        ? parseInt(personalConfig.limiteLinhas.guias, 10)
+        : ((configuracoes && configuracoes.limiteLinhas && configuracoes.limiteLinhas.guias) ? parseInt(configuracoes.limiteLinhas.guias, 10) : 10);
         const totalPages = Math.ceil(filtered.length / limit) || 1;
         if (paginationState.guias > totalPages) paginationState.guias = totalPages;
         const start = (paginationState.guias - 1) * limit;
@@ -4776,7 +4930,9 @@ function renderLembretes() {
         return;
     }
 
-    const limit = (configuracoes && configuracoes.limiteLinhas && configuracoes.limiteLinhas.lembretes) ? parseInt(configuracoes.limiteLinhas.lembretes, 10) : 15;
+    const limit = (personalConfig && personalConfig.limiteLinhas && personalConfig.limiteLinhas.lembretes)
+        ? parseInt(personalConfig.limiteLinhas.lembretes, 10)
+        : ((configuracoes && configuracoes.limiteLinhas && configuracoes.limiteLinhas.lembretes) ? parseInt(configuracoes.limiteLinhas.lembretes, 10) : 10);
     const totalPages = Math.ceil(filtered.length / limit) || 1;
     if (!paginationState.lembretes || isNaN(paginationState.lembretes) || paginationState.lembretes < 1) {
         paginationState.lembretes = 1;
@@ -5293,11 +5449,11 @@ async function playSuccessSound(overrideTone, overrideVol, isLoop = false) {
             stopLembreteSound();
         }
 
-        const volNum = (overrideVol !== undefined) ? overrideVol : (configuracoes && configuracoes.soundVolume !== undefined ? configuracoes.soundVolume : 100);
+        const volNum = (overrideVol !== undefined) ? overrideVol : (personalConfig && personalConfig.soundVolume !== undefined ? personalConfig.soundVolume : 100);
         const volume = volNum / 100;
         if (volume <= 0) return;
 
-        const tone = overrideTone || (configuracoes && configuracoes.soundTone) || 'padrao';
+        const tone = overrideTone || (personalConfig && personalConfig.soundTone) || 'padrao';
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return;
 
@@ -5757,11 +5913,11 @@ async function playLembreteSound(overrideTone, overrideVol, isLoop = false) {
             stopNotificationSound();
         }
 
-        const volNum = (overrideVol !== undefined && overrideVol !== null) ? overrideVol : (configuracoes && configuracoes.lembreteSoundVolume !== undefined ? configuracoes.lembreteSoundVolume : 100);
+        const volNum = (overrideVol !== undefined && overrideVol !== null) ? overrideVol : (personalConfig && personalConfig.lembreteSoundVolume !== undefined ? personalConfig.lembreteSoundVolume : 100);
         const volume = volNum / 100;
         if (volume <= 0) return;
 
-        const tone = overrideTone || (configuracoes && configuracoes.lembreteSoundTone) || 'alarme_despertador';
+        const tone = overrideTone || (personalConfig && personalConfig.lembreteSoundTone) || 'alarme_despertador';
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return;
 
@@ -6393,7 +6549,9 @@ function renderNotificacoes() {
         return;
     }
 
-    const limit = (configuracoes && configuracoes.limiteLinhas && configuracoes.limiteLinhas.notificacoes) ? parseInt(configuracoes.limiteLinhas.notificacoes, 10) : 15;
+    const limit = (personalConfig && personalConfig.limiteLinhas && personalConfig.limiteLinhas.notificacoes)
+        ? parseInt(personalConfig.limiteLinhas.notificacoes, 10)
+        : ((configuracoes && configuracoes.limiteLinhas && configuracoes.limiteLinhas.notificacoes) ? parseInt(configuracoes.limiteLinhas.notificacoes, 10) : 50);
     const totalPages = Math.ceil(filtered.length / limit) || 1;
     if (!paginationState.notificacoes || isNaN(paginationState.notificacoes) || paginationState.notificacoes < 1) {
         paginationState.notificacoes = 1;
@@ -6517,25 +6675,28 @@ function renderConfiguracoes() {
 
     if (themeCheckbox && !themeCheckbox._listener) {
         themeCheckbox._listener = true;
-        themeCheckbox.addEventListener('change', (e) => {
-            if (e.target.checked) {
+        themeCheckbox.addEventListener('change', async (e) => {
+            const checked = e.target.checked;
+            if (checked) {
                 document.documentElement.classList.add('light-mode');
                 localStorage.setItem('theme', 'light');
+                personalConfig.theme = 'light';
                 updateThemeUI(true);
             } else {
                 document.documentElement.classList.remove('light-mode');
                 localStorage.setItem('theme', 'dark');
+                personalConfig.theme = 'dark';
                 updateThemeUI(false);
             }
+            await savePersonalConfig();
         });
     }
 
-    // 2. Limite de linhas por página
+    // 2. Limite de linhas por página (Configuração Pessoal)
     const tbody = document.getElementById('limiteLinhasTableBody');
     if (tbody) {
-        if (!configuracoes) configuracoes = {};
-        if (!configuracoes.limiteLinhas) {
-            configuracoes.limiteLinhas = {
+        if (!personalConfig.limiteLinhas) {
+            personalConfig.limiteLinhas = {
                 abertas: 50,
                 historico: 50,
                 guias: 10,
@@ -6558,7 +6719,11 @@ function renderConfiguracoes() {
 
         tbody.innerHTML = '';
         modulos.forEach(m => {
-            const val = configuracoes.limiteLinhas[m.key] !== undefined ? configuracoes.limiteLinhas[m.key] : m.default;
+            const val = (personalConfig.limiteLinhas && personalConfig.limiteLinhas[m.key] !== undefined)
+                ? personalConfig.limiteLinhas[m.key]
+                : ((configuracoes && configuracoes.limiteLinhas && configuracoes.limiteLinhas[m.key] !== undefined)
+                    ? configuracoes.limiteLinhas[m.key]
+                    : m.default);
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong>${m.label}</strong> <span style="font-size: 11px; color: var(--text-sidebar); font-weight: normal;">(máx. ${m.max})</span></td>
@@ -6584,13 +6749,13 @@ function renderConfiguracoes() {
         sliderEl.style.background = `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${val}%, #3b3251 ${val}%, #3b3251 100%)`;
     }
 
-    // 3. Configurações de som (Notificações)
+    // 3. Configurações de som (Notificações - Pessoal)
     const inputVol = document.getElementById('inputSoundVolume');
     const labelVol = document.getElementById('soundVolumeLabel');
     const selectTone = document.getElementById('selectSoundTone');
 
-    const soundVol = (configuracoes.soundVolume !== undefined) ? configuracoes.soundVolume : 100;
-    const soundTone = configuracoes.soundTone || 'padrao';
+    const soundVol = (personalConfig.soundVolume !== undefined) ? personalConfig.soundVolume : 100;
+    const soundTone = personalConfig.soundTone || 'padrao';
 
     if (inputVol) {
         inputVol.value = soundVol;
@@ -6605,9 +6770,8 @@ function renderConfiguracoes() {
             const v = parseInt(e.target.value, 10);
             updateVolumeSliderTrack(e.target, '#8b5cf6');
             if (labelVol) labelVol.textContent = v + '%';
-            if (!configuracoes) configuracoes = {};
-            configuracoes.soundVolume = v;
-            window.salvarConfiguracoesAudio();
+            personalConfig.soundVolume = v;
+            savePersonalConfig();
         });
     }
 
@@ -6615,9 +6779,8 @@ function renderConfiguracoes() {
         selectTone._soundListener = true;
         selectTone.addEventListener('change', (e) => {
             stopNotificationSound();
-            if (!configuracoes) configuracoes = {};
-            configuracoes.soundTone = e.target.value;
-            window.salvarConfiguracoesAudio();
+            personalConfig.soundTone = e.target.value;
+            savePersonalConfig();
         });
     }
 
@@ -6636,13 +6799,13 @@ function renderConfiguracoes() {
         });
     }
 
-    // 4. Configurações de som (Lembretes)
+    // 4. Configurações de som (Lembretes - Pessoal)
     const inputLembreteVol = document.getElementById('inputLembreteSoundVolume');
     const labelLembreteVol = document.getElementById('soundLembreteVolumeLabel');
     const selectLembreteTone = document.getElementById('selectLembreteSoundTone');
 
-    const lembreteSoundVol = (configuracoes.lembreteSoundVolume !== undefined) ? configuracoes.lembreteSoundVolume : 100;
-    const lembreteSoundTone = configuracoes.lembreteSoundTone || 'alarme_despertador';
+    const lembreteSoundVol = (personalConfig.lembreteSoundVolume !== undefined) ? personalConfig.lembreteSoundVolume : 100;
+    const lembreteSoundTone = personalConfig.lembreteSoundTone || 'alarme_despertador';
 
     if (inputLembreteVol) {
         inputLembreteVol.value = lembreteSoundVol;
@@ -6657,9 +6820,8 @@ function renderConfiguracoes() {
             const v = parseInt(e.target.value, 10);
             updateVolumeSliderTrack(e.target, '#f59e0b');
             if (labelLembreteVol) labelLembreteVol.textContent = v + '%';
-            if (!configuracoes) configuracoes = {};
-            configuracoes.lembreteSoundVolume = v;
-            window.salvarConfiguracoesAudio();
+            personalConfig.lembreteSoundVolume = v;
+            savePersonalConfig();
         });
     }
 
@@ -6667,9 +6829,8 @@ function renderConfiguracoes() {
         selectLembreteTone._soundListener = true;
         selectLembreteTone.addEventListener('change', (e) => {
             stopLembreteSound();
-            if (!configuracoes) configuracoes = {};
-            configuracoes.lembreteSoundTone = e.target.value;
-            window.salvarConfiguracoesAudio();
+            personalConfig.lembreteSoundTone = e.target.value;
+            savePersonalConfig();
         });
     }
 
@@ -6689,13 +6850,6 @@ function renderConfiguracoes() {
     }
 }
 
-window.salvarConfiguracoesAudio = async () => {
-    try {
-        await supabaseClient.from('configuracoes').upsert([{ id: 'geral', dados: configuracoes }]);
-    } catch (err) {
-        console.error('Erro ao salvar som:', err);
-    }
-};
 window.renderConfiguracoes = renderConfiguracoes;
 
 window.salvarLimiteLinhasModulo = async (key) => {
@@ -6726,8 +6880,8 @@ window.salvarLimiteLinhasModulo = async (key) => {
         input.value = modDef.max;
     }
 
-    if (!configuracoes.limiteLinhas) configuracoes.limiteLinhas = {};
-    configuracoes.limiteLinhas[key] = newVal;
+    if (!personalConfig.limiteLinhas) personalConfig.limiteLinhas = {};
+    personalConfig.limiteLinhas[key] = newVal;
 
     try {
         if (btn) {
@@ -6735,14 +6889,9 @@ window.salvarLimiteLinhasModulo = async (key) => {
             btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i>';
         }
 
-        const { error } = await supabaseClient.from('configuracoes').upsert([{ id: 'geral', dados: configuracoes }]);
-        if (error) throw error;
-        showToast('Limite de linhas atualizado com sucesso', 'success');
+        await savePersonalConfig();
+        showToast('Seu limite pessoal de linhas foi atualizado', 'success');
         if (typeof playSuccessSound === 'function') playSuccessSound();
-        if (typeof criarNotificacao === 'function') {
-            const modNames = { abertas: 'Demandas em Aberto', historico: 'Demandas Encerradas', guias: 'Tutoriais', controle: 'Controle', lembretes: 'Lembretes', notificacoes: 'Notificações', acessos: 'Acessos' };
-            criarNotificacao(`Limite de linhas da página "${modNames[key] || key}" alterado para ${newVal}`, 'Configurações');
-        }
 
         // Update row input state without destroying other rows being edited
         input.setAttribute('oninput', `window.checkLimitChanged('${key}', ${newVal})`);

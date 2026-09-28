@@ -5,21 +5,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Demandas</title>
-    <link rel="icon" type="image/jpeg" href="Logo BE.jfif">
+    <link rel="icon" type="image/jpeg" href="Logo BE.jfif.jpeg">
     <!-- Google Fonts & Phosphor Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
 
-    <!-- Supabase -->
+    <!-- Supabase Client (Conectado ao banco real) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="seed.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script.js?v=28" defer></script>
+    <script src="script.js?v=38" defer></script>
 
     <!-- Pickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css" />
@@ -30,57 +29,334 @@
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="style.css?v=16">
+    <link rel="stylesheet" href="style.css?v=38">
     <style>
-        /* TomSelect Override Inline to bypass cache */
+        /* TomSelect Override Inline to match Print 2 Custom Dropdown Theme */
         html body .ts-wrapper .ts-control,
         html body .ts-wrapper.single .ts-control,
         .ts-control {
-            background: var(--bg-main) !important;
-            border: 1px solid var(--border-color) !important;
-            color: var(--text-main) !important;
-            border-radius: 4px !important;
-            padding: 10px 12px !important;
-            box-shadow: none !important;
+            background: #2e2644 !important;
+            border: 1px solid #4a3d6a !important;
+            color: #ffffff !important;
+            border-radius: 6px !important;
+            padding: 8px 12px !important;
+            min-height: 38px !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            display: flex !important;
+            align-items: center !important;
+            position: relative !important;
         }
 
-        html body .ts-wrapper .ts-control > input,
-        html body .ts-wrapper.single .ts-control > input,
-        .ts-control > input,
-        .ts-control input::placeholder {
-            color: var(--text-main) !important;
+        html body .ts-wrapper.single .ts-control .item {
+            position: absolute !important;
+            left: 12px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            pointer-events: none !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: calc(100% - 35px) !important;
+            z-index: 1 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            transition: opacity 0.15s ease !important;
+        }
+
+        /* Ocultar o item selecionado/placeholder anterior ao focar/digitar para permitir busca limpa em linha única */
+        html body .ts-wrapper.single.input-active .ts-control .item,
+        html body .ts-wrapper.single.focus .ts-control .item {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            display: none !important;
+        }
+
+        html body .ts-wrapper.focus .ts-control {
+            border-color: #8b5cf6 !important;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25) !important;
+        }
+
+        html body .ts-wrapper .ts-control>input,
+        html body .ts-wrapper.single .ts-control>input,
+        .ts-control>input {
+            color: #ffffff !important;
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            position: relative !important;
+            z-index: 2 !important;
+        }
+
+        html body .ts-control input::placeholder {
+            color: #a78bfa !important;
+            opacity: 1 !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            transition: opacity 0.15s ease !important;
+        }
+
+        /* Ao focar/digitar no campo de busca/filtro, ocultar o placeholder para exibir apenas o cursor | limpo (Print 2) */
+        html body .ts-wrapper.focus .ts-control input::placeholder,
+        html body .ts-wrapper.input-active .ts-control input::placeholder,
+        html body .ts-control input:focus::placeholder {
+            color: transparent !important;
+            opacity: 0 !important;
+        }
+
+        /* Pickr Color Picker Custom Theme (Dark Purple, Circular trigger button) */
+        .pickr-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 12px 0;
+        }
+
+        .pickr .pcr-button,
+        .pcr-button {
+            width: 36px !important;
+            height: 36px !important;
+            border-radius: 50% !important;
+            border: 3px solid #151022 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.15) !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            cursor: pointer !important;
+        }
+
+        .pickr .pcr-button:hover,
+        .pcr-button:hover {
+            transform: scale(1.1) !important;
+            border-color: #0f172a !important;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), 0 0 0 3px rgba(139, 92, 246, 0.35) !important;
+        }
+
+        .pickr .pcr-button::before,
+        .pickr .pcr-button::after,
+        .pcr-button::before,
+        .pcr-button::after {
+            border-radius: 50% !important;
+        }
+
+        /* Pickr Popup App styling */
+        .pcr-app {
+            background: #231c34 !important;
+            border: 1px solid #5a4a7a !important;
+            border-radius: 12px !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(139, 92, 246, 0.2) !important;
+            padding: 14px !important;
+            font-family: 'Inter', sans-serif !important;
+            backdrop-filter: blur(12px) !important;
+            width: 220px !important;
+        }
+
+        .pcr-app .pcr-selection {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 10px !important;
+        }
+
+        .pcr-app .pcr-selection .pcr-color-palette {
+            border-radius: 8px !important;
+            width: 100% !important;
+        }
+
+        .pcr-app .pcr-selection .pcr-color-chooser {
+            border-radius: 6px !important;
+            width: 100% !important;
+            order: 1 !important;
+        }
+
+        /* Centralizar a bolinha de pré-visualização da cor selecionada no meio, abaixo dos seletores */
+        .pcr-app .pcr-selection .pcr-color-preview {
+            order: 2 !important;
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 50% !important;
+            border: 3px solid #151022 !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
+            margin: 4px auto 4px auto !important;
+            position: relative !important;
+        }
+
+        .pcr-app .pcr-selection .pcr-color-preview::before,
+        .pcr-app .pcr-selection .pcr-color-preview::after {
+            border-radius: 50% !important;
+        }
+
+        /* Ocultar a paleta de bolinhas prontas (swatches), o botão HEXA e o botão Salvar */
+        .pcr-app .pcr-swatches,
+        .pcr-app .pcr-interaction input.pcr-type,
+        .pcr-app .pcr-interaction input.pcr-save {
+            display: none !important;
+        }
+
+        .pcr-app .pcr-interaction {
+            display: flex !important;
+            justify-content: center !important;
+            margin-top: 8px !important;
+        }
+
+        /* Caixa retangular do código HEX compacta e elegante */
+        .pcr-app .pcr-interaction input.pcr-result {
+            background: #1d182b !important;
+            border: 1px solid #4a3d6a !important;
+            color: #ffffff !important;
+            border-radius: 6px !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            font-family: 'Inter', sans-serif !important;
+            text-align: center !important;
+            width: 120px !important;
+            height: 32px !important;
+            padding: 4px 8px !important;
+            margin: 0 auto !important;
+        }
+
+        .pcr-app .pcr-interaction input.pcr-result:focus {
+            border-color: #8b5cf6 !important;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3) !important;
         }
 
         html body .ts-dropdown,
         html body .ts-wrapper .ts-dropdown,
         .ts-dropdown {
-            background-color: var(--table-header-bg) !important;
-            color: var(--text-main) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 4px !important;
-            margin-top: 4px !important;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
+            background-color: #231c34 !important;
+            color: #e2e8f0 !important;
+            border: 1px solid #5a4a7a !important;
+            border-radius: 10px !important;
+            margin-top: 6px !important;
+            padding: 6px !important;
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(139, 92, 246, 0.2) !important;
+            backdrop-filter: blur(12px) !important;
         }
 
         html body .ts-dropdown .ts-dropdown-content {
-            max-height: 400px !important;
+            max-height: 300px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 3px !important;
         }
 
         html body .ts-dropdown .option,
         .ts-dropdown .option {
-            color: var(--text-main) !important;
+            color: #e2e8f0 !important;
             background-color: transparent !important;
             padding: 8px 12px !important;
+            border-radius: 6px !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            transition: all 0.15s ease !important;
+            display: flex !important;
+            align-items: center !important;
         }
 
         html body .ts-dropdown .option:hover,
         html body .ts-dropdown .option.active,
-        html body .ts-dropdown .option.selected,
         .ts-dropdown .option:hover,
-        .ts-dropdown .option.active,
+        .ts-dropdown .option.active {
+            background-color: rgba(139, 92, 246, 0.2) !important;
+            color: #ffffff !important;
+            transform: translateX(2px) !important;
+        }
+
+        html body .ts-dropdown .option.selected,
         .ts-dropdown .option.selected {
-            background-color: var(--active-purple) !important;
-            color: #fff !important;
+            background-color: rgba(109, 40, 217, 0.35) !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+        }
+
+        /* Flatpickr Modal Override Inline */
+        .flatpickr-calendar {
+            background: #231c34 !important;
+            border: 1px solid #4a3d6a !important;
+            border-radius: 12px !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(139, 92, 246, 0.2) !important;
+            font-family: 'Inter', sans-serif !important;
+            padding: 12px !important;
+            width: 320px !important;
+        }
+
+        .flatpickr-months {
+            background: transparent !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .flatpickr-months .flatpickr-month {
+            background: transparent !important;
+            color: #ffffff !important;
+            fill: #ffffff !important;
+        }
+
+        .flatpickr-current-month .flatpickr-monthDropdown-months {
+            background: #2e2644 !important;
+            border: 1px solid #4a3d6a !important;
+            border-radius: 6px !important;
+            color: #ffffff !important;
+        }
+
+        .flatpickr-current-month input.cur-year {
+            color: #ffffff !important;
+        }
+
+        .flatpickr-months .flatpickr-prev-month,
+        .flatpickr-months .flatpickr-next-month {
+            color: #c4b5fd !important;
+            fill: #c4b5fd !important;
+        }
+
+        .flatpickr-weekdays,
+        .flatpickr-weekdaycontainer {
+            background: transparent !important;
+        }
+
+        span.flatpickr-weekday {
+            background: transparent !important;
+            color: #a78bfa !important;
+            font-weight: 600 !important;
+            font-size: 11px !important;
+        }
+
+        .flatpickr-day {
+            color: #f1f5f9 !important;
+            border-radius: 6px !important;
+        }
+
+        .flatpickr-day.prevMonthDay,
+        .flatpickr-day.nextMonthDay {
+            color: #584b72 !important;
+            opacity: 0.55 !important;
+        }
+
+        .flatpickr-day:hover {
+            background: rgba(139, 92, 246, 0.25) !important;
+            border-color: rgba(139, 92, 246, 0.4) !important;
+            color: #ffffff !important;
+        }
+
+        .flatpickr-day.today {
+            border-color: #8b5cf6 !important;
+            color: #c4b5fd !important;
+        }
+
+        .flatpickr-day.selected,
+        .flatpickr-day.startRange,
+        .flatpickr-day.endRange {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+            border-color: #8b5cf6 !important;
+            color: #ffffff !important;
+        }
+
+        .flatpickr-day.inRange {
+            background: rgba(109, 40, 217, 0.28) !important;
+            color: #e9d5ff !important;
         }
     </style>
 </head>
@@ -148,37 +424,48 @@
         <!-- Scripts -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>Navegação</h2>
-                <button class="icon-btn-transparent" id="btnToggleSidebar">
+                <div class="brand-title" style="display: flex; flex-direction: column; gap: 2px; overflow: hidden; min-width: 0;">
+                    <span style="font-size: 14px; font-weight: 800; letter-spacing: 0.6px; color: #ffffff; line-height: 1.1; white-space: nowrap;">BE INVEST</span>
+                    <span style="font-size: 11px; font-weight: 600; color: #a78bfa; letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap;">Back Office</span>
+                </div>
+                <button class="icon-btn-transparent" id="btnToggleSidebar" style="flex-shrink: 0;">
                     <i class="ph ph-list"></i>
                 </button>
             </div>
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" data-page="abertas">
                     <i class="ph ph-list-dashes"></i>
-                    Demandas em aberto
+                    <span>Demandas em aberto</span>
                 </a>
                 <a href="#" class="nav-item" data-page="historico">
                     <i class="ph ph-clock-counter-clockwise"></i>
-                    Demandas encerradas
+                    <span>Demandas encerradas</span>
+                </a>
+                <a href="#" class="nav-item" data-page="ajuda">
+                    <i class="ph ph-question"></i>
+                    <span>Tutoriais</span>
                 </a>
                 <a href="#" class="nav-item" data-page="controle">
                     <i class="ph ph-file-text"></i>
-                    Controle
+                    <span>Controle</span>
                 </a>
-                
-                <a href="#" class="nav-item" data-page="ajuda">
-                    <i class="ph ph-question"></i>
-                    <span>Guia</span>
+                <a href="#" class="nav-item" data-page="lembretes">
+                    <i class="ph ph-bell"></i>
+                    <span>Lembretes</span>
+                </a>
+                <a href="#" class="nav-item" data-page="notificacoes">
+                    <i class="ph ph-bell-ringing"></i>
+                    <span>Notificações</span>
+                </a>
+                <a href="#" class="nav-item" data-page="configuracoes">
+                    <i class="ph ph-gear"></i>
+                    <span>Configurações</span>
                 </a>
                 <a href="#" class="nav-item" data-page="acessos">
                     <i class="ph ph-key"></i>
-                    Acessos
+                    <span>Acessos</span>
                 </a>
-                <a href="#" class="nav-item" data-page="log">
-                    <i class="ph ph-arrows-left-right"></i>
-                    Histórico de movimentações
-                </a></nav>
+            </nav>
         </aside>
 
         <!-- Main Content -->
@@ -187,37 +474,56 @@
             <header class="top-header">
                 <div class="header-title">
                     <h1 id="pageTitle">Demandas em aberto</h1>
-                    <span class="count-badge" id="demandCount">(0)</span>
+                    <span class="count-badge" id="demandCount">( 0 )</span>
                 </div>
 
-                <div class="header-actions" id="headerActionsDemandas">
-                    <div class="search-box">
-                        <input type="text" id="inputBuscar" placeholder="Buscar...">
-                    </div>
-                    <button class="icon-btn" id="btnReset" title="Reiniciar filtros"><i
-                            class="ph ph-arrows-clockwise"></i></button>
-                    <button class="icon-btn" id="btnExport" title="Exportar planilha"><i
-                            class="ph ph-download-simple"></i></button>
-                    <select class="filter-select" id="filterResponsavel">
-                        <option value="">Responsável (Todos)</option>
-                    </select>
-                    <select class="filter-select" id="filterMeio">
-                        <option value="">Meio (Todos)</option>
-                    </select>
-
-                    <div class="custom-date-filter" id="btnDateFilter">
-                        <i class="ph ph-calendar-blank"></i>
-                        <div class="date-filter-text">
-                            <span class="date-filter-label">Data de solicitação</span>
-                            <span class="date-filter-value" id="dateFilterValue">Período...</span>
+                <div class="header-actions header-actions-demandas-modern" id="headerActionsDemandas">
+                    <div class="actions-group-left">
+                        <div class="search-box">
+                            <input type="text" id="inputBuscar" placeholder="Buscar">
                         </div>
-                        <input type="text" id="filterDateRange" style="display: none;">
+                        <button class="action-toolbar-btn" id="btnNovaDemanda">
+                            Nova demanda
+                        </button>
+                        <button class="icon-btn" id="btnExport" title="Baixar em excel">
+                            <i class="ph ph-download-simple"></i>
+                        </button>
                     </div>
 
-                    <button class="btn-primary" id="btnNovaDemanda">
-                        <i class="ph ph-plus"></i>
-                        Nova
-                    </button>
+                    <div class="actions-group-right">
+                        <button class="icon-btn" id="btnReset" title="Resetar filtros">
+                            <i class="ph ph-arrows-clockwise"></i>
+                        </button>
+                        <div class="toolbar-select-wrapper">
+                            <select class="filter-select" id="filterResponsavel" style="display: none;">
+                                <option value="">Filtrar responsável</option>
+                            </select>
+                            <div class="custom-dropdown" id="dropdownFilterResponsavel">
+                                <button type="button" class="custom-dropdown-btn">
+                                    <span class="custom-dropdown-label">Filtrar responsável</span>
+                                    <i class="ph ph-caret-down dropdown-arrow"></i>
+                                </button>
+                                <div class="custom-dropdown-menu"></div>
+                            </div>
+                        </div>
+                        <div class="toolbar-select-wrapper">
+                            <select class="filter-select" id="filterMeio" style="display: none;">
+                                <option value="">Filtrar por caminho</option>
+                            </select>
+                            <div class="custom-dropdown" id="dropdownFilterMeio">
+                                <button type="button" class="custom-dropdown-btn">
+                                    <span class="custom-dropdown-label">Filtrar por caminho</span>
+                                    <i class="ph ph-caret-down dropdown-arrow"></i>
+                                </button>
+                                <div class="custom-dropdown-menu"></div>
+                            </div>
+                        </div>
+
+                        <div class="custom-date-filter" id="btnDateFilter">
+                            <span class="date-filter-label-clean" id="dateFilterValue">Filtrar por data</span>
+                            <input type="text" id="filterDateRange" style="display: none;">
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Bulk Actions -->
@@ -234,81 +540,103 @@
                         <i class="ph ph-arrows-left-right"></i> Transferir Selecionados
                     </button>
                 </div>
-                <div class="header-actions" id="headerActionsAcessos" style="display: none;">
-                    <button class="btn-primary" id="btnNovoUsuario">
-                        <i class="ph ph-user-plus"></i>
-                        Novo Usuário
-                    </button>
-                </div>
-                <div class="header-actions" id="headerActionsGuias"
-                    style="display: none; justify-content: space-between;">
-                    <div style="display: flex; gap: 10px; align-items: center;">
+                <div class="header-actions header-actions-demandas-modern" id="headerActionsAcessos"
+                    style="display: none;">
+                    <div class="actions-group-left">
                         <div class="search-box">
-                            <input type="text" id="inputBuscarGuia" placeholder="Buscar...">
+                            <input type="text" id="inputBuscarUsuario" placeholder="Buscar">
                         </div>
-                        <select id="filterGuiaTipo" class="filter-select" style="width: 200px;">
-                            <option value="">Tipo (Todos)</option>
-                        </select>
-                        <button class="icon-btn" id="btnResetGuia" title="Reiniciar filtros" style="height: 38px;">
+                        <button class="action-toolbar-btn" id="btnNovoUsuario">
+                            Novo Usuário
+                        </button>
+                        <button class="action-toolbar-btn" id="btnGerenciarNiveisAcesso">
+                            Gerenciar acessos
+                        </button>
+                        <button class="icon-btn" id="btnResetAcessos" title="Reiniciar filtros">
                             <i class="ph ph-arrows-clockwise"></i>
                         </button>
                     </div>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <button class="btn-secondary"
-                            style="background-color: var(--bg-primary); border: 1px solid var(--border-color); padding: 0 15px; border-radius: 6px; color: var(--text-main); cursor: pointer; display: flex; align-items: center; gap: 8px; height: 38px;"
-                            id="btnGerenciarTiposGuia">
-                            <i class="ph ph-gear"></i> Gerenciar Tipos
-                        </button>
-                        <button class="btn-primary" id="btnNovoGuia" style="height: 38px;">
-                            <i class="ph ph-plus"></i> Nova Guia
-                        </button>
-                    </div>
-                </div>
-            
-                <div class="header-actions" id="headerActionsControle" style="display: none; justify-content: space-between;">
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <div class="search-box">
-                            <input type="text" id="inputBuscarControle" placeholder="Buscar...">
+                    <div class="actions-group-right">
+                        <div class="toolbar-select-wrapper">
+                            <div class="custom-dropdown" id="dropdownFilterNivelAcesso">
+                                <button type="button" class="custom-dropdown-btn">
+                                    <span class="custom-dropdown-label">Nível de acesso</span>
+                                    <i class="ph ph-caret-down dropdown-arrow"></i>
+                                </button>
+                                <div class="custom-dropdown-menu"></div>
+                            </div>
                         </div>
-                        <button class="icon-btn" id="btnResetControle" title="Reiniciar pesquisa"
-                            style="height: 38px;"><i class="ph ph-arrows-clockwise"></i></button>
-                        <button class="btn-submit" id="btnNovaOpcaoControle" style="height: 38px; padding: 0 15px;"><i
-                                class="ph ph-plus"></i></button>
-                        <button class="btn-secondary" id="btnLoteAssessoresControle" title="Adicionar em lote"
-                            style="display: none; height: 38px; padding: 0 15px;"><i class="ph ph-users"></i>
-                            Lote</button>
-                    </div>
-                    <div>
-                        <select class="filter-select" id="selectCategoriaControle" style="min-width: 200px;">
-                            <option value="responsaveis">Responsáveis</option>
-                            <option value="assessores">Assessores</option>
-                            <option value="meios">Meio</option>
-                            <option value="comQuem">Com quem</option>
+                        <select id="filterNivelAcesso" class="filter-select" style="display: none;">
+                            <option value="">Nível de acesso</option>
                         </select>
                     </div>
                 </div>
-                <div class="header-actions" id="headerActionsLogs" style="display: none; justify-content: space-between;">
-
-                    <div class="left-actions" style="display: flex; gap: 15px; align-items: center;">
+                <div class="header-actions header-actions-demandas-modern" id="headerActionsGuias"
+                    style="display: none;">
+                    <div class="actions-group-left">
                         <div class="search-box">
-                            <input type="text" id="inputBuscarLogs" placeholder="Buscar...">
+                            <input type="text" id="inputBuscarGuia" placeholder="Buscar">
                         </div>
-                        <div class="custom-date-filter" id="btnDateFilterLogs">
-                            <i class="ph ph-calendar-blank"></i>
-                            <div class="date-filter-text">
-                                <span class="date-filter-label">Data de solicitação</span>
-                                <span class="date-filter-value" id="dateFilterValueLogs">Período...</span>
+                        <button class="action-toolbar-btn" id="btnNovoGuia">
+                            Novo tutorial
+                        </button>
+                        <button class="action-toolbar-btn" id="btnGerenciarTiposGuia">
+                            Gerenciar grupos
+                        </button>
+                        <button class="icon-btn" id="btnResetGuia" title="Reiniciar filtros">
+                            <i class="ph ph-arrows-clockwise"></i>
+                        </button>
+                    </div>
+                    <div class="actions-group-right">
+                        <div class="toolbar-select-wrapper">
+                            <div class="custom-dropdown" id="dropdownFilterGuiaTipo">
+                                <button type="button" class="custom-dropdown-btn">
+                                    <span class="custom-dropdown-label">Grupo</span>
+                                    <i class="ph ph-caret-down dropdown-arrow"></i>
+                                </button>
+                                <div class="custom-dropdown-menu"></div>
                             </div>
-                            <input type="text" id="filterDateRangeLogs" style="display: none;">
                         </div>
-                        <button class="icon-btn" id="btnResetLogs" title="Reiniciar filtros"><i
-                                class="ph ph-arrows-clockwise"></i></button>
+                        <select id="filterGuiaTipo" class="filter-select" style="display: none;">
+                            <option value="">Grupo</option>
+                        </select>
                     </div>
-
-                    <div class="right-actions" style="display: flex; gap: 15px; align-items: center;">
-                        <!-- Right actions (empty for now) -->
+                </div>
+                <div class="header-actions header-actions-demandas-modern" id="headerActionsControle"
+                    style="display: none;">
+                    <div class="actions-group-left">
+                        <div class="search-box">
+                            <input type="text" id="inputBuscarControle" placeholder="Buscar">
+                        </div>
+                        <button class="action-toolbar-btn" id="btnNovaOpcaoControle">
+                            Novo responsável
+                        </button>
+                        <button class="action-toolbar-btn" id="btnLoteAssessoresControle" title="Adicionar em lote"
+                            style="display: none;">
+                            <i class="ph ph-users"></i> Lote
+                        </button>
+                        <button class="icon-btn" id="btnResetControle" title="Reiniciar pesquisa">
+                            <i class="ph ph-arrows-clockwise"></i>
+                        </button>
                     </div>
-                
+                    <div class="actions-group-right">
+                        <div class="toolbar-select-wrapper">
+                            <select class="filter-select" id="selectCategoriaControle" style="display: none;">
+                                <option value="responsaveis">Responsáveis</option>
+                                <option value="assessores">Assessores</option>
+                                <option value="meios">Caminho</option>
+                                <option value="comQuem">Com a/o</option>
+                            </select>
+                            <div class="custom-dropdown" id="dropdownSelectCategoriaControle">
+                                <button type="button" class="custom-dropdown-btn">
+                                    <span class="custom-dropdown-label">Responsáveis</span>
+                                    <i class="ph ph-caret-down dropdown-arrow"></i>
+                                </button>
+                                <div class="custom-dropdown-menu"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="bulk-actions" id="bulkActionsContainerControle"
                     style="display: none; align-items: center; gap: 10px;">
                     <span style="font-size: 14px; font-weight: 500;"><span id="bulkSelectedCountControle">0</span>
@@ -319,36 +647,59 @@
                         <i class="ph ph-trash"></i> Excluir Selecionados
                     </button>
                 </div>
-                <div class="bulk-actions" id="bulkActionsLogs" style="display: none; align-items: center; gap: 10px;">
-                    <span style="font-size: 14px; font-weight: 500;"><span id="bulkSelectedCountLogs">0</span>
-                        selecionados</span>
-                    <button class="btn-cancel" id="btnCancelBulkLogs"
-                        style="padding: 6px 12px; font-size: 13px;">Cancelar</button>
-                    <button class="btn-danger" id="btnBulkExcluirLogs">
-                        <i class="ph ph-trash"></i> Excluir Selecionados
-                    </button>
+                <!-- Header Actions Lembretes -->
+                <div class="header-actions header-actions-demandas-modern" id="headerActionsLembretes" style="display: none;">
+                    <div class="actions-group-left">
+                        <div class="search-box">
+                            <input type="text" id="inputBuscarLembrete" placeholder="Buscar">
+                        </div>
+                        <button class="action-toolbar-btn" id="btnNovoLembrete">
+                            Novo lembrete
+                        </button>
+                        <button class="icon-btn" id="btnResetLembrete" title="Reiniciar filtros">
+                            <i class="ph ph-arrows-clockwise"></i>
+                        </button>
+                    </div>
                 </div>
-            
-                
-</header>
+
+                <!-- Header Actions Notificações -->
+                <div class="header-actions header-actions-demandas-modern" id="headerActionsNotificacoes" style="display: none;">
+                    <div class="actions-group-left">
+                        <div class="search-box">
+                            <input type="text" id="inputBuscarNotificacao" placeholder="Buscar">
+                        </div>
+                        <button class="action-toolbar-btn" id="btnLimparTodasNotificacoes" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">
+                            Limpar Notificações
+                        </button>
+                        <button class="icon-btn" id="btnResetNotificacoes" title="Reiniciar pesquisa">
+                            <i class="ph ph-arrows-clockwise"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Header Actions Configurações -->
+                <div class="header-actions header-actions-demandas-modern" id="headerActionsConfiguracoes" style="display: none;">
+                    <div class="actions-group-left"></div>
+                </div>
+            </header>
 
             <!-- Table Container: Demandas Abertas -->
             <div class="table-container" id="viewAbertas">
                 <table class="demand-table">
                     <thead>
                         <tr>
-                            <th style="width: 40px; text-align: center;"><input type="checkbox"
+                            <th style="width: 44px; text-align: center;"><input type="checkbox"
                                     class="select-all-checkbox"></th>
-                            <th data-col="responsavel">Responsável <i class="ph ph-caret-up-down"></i></th>
-                            <th data-col="assessor">Assessor <i class="ph ph-caret-up-down"></i></th>
-                            <th data-col="cliente">Cliente <i class="ph ph-caret-up-down"></i></th>
-                            <th data-col="demanda">Demanda <i class="ph ph-caret-up-down"></i></th>
-                            <th data-col="meio">Meio <i class="ph ph-caret-up-down"></i></th>
-                            <th data-col="protocolo">Protocolo <i class="ph ph-caret-up-down"></i></th>
-                            <th data-col="comentarios">COMENTÁRIOS</th>
-                            <th data-col="comQuem">COM QUEM?</th>
-                            <th data-col="data">Data <i class="ph ph-caret-up-down"></i></th>
-                            <th>AÇÕES</th>
+                            <th data-col="responsavel" style="text-align: center;">Responsável <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="assessor" style="text-align: center;">Assessor <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="cliente" style="text-align: center;">Cliente <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="demanda" style="text-align: center;">Demanda <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="meio" style="text-align: center;">Caminho <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="protocolo" style="text-align: center;">Protocolo <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="comentarios">Comentários <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="comQuem" style="text-align: center;">Com a/o <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="data" style="text-align: center;">Data <i class="ph ph-arrows-down-up"></i></th>
+                            <th style="text-align: center;">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="demandTableBody">
@@ -363,18 +714,18 @@
                 <table class="demand-table">
                     <thead>
                         <tr>
-                            <th style="width: 40px; text-align: center;"><input type="checkbox"
+                            <th style="width: 44px; text-align: center;"><input type="checkbox"
                                     class="select-all-checkbox"></th>
-                            <th data-col="responsavel">Responsável <i class="ph ph-caret-up-down"></i></th>
-                            <th data-col="assessor">Assessor <i class="ph ph-caret-up-down"></i></th>
-                            <th data-col="cliente">Cliente <i class="ph ph-caret-up-down"></i></th>
-                            <th data-col="demanda">Demanda <i class="ph ph-caret-up-down"></i></th>
-                            <th data-col="meio">Meio <i class="ph ph-caret-up-down"></i></th>
-                            <th data-col="protocolo">Protocolo <i class="ph ph-caret-up-down"></i></th>
-                            <th data-col="comentarios">COMENTÁRIOS</th>
-                            <th data-col="data">Data <i class="ph ph-caret-up-down"></i></th>
-                            <th data-col="dataEncerramento">Data Enc. <i class="ph ph-caret-up-down"></i></th>
-                            <th>AÇÕES</th>
+                            <th data-col="responsavel" style="text-align: center;">Responsável <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="assessor" style="text-align: center;">Assessor <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="cliente" style="text-align: center;">Cliente <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="demanda" style="text-align: center;">Demanda <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="meio" style="text-align: center;">Caminho <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="protocolo" style="text-align: center;">Protocolo <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="comentarios">Comentários <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="data" style="text-align: center;">Data <i class="ph ph-arrows-down-up"></i></th>
+                            <th data-col="dataEncerramento" style="text-align: center;">Data Enc. <i class="ph ph-arrows-down-up"></i></th>
+                            <th style="text-align: center;">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="historicoTableBody">
@@ -386,25 +737,25 @@
 
             <!-- Container Controle -->
             <div class="controle-container table-container" id="viewControle" style="display: none;">
-                
+
 
                 <table class="demand-table">
                     <thead>
                         <tr>
                             <th id="thCheckboxControle" style="width: 40px; text-align: center; display: none;"><input
                                     type="checkbox" id="selectAllControle"></th>
-                            <th>NOME</th>
-                            <th id="thCorControle">COR</th>
-                            <th>DATA CRIADO</th>
-                            <th>DATA ATUALIZADO</th>
-                            <th width="100">AÇÕES</th>
+                            <th style="text-align: center;">NOME</th>
+                            <th id="thCorControle" style="text-align: center;">COR</th>
+                            <th style="text-align: center;">DATA DE CRIAÇÃO</th>
+                            <th style="text-align: center;">ÚLTIMA ATUALIZAÇÃO</th>
+                            <th style="text-align: center;">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="controleTableBody">
                         <!-- Linhas geradas via JS -->
                     </tbody>
                 </table>
-                <div id="paginationLogsContainer" class="pagination-container"></div>
+                <div id="paginationControleContainer" class="pagination-container"></div>
             </div>
 
             <!-- Container Acessos -->
@@ -415,34 +766,10 @@
                             <th>NOME</th>
                             <th>E-MAIL</th>
                             <th>NÍVEL DE ACESSO</th>
-                            <th>AÇÕES</th>
+                            <th style="text-align: center;">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="acessosTableBody">
-                        <!-- Linhas geradas via JS -->
-                    </tbody>
-                </table>
-                <div id="paginationControleContainer" class="pagination-container"></div>
-            </div>
-
-            <!-- Container Log de Ações -->
-            
-            
-<div class="table-container" id="viewLog" style="display: none;">
-                
-                <table class="demand-table">
-                    <thead>
-                        <tr>
-                            <th width="40">
-                                <input type="checkbox" id="selectAllLogs" class="select-all-checkbox">
-                            </th>
-                            <th>USUÁRIO</th>
-                            <th>AÇÃO</th>
-                            <th>DESCRIÇÃO</th>
-                            <th>DATA</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logTableBody">
                         <!-- Linhas geradas via JS -->
                     </tbody>
                 </table>
@@ -450,18 +777,18 @@
             </div>
 
             <!-- Container Guia / XP -->
-            <div class="table-container" id="viewAjuda" style="display: none; margin-top: 15px;">
+            <div class="table-container" id="viewAjuda" style="display: none;">
 
 
                 <table class="demand-table">
                     <thead>
                         <tr>
-                            <th>Descrição</th>
-                            <th>Tipo</th>
-                            <th>Autor</th>
-                            <th>Data de criação</th>
-                            <th>Última atualização</th>
-                            <th>Ações</th>
+                            <th style="text-align: center;">Nome</th>
+                            <th style="text-align: center;">Grupo</th>
+                            <th style="text-align: center;">Autor</th>
+                            <th style="text-align: center;">Data de criação</th>
+                            <th style="text-align: center;">Última atualização</th>
+                            <th style="text-align: center;">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="guiaTableBody">
@@ -471,10 +798,389 @@
                 <div id="paginationGuiaContainer" class="pagination-container"></div>
             </div>
 
-            <!-- View Configurações -->
-              </div>
+            <!-- Container Lembretes -->
+            <div class="table-container" id="viewLembretes" style="display: none;">
+                <table class="demand-table">
+                    <thead>
+                        <tr>
+                            <th>LEMBRETE</th>
+                            <th>DATA E HORA DO ALERTA</th>
+                            <th width="120" style="text-align: center;">STATUS</th>
+                            <th width="140">DATA DO LEMBRETE</th>
+                            <th style="text-align: right; padding-right: 20px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lembretesTableBody">
+                        <!-- Linhas geradas via JS -->
+                    </tbody>
+                </table>
+                <div id="paginationLembretesContainer" class="pagination-container"></div>
+            </div>
+
+            <!-- Container Notificações -->
+            <div class="table-container" id="viewNotificacoes" style="display: none;">
+                <table class="demand-table">
+                    <thead>
+                        <tr>
+                            <th width="160">DATA</th>
+                            <th>NOTIFICAÇÃO</th>
+                            <th width="140" style="text-align: center;">PÁGINA</th>
+                            <th style="text-align: right; padding-right: 20px;">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="notificacoesTableBody">
+                        <!-- Linhas geradas via JS -->
+                    </tbody>
+                </table>
+                <div id="paginationNotificacoesContainer" class="pagination-container"></div>
+            </div>
+
+            <!-- Container Configurações -->
+            <div class="table-container" id="viewConfiguracoes" style="display: none; padding: 25px; background: var(--bg-primary); border-radius: 12px; border: 1px solid var(--border-color);">
+                <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
+
+                    <!-- Card 1: Aparência & Tema -->
+                    <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; padding: 22px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="ph ph-paint-brush" style="font-size: 22px; color: #f59e0b;"></i>
+                                <h3 style="font-size: 16px; font-weight: 600; color: var(--text-main); margin: 0;">Aparência & Tema</h3>
+                            </div>
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-sidebar); margin: 0 0 16px 0;">Selecione o modo de exibição do painel entre o tema claro e o tema escuro.</p>
+
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 14px 18px; border-radius: 10px; border: 1px solid var(--border-color);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <i id="themeToggleIcon" class="ph ph-moon" style="font-size: 22px; color: #8b5cf6;"></i>
+                                <div>
+                                    <div id="themeToggleText" style="font-size: 14px; font-weight: 600; color: var(--text-main);">Modo Escuro</div>
+                                    <div id="themeToggleSubtext" style="font-size: 12px; color: var(--text-sidebar);">Tema com alto contraste visual e tons escuros</div>
+                                </div>
+                            </div>
+                            <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer; margin: 0;">
+                                <input type="checkbox" id="themeToggleCheckbox" style="opacity: 0; width: 0; height: 0;">
+                                <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #374151; transition: .3s; border-radius: 28px; border: 1px solid var(--border-color);">
+                                    <span id="themeToggleKnob" style="position: absolute; height: 22px; width: 22px; left: 3px; bottom: 2px; background-color: #ffffff; transition: .3s; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                        <i id="themeToggleKnobIcon" class="ph ph-moon" style="font-size: 13px; color: #6d28d9;"></i>
+                                    </span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Limite de linhas -->
+                    <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; padding: 22px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="ph ph-list-numbers" style="font-size: 22px; color: #8b5cf6;"></i>
+                                <h3 style="font-size: 16px; font-weight: 600; color: var(--text-main); margin: 0;">Limite de linhas</h3>
+                            </div>
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-sidebar); margin: 0 0 16px 0;">Configure a quantidade máxima de registros exibidos por página antes que uma nova página seja criada.</p>
+
+                        <div style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;">
+                            <table class="demand-table">
+                                <thead>
+                                    <tr>
+                                        <th>PÁGINA / MÓDULO</th>
+                                        <th style="text-align: center; width: 220px;">LIMITE ATUAL (LINHAS/PÁG)</th>
+                                        <th style="text-align: center; width: 120px;">AÇÃO</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="limiteLinhasTableBody">
+                                    <!-- Renderizado via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Som das notificações -->
+                    <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; padding: 22px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="ph ph-speaker-high" style="font-size: 22px; color: #10b981;"></i>
+                                <h3 style="font-size: 16px; font-weight: 600; color: var(--text-main); margin: 0;">Som das notificações</h3>
+                            </div>
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-sidebar); margin: 0 0 16px 0;">Ajuste o volume das notificações e selecione o som de sua preferência.</p>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;">
+                            <!-- Volume Slider -->
+                            <div style="display: flex; flex-direction: column; justify-content: center;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; height: 20px; margin-bottom: 8px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Volume do Som</span>
+                                    <span id="soundVolumeLabel" style="color: #8b5cf6; font-weight: 700; font-size: 13px;">100%</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px; height: 38px;">
+                                    <i class="ph ph-speaker-none" style="font-size: 18px; color: var(--text-sidebar);"></i>
+                                    <input type="range" id="inputSoundVolume" class="volume-range-slider" min="0" max="100" value="100" style="flex: 1; accent-color: #8b5cf6; cursor: pointer; height: 6px;">
+                                    <i class="ph ph-speaker-high" style="font-size: 18px; color: var(--text-sidebar);"></i>
+                                </div>
+                            </div>
+
+                            <!-- Tone Custom Dropdown & Play Button -->
+                            <div style="display: flex; flex-direction: column; justify-content: center;">
+                                <div style="display: flex; align-items: center; height: 20px; margin-bottom: 8px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Tom do áudio</span>
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center; height: 38px;">
+                                    <select id="selectSoundTone" style="display: none;">
+                                        <option value="padrao">1. Padrão (Suave)</option>
+                                        <option value="sino">2. Sino (Bell)</option>
+                                        <option value="chime">3. Chime Pop</option>
+                                        <option value="beep">4. Digital Beep</option>
+                                        <option value="harpa">5. Harpa (Harp)</option>
+                                        <option value="slack">6. Slack Knock</option>
+                                        <option value="teams">7. Teams Bubble</option>
+                                        <option value="whatsapp">8. WhatsApp Note</option>
+                                        <option value="telegram">9. Telegram Ping</option>
+                                        <option value="discord">10. Discord Deafen</option>
+                                        <option value="skype">11. Skype Glass</option>
+                                        <option value="iphone">12. iPhone Tri-Tone</option>
+                                        <option value="windows">13. Windows Crystal</option>
+                                        <option value="mario">14. 8-Bit Mario Coin</option>
+                                        <option value="zelda">15. 8-Bit Zelda Secret</option>
+                                        <option value="cristal">16. Cristal Shimmer</option>
+                                        <option value="radar">17. Sonar Radar Ping</option>
+                                        <option value="suave">18. Gotas de Chuva</option>
+                                        <option value="alerta">19. Alerta Rápido</option>
+                                        <option value="sucesso">20. Fanfarra Vitória</option>
+                                        <option value="laser_scifi">21. Laser Sci-Fi</option>
+                                        <option value="gota_dagua">22. Gota D'água</option>
+                                        <option value="moeda_retro">23. Moeda Retro 8-Bit</option>
+                                        <option value="bolha_sabao">24. Bolha de Sabão</option>
+                                        <option value="trompete_curto">25. Trompete Curto</option>
+                                        <option value="apito_esportivo">26. Apito Esportivo</option>
+                                        <option value="estalo_cristal">27. Estalo de Cristal</option>
+                                        <option value="sinos_vento">28. Sinos de Vento</option>
+                                        <option value="nivel_up">29. Nível Up Arcade</option>
+                                        <option value="robo_bip">30. Robô Bip</option>
+                                        <option value="passaro">31. Pássaro Cantando</option>
+                                        <option value="pulo_game">32. Pulo de Videogame</option>
+                                        <option value="alerta_nuclear">33. Alerta Nuclear</option>
+                                        <option value="telefone_retro">34. Telefone Retro</option>
+                                        <option value="caixa_registradora">35. Caixa Registradora</option>
+                                        <option value="sineta_mesa">36. Sineta de Mesa</option>
+                                        <option value="vibrafone_jazz">37. Vibrafone Jazz</option>
+                                        <option value="guitarra_rock">38. Guitarra Rock</option>
+                                        <option value="magia_mistica">39. Magia Mística</option>
+                                        <option value="espada_laser">40. Espada Laser</option>
+                                        <option value="cuco_curto">41. Relógio Cuco Curto</option>
+                                        <option value="notif_cosmica">42. Notificação Cósmica</option>
+                                        <option value="bip_espacial">43. Bip Espacial</option>
+                                        <option value="palmas_vitoria">44. Palmas Vitória</option>
+                                        <option value="gongo_oriental">45. Gongo Oriental</option>
+                                        <option value="xilofone_divertido">46. Xilofone Divertido</option>
+                                        <option value="sirene_curta">47. Sirene Polícia Curta</option>
+                                        <option value="snare_rim">48. Bateria Snare Rim</option>
+                                        <option value="acorde_harpa">49. Acorde de Harpa</option>
+                                        <option value="vitoria_epica">50. Vitória Épica</option>
+                                    </select>
+                                    <div class="custom-dropdown dropdown-dropup" id="dropdownSelectSoundTone" style="flex: 1;">
+                                        <button type="button" class="custom-dropdown-btn" style="height: 38px; width: 100%;">
+                                            <span class="custom-dropdown-label">1. Padrão (Suave)</span>
+                                            <i class="ph ph-caret-down dropdown-arrow"></i>
+                                        </button>
+                                        <div class="custom-dropdown-menu"></div>
+                                    </div>
+                                    <button type="button" id="btnTestSound" class="btn-sound-play" title="Testar / Parar Som" style="height: 38px; width: 38px; padding: 0; flex-shrink: 0;">
+                                        <i class="ph ph-play" style="font-size: 15px;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Som dos lembretes -->
+                    <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; padding: 22px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="ph ph-bell-ringing" style="font-size: 22px; color: #f59e0b;"></i>
+                                <h3 style="font-size: 16px; font-weight: 600; color: var(--text-main); margin: 0;">Som dos lembretes</h3>
+                            </div>
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-sidebar); margin: 0 0 16px 0;">Ajuste o volume dos lembretes e selecione o som de sua preferência.</p>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;">
+                            <!-- Volume Slider -->
+                            <div style="display: flex; flex-direction: column; justify-content: center;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; height: 20px; margin-bottom: 8px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Volume do Alarme</span>
+                                    <span id="soundLembreteVolumeLabel" style="color: #f59e0b; font-weight: 700; font-size: 13px;">100%</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px; height: 38px;">
+                                    <i class="ph ph-speaker-none" style="font-size: 18px; color: var(--text-sidebar);"></i>
+                                    <input type="range" id="inputLembreteSoundVolume" class="volume-range-slider" min="0" max="100" value="100" style="flex: 1; accent-color: #f59e0b; cursor: pointer; height: 6px;">
+                                    <i class="ph ph-speaker-high" style="font-size: 18px; color: var(--text-sidebar);"></i>
+                                </div>
+                            </div>
+
+                            <!-- Tone Custom Dropdown & Play Button -->
+                            <div style="display: flex; flex-direction: column; justify-content: center;">
+                                <div style="display: flex; align-items: center; height: 20px; margin-bottom: 8px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Tom do alarme</span>
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center; height: 38px;">
+                                    <select id="selectLembreteSoundTone" style="display: none;">
+                                        <option value="alarme_despertador">1. Alarme Despertador (~7.5s)</option>
+                                        <option value="sirene_suave">2. Sirene Suave (~7.5s)</option>
+                                        <option value="melodia_tranquila">3. Melodia Tranquila (~8s)</option>
+                                        <option value="pulso_digital">4. Pulso Digital (~7.5s)</option>
+                                        <option value="orquestra_sino">5. Orquestra de Sinos (~8s)</option>
+                                        <option value="relogio_cucu">6. Relógio Cazu / Cuckoo (~7s)</option>
+                                        <option value="synthwave_80s">7. Synthwave 80s (~8.5s)</option>
+                                        <option value="despertador_digital">8. Despertador Vintage (~7.5s)</option>
+                                        <option value="caixinha_musica">9. Caixinha de Música (~8s)</option>
+                                        <option value="marimba_pop">10. Marimba Pop (~7.5s)</option>
+                                        <option value="zen_gong">11. Meditação Zen Gong (~8.5s)</option>
+                                        <option value="game_over_8bit">12. Arcade 8-Bit Theme (~7.5s)</option>
+                                        <option value="trompete_alvorada">13. Fanfarra de Alvorada (~7.5s)</option>
+                                        <option value="sirene_emergencia">14. Sirene Industrial (~7s)</option>
+                                        <option value="piano_classico">15. Piano Clássico (~8s)</option>
+                                        <option value="cosmico_sci_fi">16. Pulso Cósmico Sci-Fi (~8s)</option>
+                                        <option value="flauta_magica">17. Flauta Mágica (~7.5s)</option>
+                                        <option value="bateria_ritmo">18. Batida Rítmica Groove (~7.5s)</option>
+                                        <option value="balada_violao">19. Violão Suave (~8s)</option>
+                                        <option value="galaxia_neon">20. Galáxia Neon (~8.5s)</option>
+                                        <option value="despertador_galactico">21. Despertador Galáctico (~7.5s)</option>
+                                        <option value="ritmo_samba">22. Ritmo Samba Percussão (~8s)</option>
+                                        <option value="sirene_bombeiro">23. Sirene de Bombeiro (~7.5s)</option>
+                                        <option value="fanfarra_circo">24. Fanfarra de Circo (~8s)</option>
+                                        <option value="synth_cyberpunk">25. Sintetizador Cyberpunk (~8.5s)</option>
+                                        <option value="sinos_catedral">26. Sinos de Catedral (~8s)</option>
+                                        <option value="caixinha_caverna">27. Caixinha Caverna Mística (~8s)</option>
+                                        <option value="alarme_neon">28. Alarme Digital Neon (~7.5s)</option>
+                                        <option value="marcha_vitoria">29. Marcha Vitória Trumpet (~8s)</option>
+                                        <option value="relogio_pendulo">30. Relógio de Pêndulo (~7.5s)</option>
+                                        <option value="bateria_rock">31. Bateria Rock Groove (~7.5s)</option>
+                                        <option value="flauta_andes">32. Flauta dos Andes (~8.5s)</option>
+                                        <option value="radar_espacial">33. Pulso Espacial Radar (~7.5s)</option>
+                                        <option value="despertador_galo">34. Despertador Galo Synth (~7s)</option>
+                                        <option value="jazz_bebop">35. Jazz Bebop Brass (~8s)</option>
+                                        <option value="chuva_trovao">36. Chuva & Trovão Ambient (~8.5s)</option>
+                                        <option value="arcade_hero">37. Arcade Pac-Hero 8-Bit (~7.5s)</option>
+                                        <option value="violoncelo_suave">38. Melodia Violoncelo (~8s)</option>
+                                        <option value="trompete_regimento">39. Trompete de Regimento (~7.5s)</option>
+                                        <option value="carillon_sinos">40. Carillon de Sinos (~8s)</option>
+                                        <option value="emergencia_submarino">41. Alarme Submarino (~7s)</option>
+                                        <option value="bossa_nova">42. Bossa Nova Chime (~8.5s)</option>
+                                        <option value="synth_funk">43. Synth Funk Bass Riff (~8s)</option>
+                                        <option value="sinos_tibetanos">44. Sinos Tibetanos (~8.5s)</option>
+                                        <option value="chefe_8bit">45. Oito Bits Chefe Final (~7.5s)</option>
+                                        <option value="orgao_majestoso">46. Acorde Órgão Majestoso (~8s)</option>
+                                        <option value="trem_vapor">47. Apito Trem a Vapor (~7.5s)</option>
+                                        <option value="harpa_celestial">48. Harpa Celestial (~8.5s)</option>
+                                        <option value="sirene_scifi">49. Sirene Futurista Sci-Fi (~7.5s)</option>
+                                        <option value="sinfonia_alegre">50. Sinfonia Alegre (~8s)</option>
+                                    </select>
+                                    <div class="custom-dropdown dropdown-dropup" id="dropdownSelectLembreteSoundTone" style="flex: 1;">
+                                        <button type="button" class="custom-dropdown-btn" style="height: 38px; width: 100%;">
+                                            <span class="custom-dropdown-label">1. Alarme Despertador (~7.5s)</span>
+                                            <i class="ph ph-caret-down dropdown-arrow"></i>
+                                        </button>
+                                        <div class="custom-dropdown-menu"></div>
+                                    </div>
+                                    <button type="button" id="btnTestLembreteSound" class="btn-sound-play" title="Testar / Parar Som" style="height: 38px; width: 38px; padding: 0; flex-shrink: 0;">
+                                        <i class="ph ph-play" style="font-size: 15px;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         </main>
+    </div>
+
+    <!-- Modal Novo / Editar Lembrete -->
+    <div class="modal-overlay" id="modalNovoLembrete">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <h2 id="modalLembreteTitle">Novo Lembrete</h2>
+                <button class="close-modal" id="btnCloseLembrete"><i class="ph ph-x"></i></button>
+            </div>
+
+            <form id="formLembrete">
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="inputLembreteTitulo">Título / Lembrete *</label>
+                        <input type="text" id="inputLembreteTitulo" required placeholder="Digite o título ou lembrete...">
+                    </div>
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label for="inputLembreteData">Data *</label>
+                        <input type="text" id="inputLembreteData" class="form-control" required placeholder="Selecione a data">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputLembreteHora">Hora *</label>
+                        <input type="text" id="inputLembreteHora" class="form-control" required placeholder="Selecione a hora">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="inputLembreteDescricao">Descrição *</label>
+                        <textarea id="inputLembreteDescricao" rows="3" required placeholder="Digite a descrição..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="btnCancelLembrete">Cancelar</button>
+                    <button type="submit" class="btn-submit">Salvar Lembrete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Pop-up Alerta Lembrete (com desfoque de tela) -->
+    <div class="modal-overlay modal-backdrop-blur" id="modalAlertaLembrete" style="z-index: 10000;">
+        <div class="modal-content" style="max-width: 440px; text-align: center; border: 1px solid rgba(245, 158, 11, 0.4); box-shadow: 0 0 40px rgba(245, 158, 11, 0.25); padding: 28px;">
+            <div style="margin-bottom: 16px;">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); border: 2px solid #f59e0b; display: inline-flex; align-items: center; justify-content: center; animation: soundPulseGlow 1.5s infinite;">
+                    <i class="ph ph-bell-ringing" style="font-size: 28px; color: #f59e0b;"></i>
+                </div>
+            </div>
+
+            <h2 id="modalAlertaLembreteTitulo" style="font-size: 20px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Título do Lembrete</h2>
+
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.06); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border-color); font-size: 13px; color: #fcd34d; font-weight: 600; margin-bottom: 16px;">
+                <i class="ph ph-clock"></i>
+                <span id="modalAlertaLembreteDataHora">--/--/---- às --:--</span>
+            </div>
+
+            <div id="modalAlertaLembreteDescricao" style="font-size: 13px; color: var(--text-sidebar); margin: 0 0 24px 0; max-height: 120px; overflow-y: auto; text-align: left; background: var(--bg-card); padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border-color); line-height: 1.5; word-break: break-word;">
+                Descrição do lembrete...
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <button type="button" class="btn-secondary" id="btnAdiarLembreteAlerta" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; font-weight: 600; border-color: rgba(245, 158, 11, 0.4); color: #f59e0b;">
+                    <i class="ph ph-clock-afternoon" style="font-size: 18px;"></i> Adiar (+5 min)
+                </button>
+                <button type="button" class="btn-submit" id="btnConcluirLembreteAlerta" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; font-weight: 600; background: #10b981; border-color: #059669; color: #ffffff;">
+                    <i class="ph ph-check-circle" style="font-size: 18px;"></i> Concluir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Excluir Lembrete -->
+    <div class="modal-overlay" id="modalExcluirLembrete">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Excluir Lembrete</h2>
+                <button class="close-modal" id="btnCloseExcluirLembrete"><i class="ph ph-x"></i></button>
+            </div>
+            <div style="text-align: center; margin: 20px 0; color: var(--text-sidebar);">
+                <p id="textExcluirLembrete">Tem certeza que deseja excluir este lembrete?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="btnCancelExcluirLembrete">Cancelar</button>
+                <button type="button" class="btn-danger" id="btnConfirmExcluirLembrete" style="background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2);">Excluir</button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Nova/Editar Demanda -->
@@ -485,10 +1191,10 @@
                 <button class="close-modal" id="btnCloseModal"><i class="ph ph-x"></i></button>
             </div>
 
-            <form id="formNovaDemanda">
+            <form id="formNovaDemanda" novalidate>
                 <div class="form-row">
                     <div class="form-group full-width">
-                        <label>Responsável</label>
+                        <label>Responsável *</label>
                         <select id="inputResponsavel" required>
                             <option value="">Selecione</option>
                         </select>
@@ -497,7 +1203,7 @@
 
                 <div class="form-row">
                     <div class="form-group full-width">
-                        <label>Assessor</label>
+                        <label>Assessor *</label>
                         <select id="inputAssessor" required>
                             <option value="">Selecione</option>
                         </select>
@@ -506,15 +1212,15 @@
 
                 <div class="form-row">
                     <div class="form-group full-width">
-                        <label>Cliente ou Prospect</label>
+                        <label>Cliente ou Prospect *</label>
                         <input type="text" id="inputCliente" placeholder="ID ou nome" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group full-width">
-                        <label>Protocolo</label>
-                        <input type="text" id="inputProtocolo" placeholder="Nº do protocolo">
+                        <label>Protocolo *</label>
+                        <input type="text" id="inputProtocolo" placeholder="Nº do protocolo" required>
                     </div>
                 </div>
 
@@ -527,14 +1233,14 @@
 
                 <div class="form-row center-row">
                     <div class="form-group">
-                        <label>Meio</label>
-                        <select id="inputMeio">
+                        <label>Caminho *</label>
+                        <select id="inputMeio" required>
                             <option value="">Selecione</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Demanda com quem?</label>
-                        <select id="inputComQuem">
+                        <label>Com a/o *</label>
+                        <select id="inputComQuem" required>
                             <option value="">Selecione</option>
                             <option value="XP">XP</option>
                             <option value="Cliente">Cliente</option>
@@ -543,7 +1249,7 @@
                     </div>
                     <div class="form-group">
                         <label>Data</label>
-                        <input type="date" id="inputData" required>
+                        <input type="text" id="inputData" placeholder="Selecione a data">
                     </div>
                 </div>
 
@@ -563,17 +1269,7 @@
     </div>
 
 
-    <!-- Modal Excluir Log -->
-    <div class="modal-overlay" id="modalExcluirLog">
-        <div class="modal-content modal-sm text-center">
-            <h3 class="modal-title-center" id="modalDeleteLogTitle">Excluir registro</h3>
-            <p class="modal-text" id="modalDeleteLogText">Você tem certeza que quer deletar este registro?</p>
-            <div class="modal-footer-center">
-                <button type="button" class="btn-secondary" id="btnCancelDeleteLog">Não</button>
-                <button type="button" class="btn-danger" id="btnConfirmDeleteLog">Sim</button>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Modal Excluir -->
     <div class="modal-overlay" id="modalExcluirDemanda">
@@ -646,7 +1342,7 @@
                     <input type="hidden" id="colorEditarOpcao" value="#8b5cf6">
                 </div>
             </div>
-            <div class="modal-footer" style="justify-content: flex-end;">
+            <div class="modal-footer">
                 <button type="button" class="btn-secondary" id="btnCancelEditarOpcao">Cancelar</button>
                 <button type="button" class="btn-submit" id="btnConfirmEditarOpcao">Salvar</button>
             </div>
@@ -707,10 +1403,12 @@
             <form id="formLoteAssessores">
                 <div class="form-row">
                     <div class="form-group full-width">
-                        <label>Cole a lista de assessores (um por linha)</label>
+                        <label
+                            style="text-align: center; display: block; width: 100%; font-weight: 500; margin-bottom: 12px; font-size: 14px; color: var(--text-main);">Cole
+                            a lista de assessores (um por linha)</label>
                         <textarea id="inputListaAssessores" rows="10"
                             placeholder="Exemplo:&#10;João Silva&#10;Maria Souza&#10;Carlos Oliveira..." required
-                            style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); outline: none; resize: vertical; font-family: inherit; font-size: 14px;"></textarea>
+                            style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); outline: none; resize: none; font-family: inherit; font-size: 14px;"></textarea>
                     </div>
                 </div>
 
@@ -723,27 +1421,134 @@
     </div>
 
 
-    <!-- Modal Gerenciar Tipos (Guia) -->
-    <div class="modal-overlay" id="modalGerenciarTiposGuia">
+    <!-- Modal Gerenciar Níveis de Acesso -->
+    <div class="modal-overlay" id="modalGerenciarNiveisAcesso">
         <div class="modal-content modal-md">
-            <h2 class="modal-title">Gerenciar Tipos de Guia</h2>
+            <div class="modal-header"
+                style="justify-content: center; position: relative; margin-bottom: 20px; border-bottom: none; padding-bottom: 0;">
+                <h2
+                    style="text-align: center; width: 100%; margin: 0; font-size: 20px; font-weight: 600; color: var(--text-main);">
+                    Gerenciador de acessos</h2>
+                <button class="close-modal" id="closeModalGerenciarNiveisAcesso"
+                    style="position: absolute; right: 0; top: 0;"><i class="ph ph-x"></i></button>
+            </div>
             <div style="margin-bottom: 20px;">
-                <p style="color: var(--text-sidebar); font-size: 14px; margin-bottom: 10px;">Abaixo estão os tipos
-                    disponíveis para as guias. Você pode editá-los ou excluí-los.</p>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="inputNovoTipoGuia" class="form-control" placeholder="Novo tipo..."
-                        style="flex: 1; padding: 8px 12px; height: 38px;">
-                    <button class="btn-primary" id="btnAdicionarTipoGuia" style="height: 38px; padding: 0 15px;"><i
-                            class="ph ph-plus"></i> Adicionar</button>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="inputNovoNivelAcesso" class="form-control"
+                        placeholder="Novo nível de acesso..."
+                        style="flex: 1; padding: 0 12px; height: 38px; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 13px; outline: none;">
+                    <button class="action-toolbar-btn" id="btnAdicionarNivelAcesso"
+                        style="height: 38px; padding: 0 16px; font-size: 13px;">Adicionar</button>
                 </div>
             </div>
 
-            <div class="table-container" style="max-height: 300px; overflow-y: auto;">
-                <table class="demand-table">
+            <div class="table-container"
+                style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--bg-primary);">
+                <table class="demand-table" style="width: 100%;">
                     <thead>
                         <tr>
-                            <th>TIPO</th>
-                            <th width="100">AÇÕES</th>
+                            <th style="word-break: break-word;">NÍVEL DE ACESSO</th>
+                            <th style="text-align: center; white-space: nowrap; width: 140px;">USUÁRIOS ATRIBUÍDOS</th>
+                            <th style="text-align: center; white-space: nowrap; width: 90px;">AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="niveisAcessoTableBody">
+                        <!-- Gerado via JS -->
+                    </tbody>
+                </table>
+                <div id="paginationNiveisAcessoContainer" class="pagination-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Nível de Acesso -->
+    <div class="modal-overlay" id="modalEditarNivelAcesso">
+        <div class="modal-content" style="max-width: 620px;">
+            <div class="modal-header">
+                <h2>Editar Nível de Acesso</h2>
+                <button class="close-modal" id="btnCloseEditarNivelAcesso"><i class="ph ph-x"></i></button>
+            </div>
+
+            <div class="form-row" style="margin-top: 15px;">
+                <div class="form-group full-width">
+                    <label style="font-weight: 600; margin-bottom: 6px;">Nome do Nível de Acesso</label>
+                    <input type="text" id="inputEditarNomeNivelAcesso" class="form-control" style="width: 100%; padding: 10px 12px; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 14px; outline: none;">
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <label style="font-weight: 600; display: block; margin-bottom: 10px; font-size: 14px; color: var(--text-main);">Permissões de Acesso às Páginas</label>
+                <div class="table-container" style="max-height: 320px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--bg-primary);">
+                    <table class="demand-table" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="padding: 10px 14px; text-align: left;">PÁGINA / MÓDULO</th>
+                                <th width="120" style="text-align: center; white-space: nowrap; vertical-align: middle;">ACESSO</th>
+                                <th width="120" style="text-align: center; white-space: nowrap; vertical-align: middle;">VISUALIZAR</th>
+                            </tr>
+                        </thead>
+                        <tbody id="permissoesTableBody">
+                            <!-- Gerado via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="margin-top: 25px;">
+                <button type="button" class="btn-secondary" id="btnCancelEditarNivelAcesso">Cancelar</button>
+                <button type="button" class="btn-submit" id="btnSaveEditarNivelAcesso">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Excluir Nível de Acesso -->
+    <div class="modal-overlay" id="modalExcluirNivelAcesso">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Excluir Nível de Acesso</h2>
+                <button class="close-modal" id="btnCloseExcluirNivelAcesso"><i class="ph ph-x"></i></button>
+            </div>
+
+            <div style="text-align: center; margin: 20px 0; color: var(--text-sidebar);">
+                <p id="textExcluirNivelAcesso">Tem certeza que deseja excluir este nível de acesso?</p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="btnCancelExcluirNivelAcesso">Cancelar</button>
+                <button type="button" class="btn-danger" id="btnConfirmExcluirNivelAcesso"
+                    style="background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2);">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Gerenciar Tipos (Guia) -->
+    <div class="modal-overlay" id="modalGerenciarTiposGuia">
+        <div class="modal-content modal-md">
+            <div class="modal-header"
+                style="justify-content: center; position: relative; margin-bottom: 20px; border-bottom: none; padding-bottom: 0;">
+                <h2
+                    style="text-align: center; width: 100%; margin: 0; font-size: 20px; font-weight: 600; color: var(--text-main);">
+                    Gerenciador de grupos</h2>
+                <button class="close-modal" id="closeModalGerenciarTiposGuia"
+                    style="position: absolute; right: 0; top: 0;"><i class="ph ph-x"></i></button>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="inputNovoTipoGuia" class="form-control" placeholder="Novo grupo..."
+                        style="flex: 1; padding: 0 12px; height: 38px; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 13px; outline: none;">
+                    <button class="action-toolbar-btn" id="btnAdicionarTipoGuia"
+                        style="height: 38px; padding: 0 16px; font-size: 13px;">Adicionar</button>
+                </div>
+            </div>
+
+            <div class="table-container"
+                style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--bg-primary);">
+                <table class="demand-table" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="word-break: break-word;">GRUPO</th>
+                            <th style="text-align: center; white-space: nowrap; width: 140px;">TUTORIAIS ATRIBUÍDOS</th>
+                            <th style="text-align: center; white-space: nowrap; width: 90px;">AÇÕES</th>
                         </tr>
                     </thead>
                     <tbody id="tiposGuiaTableBody">
@@ -752,10 +1557,6 @@
                 </table>
                 <div id="paginationTiposGuiaContainer" class="pagination-container"></div>
             </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" id="btnCloseTiposGuia">Fechar</button>
-            </div>
         </div>
     </div>
 
@@ -763,7 +1564,7 @@
     <div class="modal-overlay" id="modalEditarTipoGuia">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">
-                <h2>Editar "Tipo de Guia"</h2>
+                <h2>Editar Grupo</h2>
                 <button class="close-modal" id="btnCloseEditarTipoGuia"><i class="ph ph-x"></i></button>
             </div>
 
@@ -786,12 +1587,12 @@
     <div class="modal-overlay" id="modalExcluirTipoGuia">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">
-                <h2>Excluir Tipo</h2>
+                <h2>Excluir Grupo</h2>
                 <button class="close-modal" id="btnCloseExcluirTipoGuia"><i class="ph ph-x"></i></button>
             </div>
 
             <div style="text-align: center; margin: 20px 0; color: var(--text-sidebar);">
-                <p id="textExcluirTipoGuia">Tem certeza que deseja excluir este tipo?</p>
+                <p id="textExcluirTipoGuia">Tem certeza que deseja excluir este grupo?</p>
             </div>
 
             <div class="modal-footer">
@@ -804,83 +1605,132 @@
 
     <!-- Modal Nova Guia -->
     <div class="modal-overlay" id="modalNovaGuia">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header" style="justify-content: center; position: relative;">
-                <h2 id="modalNovaGuiaTitle" style="text-align: center; width: 100%; margin: 0; font-size: 24px;">Criar
-                    nova guia</h2>
-                <button class="close-modal" id="btnCloseGuia" style="position: absolute; right: 0; top: 0;"><i
-                        class="ph ph-x"></i></button>
+        <div class="modal-content-wrapper" style="position: relative; max-width: 500px; width: 90%; margin: 0 auto;">
+            <div class="modal-content" style="width: 100%; margin: 0; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto;">
+                <div class="modal-header" style="justify-content: center; position: relative;">
+                    <h2 id="modalNovaGuiaTitle" style="text-align: center; width: 100%; margin: 0; font-size: 24px;">Criar novo tutorial</h2>
+                    <button class="close-modal" id="btnCloseGuia" style="position: absolute; right: 0; top: 0;"><i class="ph ph-x"></i></button>
+                </div>
+
+                <form id="formNovaGuia" novalidate style="display: flex; flex-direction: column; flex: 1;">
+                    <div id="formSectionCaminho" style="flex: 1;">
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label>Título / Nome *</label>
+                                <input type="text" id="inputGuiaTitulo" placeholder="" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label>Grupo *</label>
+                                <select id="inputGuiaTipoSelect" required>
+                                    <option value="">Selecione o Grupo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label>Descrição *</label>
+                                <textarea id="inputGuiaConteudo" rows="4" placeholder="Digite a descrição ou conteúdo..." required></textarea>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label>Anexos</label>
+                                <input type="file" id="inputGuiaFile" style="display: none;" multiple>
+                                <button type="button" class="btn-secondary" id="btnAnexarArquivoGuia" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border: 1px dashed rgba(139, 92, 246, 0.4); border-radius: 8px; color: var(--text-main); font-weight: 600; cursor: pointer; background: rgba(139, 92, 246, 0.05); transition: all 0.2s ease;">
+                                    <i class="ph ph-paperclip" style="font-size: 18px; color: #8b5cf6;"></i> Anexar arquivo
+                                </button>
+                                <input type="hidden" id="inputGuiaAnexo">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="justify-content: space-between; margin-top: 24px;">
+                        <button type="button" class="btn-secondary" id="btnCancelGuia" style="width: 45%;">Cancelar</button>
+                        <button type="submit" class="btn-submit" style="width: 45%;">Criar</button>
+                    </div>
+                </form>
             </div>
 
-            <form id="formNovaGuia">
-                <div id="formSectionCaminho">
-                    <div class="form-row">
-                        <div class="form-group full-width">
-                            <label>Título / Nome</label>
-                            <input type="text" id="inputGuiaTitulo" placeholder="" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group full-width">
-                            <label>Tipo</label>
-                            <select id="inputGuiaTipoSelect">
-                                <option value="">Selecione o Tipo</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group full-width">
-                            <label>Descrição</label>
-                            <textarea id="inputGuiaConteudo" rows="4" placeholder=""></textarea>
-                        </div>
-                    </div>
-                    <div class="form-row" style="display: none;">
-                        <div class="form-group full-width">
-                            <label>Campo para anexos</label>
-                            <input type="text" id="inputGuiaAnexo"
-                                placeholder="Cole aqui os links ou referências dos anexos...">
-                        </div>
-                    </div>
+            <!-- Painel de Anexos à Direita (Flutuante ao lado do popup central) -->
+            <div id="sidePanelAnexosGuia" class="anexos-side-panel" style="position: absolute; left: calc(100% + 16px); top: 0; bottom: 0; width: 320px; background-color: #231c34; border: 1px solid #4a3d6c; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; max-height: 90vh; box-shadow: 0 20px 50px rgba(0,0,0,0.65), 0 0 0 1px rgba(139, 92, 246, 0.2);">
+                <div style="display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center; width: 100%;">
+                        <i class="ph ph-paperclip" style="color: #8b5cf6; font-size: 18px;"></i> Painel de Anexos
+                    </h3>
+                    <span id="sidePanelAnexosBadge" style="position: absolute; right: 0; background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 12px;">0</span>
                 </div>
-                <div class="modal-footer" style="justify-content: space-between; margin-top: 30px;">
-                    <button type="button" class="btn-secondary" id="btnCancelGuia" style="width: 45%;">Cancelar</button>
-                    <button type="submit" class="btn-submit" style="width: 45%;">Criar</button>
+                <div id="listaAnexosGuiaCards" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 4px;">
+                    <!-- Cards de anexos -->
                 </div>
+            </div>
         </div>
-        </form>
-    </div>
     </div>
 
 
     <!-- Modal Visualizar Guia -->
     <div class="modal-overlay" id="modalViewGuia">
-        <div class="modal-content" style="max-width: 600px;">
-            <div class="modal-header" style="justify-content: center; border-bottom: none; padding-bottom: 0;">
-                <h2 id="viewGuiaTitulo" style="text-align: center; width: 100%; margin: 0; font-size: 24px;">Nome do
-                    guia</h2>
+        <div class="modal-content-wrapper" style="position: relative; max-width: 580px; width: 90%; margin: 0 auto;">
+            <div class="modal-content" style="width: 100%; margin: 0; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto;">
+                <div class="modal-header" style="justify-content: center; border-bottom: none; padding-bottom: 0;">
+                    <h2 id="viewGuiaTitulo" style="text-align: center; width: 100%; margin: 0; font-size: 24px;">Nome do guia</h2>
+                </div>
+
+                <div style="padding: 20px 0 0 0; display: flex; flex-direction: column; flex: 1;">
+                    <div class="form-group full-width" style="margin-bottom: 20px; flex: 1;">
+                        <label style="text-align: center; width: 100%; display: block; font-weight: 600; margin-bottom: 8px;">Descrição</label>
+                        <div style="background-color: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-size: 14px; line-height: 1.6; min-height: 180px; max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); word-break: break-word;"
+                            id="viewGuiaConteudo">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: auto; padding-top: 16px;">
+                        <button type="button" class="btn-secondary" id="btnCloseViewGuia"
+                            style="width: 140px; height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600;">
+                            <i class="ph ph-arrow-left"></i> Voltar
+                        </button>
+                        <button type="button" class="btn-submit" id="btnCopyViewGuia"
+                            style="width: 160px; height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; background: #6d28d9; border: 1px solid #8b5cf6; color: #ffffff; box-shadow: 0 4px 12px rgba(109, 40, 217, 0.4);">
+                            <i class="ph ph-copy" style="font-size: 18px;"></i> Copiar
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div style="padding: 20px;">
-                <div class="form-group full-width" style="margin-bottom: 20px;">
-                    <label style="text-align: center; width: 100%; display: block;">Descrição</label>
-                    <div style="background-color: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-size: 15px; line-height: 1.6; min-height: 150px; max-height: 400px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); word-break: break-word;"
-                        id="viewGuiaConteudo">
-                    </div>
+            <!-- Painel de Anexos Visualizar (Flutuante ao lado do popup central) -->
+            <div id="sidePanelAnexosViewGuia" class="anexos-side-panel" style="position: absolute; left: calc(100% + 16px); top: 0; bottom: 0; width: 320px; background-color: #231c34; border: 1px solid #4a3d6c; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; max-height: 90vh; box-shadow: 0 20px 50px rgba(0,0,0,0.65), 0 0 0 1px rgba(139, 92, 246, 0.2);">
+                <div style="display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center; width: 100%;">
+                        <i class="ph ph-paperclip" style="color: #8b5cf6; font-size: 18px;"></i> Painel de Anexos
+                    </h3>
+                    <span id="sidePanelAnexosViewBadge" style="position: absolute; right: 0; background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 12px;">0</span>
                 </div>
+                <div id="listaAnexosViewGuiaCards" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 4px;">
+                    <!-- Cards de anexos -->
+                </div>
+            </div>
+        </div>
+    </div>
 
-                <div class="form-group full-width" style="margin-bottom: 30px; display: none;">
-                    <label style="text-align: center; width: 100%; display: block;">Anexos</label>
-                    <div id="viewGuiaAnexo"
-                        style="background-color: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; min-height: 60px; max-height: 200px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); word-break: break-word;">
-                    </div>
-                </div>
-
-                <div style="display: flex; justify-content: center; gap: 15px;">
-                    <button type="button" class="btn-secondary" id="btnCloseViewGuia"
-                        style="width: 200px;">Voltar</button>
-                    <button type="button" class="btn-primary" id="btnCopyViewGuia" style="width: 200px;"><i
-                            class="ph ph-copy"></i> Copiar</button>
-                </div>
+    <!-- Modal Visualizar Anexo no Site -->
+    <div class="modal-overlay" id="modalPreviewAnexo" style="z-index: 99999;">
+        <div class="modal-content" style="max-width: 900px; width: 92vw; max-height: 90vh; display: flex; flex-direction: column; padding: 22px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+                <h3 id="previewAnexoTitulo" style="margin: 0; font-size: 18px; color: #f1f5f9; display: flex; align-items: center; gap: 8px; max-width: 85%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <i class="ph ph-file" style="color: #8b5cf6;"></i> Visualizar Anexo
+                </h3>
+                <button class="close-modal" id="btnClosePreviewAnexo" type="button" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 20px;"><i class="ph ph-x"></i></button>
+            </div>
+            <div id="previewAnexoBody" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 320px; max-height: calc(80vh - 100px); overflow: auto; background: rgba(0,0,0,0.35); border-radius: 8px; padding: 12px;">
+                <!-- Conteúdo do Anexo -->
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                <button type="button" class="btn-secondary" id="btnDownloadPreviewAnexo" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-weight: 600;">
+                    <i class="ph ph-download-simple"></i> Baixar Arquivo
+                </button>
+                <button type="button" class="btn-secondary" id="btnFecharPreviewAnexo" style="padding: 8px 18px; border-radius: 6px; font-weight: 600;">
+                    Fechar
+                </button>
             </div>
         </div>
     </div>
@@ -891,7 +1741,7 @@
     <!-- Scripts -->
 
 
-    
+
 </body>
 
 </html>

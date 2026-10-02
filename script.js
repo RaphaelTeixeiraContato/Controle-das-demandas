@@ -427,7 +427,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableHeaders = document.querySelectorAll('.demand-table th[data-col]');
 
     const filterResponsavel = document.getElementById('filterResponsavel');
+    const filterAssessor = document.getElementById('filterAssessor');
     const filterMeio = document.getElementById('filterMeio');
+    const filterComQuem = document.getElementById('filterComQuem');
 
     const navItems = document.querySelectorAll('.nav-item[data-page]');
     const viewAbertas = document.getElementById('viewAbertas');
@@ -803,7 +805,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let searchQuery = '';
     let sortConfig = { column: 'data', direction: 'desc' };
     let selectedResponsavel = '';
+    let selectedAssessor = '';
     let selectedMeio = '';
+    let selectedComQuem = '';
     let selectedDateInicio = null;
     let selectedDateFim = null;
 
@@ -920,31 +924,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 notificacoes: 1
             };
 
-            // Reset filters and selection on page change
-            searchQuery = '';
-            inputBuscar.value = '';
-            selectedResponsavel = '';
-            selectedMeio = '';
-            selectedDateInicio = null;
-            selectedDateFim = null;
+            // Preserve filters and selection on page change (não zera os filtros ao trocar de aba)
             selectedIds = [];
-
-            if (document.getElementById('filterResponsavel')) document.getElementById('filterResponsavel').value = '';
-            if (document.getElementById('filterMeio')) document.getElementById('filterMeio').value = '';
-            if (document.getElementById('filterAssessor')) document.getElementById('filterAssessor').value = '';
-            if (document.getElementById('filterComQuem')) document.getElementById('filterComQuem').value = '';
-
-            // Controle filters
-            const inpBuscarControle = document.getElementById('inputBuscarControle');
-            if (inpBuscarControle) inpBuscarControle.value = '';
-            const selCatControle = document.getElementById('selectCategoriaControle');
-            if (selCatControle) selCatControle.value = 'responsaveis';
-
-            // Guia filters
-            const inpBuscarGuia = document.getElementById('inputBuscarGuia');
-            if (inpBuscarGuia) inpBuscarGuia.value = '';
-            const filterGuia = document.getElementById('filterGuiaTipo');
-            if (filterGuia) filterGuia.value = '';
 
             if (typeof updateBulkActionsControle === 'function') {
                 const sAll = document.getElementById('selectAllControle');
@@ -958,12 +939,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 cb.checked = false;
                 cb.indeterminate = false;
             });
-            if (window.datePickerInstance) {
-                window.datePickerInstance.clear();
-                const mainDateValue = document.getElementById('dateFilterValue');
-                if (mainDateValue) mainDateValue.textContent = 'Filtrar por data';
-            }
-            sortConfig = { column: 'data', direction: 'desc' };
 
             updateFilterOptions();
             renderTables();
@@ -1258,28 +1233,59 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateFilterOptions = () => {
-        const currResp = filterResponsavel.value;
-        const currMeio = filterMeio.value;
+        const currResp = filterResponsavel ? filterResponsavel.value : selectedResponsavel;
+        const currAssessor = filterAssessor ? filterAssessor.value : selectedAssessor;
+        const currMeio = filterMeio ? filterMeio.value : selectedMeio;
+        const currComQuem = filterComQuem ? filterComQuem.value : selectedComQuem;
 
-        filterResponsavel.innerHTML = '<option value="">Filtrar responsável</option>';
-        if (configuracoes.responsaveis) {
-            configuracoes.responsaveis.forEach(r => {
-                const opt = document.createElement('option');
-                opt.value = r.nome || r; opt.textContent = r.nome || r;
-                if ((r.nome || r) === currResp) opt.selected = true;
-                filterResponsavel.appendChild(opt);
-            });
+        if (filterResponsavel) {
+            filterResponsavel.innerHTML = '<option value="">Filtrar responsável</option>';
+            if (configuracoes.responsaveis) {
+                configuracoes.responsaveis.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r.nome || r; opt.textContent = r.nome || r;
+                    if ((r.nome || r) === currResp) opt.selected = true;
+                    filterResponsavel.appendChild(opt);
+                });
+            }
         }
 
-        filterMeio.innerHTML = '<option value="">Filtrar por caminho</option>';
-        if (configuracoes.meios) {
-            configuracoes.meios.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.nome || m; opt.textContent = m.nome || m;
-                if ((m.nome || m) === currMeio) opt.selected = true;
-                filterMeio.appendChild(opt);
-            });
+        if (filterAssessor) {
+            filterAssessor.innerHTML = '<option value="">Filtrar assessor</option>';
+            if (configuracoes.assessores) {
+                configuracoes.assessores.forEach(a => {
+                    const opt = document.createElement('option');
+                    opt.value = a.nome || a; opt.textContent = a.nome || a;
+                    if ((a.nome || a) === currAssessor) opt.selected = true;
+                    filterAssessor.appendChild(opt);
+                });
+            }
         }
+
+        if (filterMeio) {
+            filterMeio.innerHTML = '<option value="">Filtrar por caminho</option>';
+            if (configuracoes.meios) {
+                configuracoes.meios.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.nome || m; opt.textContent = m.nome || m;
+                    if ((m.nome || m) === currMeio) opt.selected = true;
+                    filterMeio.appendChild(opt);
+                });
+            }
+        }
+
+        if (filterComQuem) {
+            filterComQuem.innerHTML = '<option value="">Filtrar por com a/o</option>';
+            if (configuracoes.comQuem) {
+                configuracoes.comQuem.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.nome || c; opt.textContent = c.nome || c;
+                    if ((c.nome || c) === currComQuem) opt.selected = true;
+                    filterComQuem.appendChild(opt);
+                });
+            }
+        }
+
         if (typeof updateGuiaFilterOptions === 'function') {
             updateGuiaFilterOptions();
         }
@@ -1369,8 +1375,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return item ? item.cor : null;
         });
 
+        setupDropdown('dropdownFilterAssessor', filterAssessor, 'Filtrar assessor', () => '#8b5cf6');
+
         setupDropdown('dropdownFilterMeio', filterMeio, 'Filtrar por caminho', (val) => {
             const item = (configuracoes.meios || []).find(m => (m.nome || m) === val);
+            return item ? item.cor : null;
+        });
+
+        setupDropdown('dropdownFilterComQuem', filterComQuem, 'Filtrar por com a/o', (val) => {
+            const item = (configuracoes.comQuem || []).find(c => (c.nome || c) === val);
             return item ? item.cor : null;
         });
 
@@ -1412,7 +1425,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const syncCustomFilterDropdowns = () => {
-        ['dropdownFilterResponsavel', 'dropdownFilterMeio', 'dropdownSelectCategoriaControle', 'dropdownFilterGuiaTipo', 'dropdownFilterNivelAcesso', 'dropdownTempoNotificacoes', 'dropdownSelectSoundTone', 'dropdownSelectLembreteSoundTone'].forEach(id => {
+        ['dropdownFilterResponsavel', 'dropdownFilterAssessor', 'dropdownFilterMeio', 'dropdownFilterComQuem', 'dropdownSelectCategoriaControle', 'dropdownFilterGuiaTipo', 'dropdownFilterNivelAcesso', 'dropdownTempoNotificacoes', 'dropdownSelectSoundTone', 'dropdownSelectLembreteSoundTone'].forEach(id => {
             const el = document.getElementById(id);
             if (el && el._renderMenu) el._renderMenu();
         });
@@ -1435,8 +1448,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectedResponsavel) {
             result = result.filter(d => d.responsavel === selectedResponsavel);
         }
+        if (selectedAssessor) {
+            result = result.filter(d => d.assessor === selectedAssessor);
+        }
         if (selectedMeio) {
             result = result.filter(d => d.meio === selectedMeio);
+        }
+        if (selectedComQuem) {
+            result = result.filter(d => d.comQuem === selectedComQuem);
         }
         if (selectedDateInicio) {
             result = result.filter(d => d.data && d.data >= selectedDateInicio);
@@ -1890,25 +1909,47 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTables();
     });
 
-    filterResponsavel.addEventListener('change', (e) => {
-        selectedResponsavel = e.target.value;
-        renderTables();
-    });
+    if (filterResponsavel) {
+        filterResponsavel.addEventListener('change', (e) => {
+            selectedResponsavel = e.target.value;
+            renderTables();
+        });
+    }
 
-    filterMeio.addEventListener('change', (e) => {
-        selectedMeio = e.target.value;
-        renderTables();
-    });
+    if (filterAssessor) {
+        filterAssessor.addEventListener('change', (e) => {
+            selectedAssessor = e.target.value;
+            renderTables();
+        });
+    }
+
+    if (filterMeio) {
+        filterMeio.addEventListener('change', (e) => {
+            selectedMeio = e.target.value;
+            renderTables();
+        });
+    }
+
+    if (filterComQuem) {
+        filterComQuem.addEventListener('change', (e) => {
+            selectedComQuem = e.target.value;
+            renderTables();
+        });
+    }
 
     btnReset.addEventListener('click', () => {
         searchQuery = '';
         inputBuscar.value = '';
         selectedResponsavel = '';
+        selectedAssessor = '';
         selectedMeio = '';
+        selectedComQuem = '';
         selectedDateInicio = null;
         selectedDateFim = null;
-        filterResponsavel.value = '';
-        filterMeio.value = '';
+        if (filterResponsavel) filterResponsavel.value = '';
+        if (filterAssessor) filterAssessor.value = '';
+        if (filterMeio) filterMeio.value = '';
+        if (filterComQuem) filterComQuem.value = '';
         if (window.datePickerInstance) {
             window.datePickerInstance.clear();
             document.getElementById('dateFilterValue').textContent = 'Filtrar por data';

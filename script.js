@@ -1156,20 +1156,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     const openTransferModal = (id) => {
         actionId = id;
-        inputDataEncerramento.valueAsDate = new Date(); // Data de hoje por padrão
+        if (typeof transferDatePicker !== 'undefined' && transferDatePicker) {
+            transferDatePicker.setDate(new Date());
+        } else if (inputDataEncerramento) {
+            inputDataEncerramento.value = new Date().toISOString().split('T')[0];
+        }
         const inputMotivo = document.getElementById('inputMotivoEncerramento');
         const groupMotivo = document.getElementById('groupMotivoEncerramento');
         if (inputMotivo) inputMotivo.value = '';
 
+        const groupData = inputDataEncerramento ? inputDataEncerramento.closest('.form-group') : null;
+
         if (currentPage === 'historico') {
             document.querySelector('#modalTransferirDemanda h3').textContent = 'Retornar para Abertas';
             document.querySelector('#modalTransferirDemanda p').textContent = 'Deseja retornar esta demanda para as em aberto?';
-            inputDataEncerramento.parentElement.style.display = 'none'; // Esconder input de data
+            if (groupData) groupData.style.display = 'none'; // Esconder input de data
             if (groupMotivo) groupMotivo.style.display = 'none'; // Esconder motivo
         } else {
             document.querySelector('#modalTransferirDemanda h3').textContent = 'Transferir para o Histórico';
             document.querySelector('#modalTransferirDemanda p').textContent = 'Informe a data e o motivo do encerramento.';
-            inputDataEncerramento.parentElement.style.display = 'block'; // Mostrar input de data
+            if (groupData) groupData.style.display = 'block'; // Mostrar input de data
             if (groupMotivo) groupMotivo.style.display = 'block'; // Mostrar motivo
         }
 
@@ -1731,7 +1737,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnBulkTransferir) {
         btnBulkTransferir.addEventListener('click', () => {
             document.getElementById('bulkTransferCountText').textContent = selectedIds.length;
-            document.getElementById('inputBulkDataEncerramento').value = new Date().toISOString().split('T')[0];
+            if (typeof bulkTransferDatePicker !== 'undefined' && bulkTransferDatePicker) {
+                bulkTransferDatePicker.setDate(new Date());
+            } else {
+                document.getElementById('inputBulkDataEncerramento').value = new Date().toISOString().split('T')[0];
+            }
 
             if (currentPage === 'abertas') {
                 document.getElementById('groupBulkMotivoEncerramento').style.display = 'block';
@@ -2093,6 +2103,46 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputDataEl = document.getElementById('inputData');
     if (inputDataEl) {
         modalDatePicker = flatpickr(inputDataEl, {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            defaultDate: new Date(),
+            locale: flatpickrPtBr,
+            prevArrow: '<i class="ph ph-caret-left"></i>',
+            nextArrow: '<i class="ph ph-caret-right"></i>',
+            onReady: function (selectedDates, dateStr, instance) {
+                enhanceFlatpickrUI(instance, null);
+            },
+            onOpen: function (selectedDates, dateStr, instance) {
+                enhanceFlatpickrUI(instance, null);
+            }
+        });
+    }
+
+    let transferDatePicker = null;
+    const inputDataEncerramentoEl = document.getElementById('inputDataEncerramento');
+    if (inputDataEncerramentoEl) {
+        transferDatePicker = flatpickr(inputDataEncerramentoEl, {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            defaultDate: new Date(),
+            locale: flatpickrPtBr,
+            prevArrow: '<i class="ph ph-caret-left"></i>',
+            nextArrow: '<i class="ph ph-caret-right"></i>',
+            onReady: function (selectedDates, dateStr, instance) {
+                enhanceFlatpickrUI(instance, null);
+            },
+            onOpen: function (selectedDates, dateStr, instance) {
+                enhanceFlatpickrUI(instance, null);
+            }
+        });
+    }
+
+    let bulkTransferDatePicker = null;
+    const inputBulkDataEncerramentoEl = document.getElementById('inputBulkDataEncerramento');
+    if (inputBulkDataEncerramentoEl) {
+        bulkTransferDatePicker = flatpickr(inputBulkDataEncerramentoEl, {
             dateFormat: "Y-m-d",
             altInput: true,
             altFormat: "d/m/Y",
@@ -2478,7 +2528,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = list.find(o => (o.nome || o) === value);
         if (item && item.cor) return item.cor;
         if (type === 'responsaveis') return '#8b5cf6';
-        if (type === 'assessores') return null; // Assessores não possuem cor
+        if (type === 'assessores') return (item && item.cor) ? item.cor : '#8b5cf6'; // Todos assessores padronizados com bolinha roxa
         if (type === 'meios') return '#3b82f6';
         if (type === 'comQuem') return '#10b981';
         return '#a78bfa';
@@ -2864,7 +2914,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const now = new Date().toISOString();
             nomes.forEach(val => {
                 if (!configuracoes.assessores.some(a => (a.nome || a).toLowerCase() === val.toLowerCase())) {
-                    configuracoes.assessores.push({ nome: val, criadoEm: now, atualizadoEm: now });
+                    configuracoes.assessores.push({ nome: val, cor: '#8b5cf6', criadoEm: now, atualizadoEm: now });
                     adicionados++;
                 }
             });

@@ -658,12 +658,34 @@ body {
     overflow: hidden;
 }
 
-.custom-dropdown-item-content span {
+.custom-dropdown-item-content > span:not(.custom-dropdown-item-dot):not(.highlight) {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     display: inline-block;
+    vertical-align: middle;
+    line-height: normal;
     max-width: 100%;
+}
+
+.ts-dropdown .highlight,
+.custom-dropdown-item-content .highlight,
+.custom-dropdown-item-content span.highlight,
+.custom-dropdown-item-content > span .highlight {
+    display: inline !important;
+    vertical-align: baseline !important;
+    background: rgba(139, 92, 246, 0.3) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border-radius: 3px !important;
+    padding: 0 2px !important;
+    margin: 0 !important;
+    line-height: inherit !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    max-width: none !important;
+    white-space: pre-wrap !important;
 }
 
 .custom-dropdown-item-dot {
@@ -1794,8 +1816,9 @@ input[type="checkbox"]:checked::before {
     box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.25);
 }
 
-.form-group textarea {
-    resize: none;
+.form-group textarea,
+textarea {
+    resize: none !important;
     min-height: 85px;
 }
 

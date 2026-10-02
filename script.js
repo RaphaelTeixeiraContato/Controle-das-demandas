@@ -475,9 +475,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let usuariosSyncInit = false;
+    let authInitialized = false;
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
         const user = session?.user;
-        if (user) {
+        if (!user) {
+            loggedUser = null;
+            userAccessLevel = null;
+            authInitialized = false;
+            loginOverlay.style.display = 'flex';
+            appContainer.style.display = 'none';
+            return;
+        }
+
+        // Se a sessão já foi inicializada para o mesmo usuário, não refazer o setup completo
+        // nem re-renderizar selects ao alternar abas do navegador ou renovar token em segundo plano
+        if (authInitialized && loggedUser && loggedUser.id === user.id && (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN')) {
+            loggedUser = user;
+            return;
+        }
+        authInitialized = true;
             // Transform user.email and name for backward compatibility
             user.displayName = user.user_metadata?.full_name || user.email.split('@')[0];
 
@@ -548,15 +564,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     .subscribe();
             };
             initUsuariosSync();
-
-        } else {
-            loggedUser = null;
-            userAccessLevel = null;
-            lembretes = [];
-            notificacoes = [];
-            loginOverlay.style.display = 'flex';
-            appContainer.style.display = 'none';
-        }
     });
 
     let syncInitialized = false;
@@ -2623,44 +2630,50 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function renderSelectOptions() {
-        const selResp = document.getElementById('inputResponsavel');
-        const selAssessor = document.getElementById('inputAssessor');
-        const selMeio = document.getElementById('inputMeio');
-        const selComQuem = document.getElementById('inputComQuem');
+    function syncTomSelectField(currentTs, selectId, category, itemsList) {
+        const selectEl = document.getElementById(selectId);
+        if (!selectEl) return null;
 
-        if (selResp) {
-            if (tsResponsavel) { tsResponsavel.destroy(); tsResponsavel = null; }
-            const val = selResp.value;
-            selResp.innerHTML = '<option value="">Selecione</option>';
-            (configuracoes.responsaveis || []).forEach(o => selResp.innerHTML += `<option value="${o.nome || o}">${o.nome || o}</option>`);
-            selResp.value = val;
-            tsResponsavel = createTomSelectWithDots('#inputResponsavel', 'responsaveis');
+        // Recuperar o valor atual de forma segura (do TomSelect ou do select nativo)
+        const currentVal = currentTs ? currentTs.getValue() : selectEl.value;
+
+        if (currentTs) {
+            // Se o TomSelect já existe, atualizamos as opções SEM destruí-lo
+            // Isso evita zerar a digitação ou a seleção do usuário se o modal estiver aberto!
+            currentTs.clearOptions();
+            (itemsList || []).forEach(o => {
+                const name = o.nome || o;
+                currentTs.addOption({ value: name, text: name });
+            });
+            currentTs.refreshOptions(false);
+            if (currentVal) {
+                currentTs.setValue(currentVal, true);
+            }
+            return currentTs;
+        } else {
+            // Se ainda não foi inicializado, cria o HTML base e inicializa
+            selectEl.innerHTML = '<option value="">Selecione</option>';
+            (itemsList || []).forEach(o => {
+                const name = o.nome || o;
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                if (name === currentVal) opt.selected = true;
+                selectEl.appendChild(opt);
+            });
+            const newTs = createTomSelectWithDots('#' + selectId, category);
+            if (currentVal) {
+                newTs.setValue(currentVal, true);
+            }
+            return newTs;
         }
-        if (selAssessor) {
-            if (tsAssessor) { tsAssessor.destroy(); tsAssessor = null; }
-            const val = selAssessor.value;
-            selAssessor.innerHTML = '<option value="">Selecione</option>';
-            (configuracoes.assessores || []).forEach(o => selAssessor.innerHTML += `<option value="${o.nome || o}">${o.nome || o}</option>`);
-            selAssessor.value = val;
-            tsAssessor = createTomSelectWithDots('#inputAssessor', 'assessores');
-        }
-        if (selMeio) {
-            if (tsMeio) { tsMeio.destroy(); tsMeio = null; }
-            const val = selMeio.value;
-            selMeio.innerHTML = '<option value="">Selecione</option>';
-            (configuracoes.meios || []).forEach(o => selMeio.innerHTML += `<option value="${o.nome || o}">${o.nome || o}</option>`);
-            selMeio.value = val;
-            tsMeio = createTomSelectWithDots('#inputMeio', 'meios');
-        }
-        if (selComQuem) {
-            if (tsComQuem) { tsComQuem.destroy(); tsComQuem = null; }
-            const val = selComQuem.value;
-            selComQuem.innerHTML = '<option value="">Selecione</option>';
-            (configuracoes.comQuem || []).forEach(o => selComQuem.innerHTML += `<option value="${o.nome || o}">${o.nome || o}</option>`);
-            selComQuem.value = val;
-            tsComQuem = createTomSelectWithDots('#inputComQuem', 'comQuem');
-        }
+    }
+
+    function renderSelectOptions() {
+        tsResponsavel = syncTomSelectField(tsResponsavel, 'inputResponsavel', 'responsaveis', configuracoes.responsaveis);
+        tsAssessor = syncTomSelectField(tsAssessor, 'inputAssessor', 'assessores', configuracoes.assessores);
+        tsMeio = syncTomSelectField(tsMeio, 'inputMeio', 'meios', configuracoes.meios);
+        tsComQuem = syncTomSelectField(tsComQuem, 'inputComQuem', 'comQuem', configuracoes.comQuem);
     };
 
     const selectAllControle = document.getElementById('selectAllControle');
